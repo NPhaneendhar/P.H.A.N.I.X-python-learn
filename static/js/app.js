@@ -318,14 +318,14 @@ async function initApp() {
 
 // Fetch Curriculum from Server API
 async function loadCurriculum() {
-  const res = await fetch('/api/curriculum');
+  const res = await fetch('/data/curriculum.json');
   if (!res.ok) throw new Error('Could not fetch curriculum');
   state.modules = await res.json();
 }
 
 // Fetch Cheat Sheet from Server API
 async function loadCheatsheet() {
-  const res = await fetch('/api/cheatsheet');
+  const res = await fetch('/data/cheatsheet.json');
   if (!res.ok) throw new Error('Could not fetch cheatsheet');
   state.cheatsheet = await res.json();
 }
