@@ -1,0 +1,827 @@
+[
+  {
+    "id": "module-1",
+    "title": "Module 1: Python Basics & Variables",
+    "icon": "\ud83d\ude80",
+    "description": "Master the fundamentals of Python syntax, outputting data, variables, and data types.",
+    "lessons": [
+      {
+        "id": "lesson-1-1",
+        "title": "Hello, Python! & Output",
+        "difficulty": "Beginner",
+        "xp": 50,
+        "summary": "Learn how to use the print() function, write comments, and output data.",
+        "content": "### Welcome to Python! \ud83d\udc0d\n\nPython is one of the most popular, readable, and versatile programming languages in the world. It is used for web development, artificial intelligence, data science, automation, and more.\n\n#### The `print()` Function\nTo display information to the screen, we use the built-in `print()` function:\n\n```python\nprint(\"Hello, World!\")\nprint(42)\nprint(\"Welcome\", \"to\", \"Python!\")\n```\n\n#### Code Comments\nComments are notes for humans reading the code. Python ignores them during execution:\n\n```python\n# This is a single-line comment\nprint(\"Code runs here\")  # Inline comment\n```\n\n#### Key Rules:\n1. Strings must be enclosed in quotes (single `'...'` or double `\"...\"`).\n2. Python is case-sensitive: `print()` works, but `Print()` will raise an error!\n3. Multiple arguments separated by commas in `print()` are separated by spaces by default.\n",
+        "starter_code": "# Welcome to PyLearn!\n# Try printing your name and a welcome message:\nprint(\"Hello, Python learner!\")\n\n# Exercise: Print a greeting with your favorite programming topic\nprint(\"I am excited to learn Python!\")\n",
+        "quiz": {
+          "question": "What is the correct way to output 'Python is awesome' to the console?",
+          "options": [
+            "echo 'Python is awesome'",
+            "print(\"Python is awesome\")",
+            "System.out.println(\"Python is awesome\")",
+            "console.log(\"Python is awesome\")"
+          ],
+          "correct_index": 1,
+          "explanation": "In Python, the built-in print() function is used to display text or values to the screen."
+        },
+        "challenge": {
+          "instructions": "Write code that prints exactly two lines:\nLine 1: `Coding with Python`\nLine 2: `Level 1 Complete`",
+          "starter": "# Complete the challenge below:\n# Print 'Coding with Python' on line 1 and 'Level 1 Complete' on line 2\n\n",
+          "hints": [
+            "Use two separate print() calls.",
+            "Make sure capitalization and spelling match exactly: 'Coding with Python' and 'Level 1 Complete'."
+          ],
+          "solution": "print(\"Coding with Python\")\nprint(\"Level 1 Complete\")\n",
+          "test_cases": [
+            {
+              "name": "Check exact output lines",
+              "expected_output": "Coding with Python\nLevel 1 Complete\n"
+            }
+          ]
+        }
+      },
+      {
+        "id": "lesson-1-2",
+        "title": "Variables & Data Types",
+        "difficulty": "Beginner",
+        "xp": 60,
+        "summary": "Understand how to store values in variables and work with integers, floats, strings, and booleans.",
+        "content": "### Storing Data in Variables \ud83d\udce6\n\nA **variable** is a named container for storing data values. In Python, you create a variable the moment you first assign a value to it using `=`:\n\n```python\nage = 25              # int (integer)\nprice = 19.99         # float (decimal number)\ncourse_name = \"Python\"# str (string)\nis_active = True      # bool (boolean: True or False)\n```\n\n#### Checking Types with `type()`\nYou can inspect the type of any variable using `type()`:\n\n```python\nx = 100\nprint(type(x))  # <class 'int'>\n```\n\n#### Variable Naming Rules:\n- Names must start with a letter or an underscore (`_`).\n- Names cannot start with a number.\n- Names can only contain alphanumeric characters and underscores (`a-z`, `A-Z`, `0-9`, and `_`).\n- Python convention uses **snake_case** for variable names: e.g., `user_score`, `first_name`.\n",
+        "starter_code": "# Variable experimentation\nuser_name = \"Alex\"\nlevel = 1\nxp = 150.5\nis_pro = True\n\nprint(user_name, \"is at level\", level)\nprint(\"XP:\", xp, \"| Pro member:\", is_pro)\n",
+        "quiz": {
+          "question": "Which of the following is an invalid Python variable name?",
+          "options": [
+            "user_age",
+            "_total_score",
+            "2nd_place",
+            "player2"
+          ],
+          "correct_index": 2,
+          "explanation": "Variable names in Python cannot start with a number (like '2nd_place')."
+        },
+        "challenge": {
+          "instructions": "Create three variables:\n1. `item_name` with value `\"Laptop\"`\n2. `price` with value `899.99`\n3. `in_stock` with value `True`\nThen print them together on one line using `print(item_name, price, in_stock)`.",
+          "starter": "# Define the three variables and print them:\n\n",
+          "hints": [
+            "Assign item_name = \"Laptop\", price = 899.99, in_stock = True.",
+            "Call print(item_name, price, in_stock) at the end."
+          ],
+          "solution": "item_name = \"Laptop\"\nprice = 899.99\nin_stock = True\nprint(item_name, price, in_stock)\n",
+          "test_cases": [
+            {
+              "name": "Check variables and printed output",
+              "expected_output": "Laptop 899.99 True\n"
+            }
+          ]
+        }
+      },
+      {
+        "id": "lesson-1-3",
+        "title": "Type Casting & Conversion",
+        "difficulty": "Beginner",
+        "xp": 60,
+        "summary": "Convert between data types using int(), float(), and str().",
+        "content": "### Type Casting \ud83d\udd04\n\nSometimes you need to convert data from one type to another. This is called **type casting**.\n\n#### Built-in Conversion Functions:\n- `int(x)`: Converts `x` to an integer (truncating decimals).\n- `float(x)`: Converts `x` to a floating-point number.\n- `str(x)`: Converts `x` to a string representation.\n- `bool(x)`: Converts `x` to a boolean (`0`, `\"\"`, `None`, and empty collections convert to `False`; everything else is `True`).\n\n```python\n# String to Integer\nnum_str = \"42\"\nnum_int = int(num_str)\nprint(num_int + 8)  # 50\n\n# Float to Integer (decimals are truncated!)\npi = 3.99\nprint(int(pi))      # 3\n```\n",
+        "starter_code": "a = \"25\"\nb = \"75\"\n\nprint(\"Concatenation:\", a + b)\nsum_val = int(a) + int(b)\nprint(\"Numeric Sum:\", sum_val)\n",
+        "quiz": {
+          "question": "What is the output of `print(int(7.85))` in Python?",
+          "options": [
+            "8",
+            "7",
+            "7.85",
+            "TypeError"
+          ],
+          "correct_index": 1,
+          "explanation": "int() truncates towards zero (it cuts off the decimal part), so 7.85 becomes 7 without rounding up."
+        },
+        "challenge": {
+          "instructions": "You are given two string variables: `str_val1 = '15'` and `str_val2 = '4.5'`. Convert `str_val1` to an integer and `str_val2` to a float, calculate their sum, and print the result.",
+          "starter": "str_val1 = \"15\"\nstr_val2 = \"4.5\"\n\n# Convert str_val1 to int and str_val2 to float, then print their sum:\n\n",
+          "hints": [
+            "Use int(str_val1) and float(str_val2).",
+            "Add them together: result = int(str_val1) + float(str_val2).",
+            "Print the result: print(result)."
+          ],
+          "solution": "str_val1 = \"15\"\nstr_val2 = \"4.5\"\nresult = int(str_val1) + float(str_val2)\nprint(result)\n",
+          "test_cases": [
+            {
+              "name": "Check sum of casted values",
+              "expected_output": "19.5\n"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "module-2",
+    "title": "Module 2: Operators & Expressions",
+    "icon": "\u26a1",
+    "description": "Perform calculations and logical comparisons with arithmetic and boolean operators.",
+    "lessons": [
+      {
+        "id": "lesson-2-1",
+        "title": "Arithmetic Operators & Math",
+        "difficulty": "Beginner",
+        "xp": 60,
+        "summary": "Use addition, subtraction, multiplication, division, floor division, modulo, and exponentiation.",
+        "content": "### Python Arithmetic Operators \u2797\n\nPython supports all standard mathematical operations:\n\n| Operator | Name | Example | Result |\n| :--- | :--- | :--- | :--- |\n| `+` | Addition | `10 + 5` | `15` |\n| `-` | Subtraction | `10 - 5` | `5` |\n| `*` | Multiplication | `10 * 5` | `50` |\n| `/` | Division (always returns float) | `10 / 4` | `2.5` |\n| `//` | Floor Division (integer part) | `10 // 4` | `2` |\n| `%` | Modulo (remainder) | `10 % 4` | `2` |\n| `**` | Exponentiation (power) | `2 ** 3` | `8` |\n\n#### Order of Operations (PEMDAS)\nPrecedence:\n1. Parentheses `()`\n2. Exponentiation `**`\n3. Multiplication `*`, Division `/`, Floor Division `//`, Modulo `%`\n4. Addition `+`, Subtraction `-`\n",
+        "starter_code": "# Practice math operators\ntotal_cents = 387\ndollars = total_cents // 100\nremaining_cents = total_cents % 100\n\nprint(\"Dollars:\", dollars)\nprint(\"Remaining cents:\", remaining_cents)\n",
+        "quiz": {
+          "question": "What is the value of `20 // 6` and `20 % 6` in Python?",
+          "options": [
+            "3.33 and 2",
+            "3 and 2",
+            "4 and 2",
+            "3 and 0"
+          ],
+          "correct_index": 1,
+          "explanation": "20 // 6 is 3 (integer division quotient), and 20 % 6 is 2 (remainder: 20 - 3*6 = 2)."
+        },
+        "challenge": {
+          "instructions": "Given a total number of seconds `total_sec = 3665`, calculate:\n- `hours` (how many whole hours)\n- `minutes` (how many remaining whole minutes)\n- `seconds` (remaining seconds)\nThen print them in this format: `Hours: <hours>, Minutes: <minutes>, Seconds: <seconds>`",
+          "starter": "total_sec = 3665\n\n# Calculate hours, minutes, seconds and print:\n\n",
+          "hints": [
+            "hours = total_sec // 3600",
+            "rem = total_sec % 3600",
+            "minutes = rem // 60",
+            "seconds = rem % 60"
+          ],
+          "solution": "total_sec = 3665\nhours = total_sec // 3600\nrem = total_sec % 3600\nminutes = rem // 60\nseconds = rem % 60\nprint(f\"Hours: {hours}, Minutes: {minutes}, Seconds: {seconds}\")\n",
+          "test_cases": [
+            {
+              "name": "Check formatted time breakdown",
+              "expected_output": "Hours: 1, Minutes: 1, Seconds: 5\n"
+            }
+          ]
+        }
+      },
+      {
+        "id": "lesson-2-2",
+        "title": "Comparison & Logical Operators",
+        "difficulty": "Beginner",
+        "xp": 60,
+        "summary": "Compare values and combine conditions with and, or, and not.",
+        "content": "### Comparison & Logic \u2696\ufe0f\n\nComparison operators return a boolean (`True` or `False`).\n\n#### Comparison:\n- `==` : Equal to\n- `!=` : Not equal to\n- `>`  : Greater than\n- `<`  : Less than\n- `>=` : Greater than or equal to\n- `<=` : Less than or equal to\n\n#### Logical:\n- `and` : `True` if **both** conditions are true.\n- `or`  : `True` if **at least one** condition is true.\n- `not` : Inverts the boolean value.\n",
+        "starter_code": "score = 85\nattendance = 92\n\npassed_course = (score >= 70) and (attendance >= 80)\nprint(\"Passed course?\", passed_course)\nprint(\"Needs re-test?\", not passed_course)\n",
+        "quiz": {
+          "question": "What does the expression `not (True or False)` evaluate to?",
+          "options": [
+            "True",
+            "False",
+            "None",
+            "Error"
+          ],
+          "correct_index": 1,
+          "explanation": "True or False is True. Applying 'not True' results in False."
+        },
+        "challenge": {
+          "instructions": "Write code that checks if `number = 48` is:\n1. Greater than 0\n2. Even (`number % 2 == 0`)\n3. Less than 100\nCombine all 3 conditions using `and`, store in `is_valid`, and print `is_valid`.",
+          "starter": "number = 48\n\n# Write the boolean condition check and print it:\n\n",
+          "hints": [
+            "is_valid = (number > 0) and (number % 2 == 0) and (number < 100)",
+            "print(is_valid)"
+          ],
+          "solution": "number = 48\nis_valid = (number > 0) and (number % 2 == 0) and (number < 100)\nprint(is_valid)\n",
+          "test_cases": [
+            {
+              "name": "Check validity boolean output",
+              "expected_output": "True\n"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "module-3",
+    "title": "Module 3: Control Flow (Conditionals)",
+    "icon": "\ud83d\udd00",
+    "description": "Make decisions in your code using if, elif, else, and conditional expressions.",
+    "lessons": [
+      {
+        "id": "lesson-3-1",
+        "title": "If, Elif, and Else",
+        "difficulty": "Beginner",
+        "xp": 70,
+        "summary": "Branch your code execution based on dynamic conditions.",
+        "content": "### Making Decisions with `if` Statements \ud83e\udded\n\nIndentation (4 spaces) defines code blocks in Python:\n\n```python\nscore = 85\n\nif score >= 90:\n    print(\"Grade: A\")\nelif score >= 80:\n    print(\"Grade: B\")\nelif score >= 70:\n    print(\"Grade: C\")\nelse:\n    print(\"Grade: Needs Improvement\")\n```\n\nPython checks conditions top-to-bottom and exits the block as soon as a condition matches.\n",
+        "starter_code": "temp = 22\n\nif temp > 30:\n    print(\"It's a hot day!\")\nelif temp >= 20:\n    print(\"Pleasant weather!\")\nelse:\n    print(\"It's chilly!\")\n",
+        "quiz": {
+          "question": "What happens if both an `if` and an `elif` condition are True?",
+          "options": [
+            "Both blocks will run",
+            "Only the first matching block (the `if`) runs",
+            "The last matching block runs",
+            "Python raises an IndentationError"
+          ],
+          "correct_index": 1,
+          "explanation": "Python executes only the first matching branch in an if/elif/else chain and skips the remaining branches."
+        },
+        "challenge": {
+          "instructions": "Given `speed = 75`, write an if-elif-else block that prints:\n- `Too fast` if speed is greater than 70\n- `Too slow` if speed is less than 40\n- `Optimal speed` otherwise.",
+          "starter": "speed = 75\n\n# Write the if-elif-else logic here:\n\n",
+          "hints": [
+            "if speed > 70: print('Too fast')",
+            "elif speed < 40: print('Too slow')",
+            "else: print('Optimal speed')"
+          ],
+          "solution": "speed = 75\nif speed > 70:\n    print(\"Too fast\")\nelif speed < 40:\n    print(\"Too slow\")\nelse:\n    print(\"Optimal speed\")\n",
+          "test_cases": [
+            {
+              "name": "Check speed category output",
+              "expected_output": "Too fast\n"
+            }
+          ]
+        }
+      },
+      {
+        "id": "lesson-3-2",
+        "title": "Ternary Operators & Truthiness",
+        "difficulty": "Beginner",
+        "xp": 65,
+        "summary": "Write concise inline conditionals and understand truthy/falsy values in Python.",
+        "content": "### Ternary Operator & Truthiness \ud83d\udca1\n\n#### Ternary Operator\nSingle-line conditional assignment:\n```python\nage = 20\nstatus = \"Adult\" if age >= 18 else \"Minor\"\n```\n\n#### Truthy vs Falsy\n- **Falsy**: `0`, `0.0`, `\"\"`, `[]`, `{}`, `None`, `False`\n- **Truthy**: Any non-zero number, non-empty string, or non-empty collection.\n",
+        "starter_code": "points = 120\nbadge = \"Gold\" if points >= 100 else \"Silver\"\nprint(\"Badge earned:\", badge)\n\ncart = []\nif not cart:\n    print(\"Your shopping cart is empty.\")\n",
+        "quiz": {
+          "question": "Which of the following values is considered Truthy in Python?",
+          "options": [
+            "0",
+            "\"\"",
+            "[]",
+            "\"0\""
+          ],
+          "correct_index": 3,
+          "explanation": "A non-empty string like \"0\" has length 1, making it Truthy! 0, \"\", and [] are Falsy."
+        },
+        "challenge": {
+          "instructions": "Given `balance = 250`, use a single-line ternary conditional expression to assign either `\"Approved\"` (if balance >= 100) or `\"Declined\"` to variable `tx_status`. Then print `tx_status`.",
+          "starter": "balance = 250\n\n# Use ternary expression to set tx_status and print it:\n\n",
+          "hints": [
+            "tx_status = \"Approved\" if balance >= 100 else \"Declined\"",
+            "print(tx_status)"
+          ],
+          "solution": "balance = 250\ntx_status = \"Approved\" if balance >= 100 else \"Declined\"\nprint(tx_status)\n",
+          "test_cases": [
+            {
+              "name": "Check ternary assignment output",
+              "expected_output": "Approved\n"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "module-4",
+    "title": "Module 4: Loops & Iteration",
+    "icon": "\ud83d\udd01",
+    "description": "Automate repetitive tasks with for loops, while loops, range, and loop control statements.",
+    "lessons": [
+      {
+        "id": "lesson-4-1",
+        "title": "For Loops & The range() Function",
+        "difficulty": "Beginner",
+        "xp": 75,
+        "summary": "Iterate over numbers and sequences using for loops and range.",
+        "content": "### Iterating with `for` Loops \ud83d\udd04\n\nA `for` loop iterates over items in a sequence or a range of numbers.\n\n#### The `range()` Function:\n- `range(stop)`: 0 to `stop - 1`\n- `range(start, stop)`: `start` to `stop - 1`\n- `range(start, stop, step)`: increments by `step`\n\n```python\nfor i in range(3):\n    print(\"Iteration\", i)\n\n# Summing numbers\ntotal = sum(range(1, 11))  # 55\n```\n",
+        "starter_code": "total = 0\nfor num in range(1, 6):\n    total += num\n    print(f\"Adding {num}, current total: {total}\")\n\nprint(\"Final Sum:\", total)\n",
+        "quiz": {
+          "question": "What numbers will `range(2, 9, 3)` generate?",
+          "options": [
+            "2, 3, 4, 5, 6, 7, 8, 9",
+            "2, 5, 8",
+            "2, 5, 8, 11",
+            "3, 6, 9"
+          ],
+          "correct_index": 1,
+          "explanation": "Starts at 2, steps by 3 (2 -> 5 -> 8), and stops before reaching 9."
+        },
+        "challenge": {
+          "instructions": "Use a `for` loop and `range()` to calculate the product of all integers from 1 to 6 inclusive (i.e. `1 * 2 * 3 * 4 * 5 * 6 = 720`). Store the result in `product` and print `product`.",
+          "starter": "product = 1\n\n# Calculate 1 * 2 * 3 * 4 * 5 * 6 and print product:\n\n",
+          "hints": [
+            "for i in range(1, 7): product *= i",
+            "print(product)"
+          ],
+          "solution": "product = 1\nfor i in range(1, 7):\n    product *= i\nprint(product)\n",
+          "test_cases": [
+            {
+              "name": "Check factorial of 6 output",
+              "expected_output": "720\n"
+            }
+          ]
+        }
+      },
+      {
+        "id": "lesson-4-2",
+        "title": "While Loops & Loop Control",
+        "difficulty": "Beginner",
+        "xp": 75,
+        "summary": "Repeat code while a condition is true, and control execution with break, continue, and enumerate.",
+        "content": "### While Loops & Controls \u23f3\n\nA `while` loop runs as long as the condition is `True`.\n\n#### Loop Controls:\n- `break`: Exits the loop immediately.\n- `continue`: Skips to the next iteration.\n- `enumerate(iterable, start=0)`: Yields pairs of `(index, item)`.\n\n```python\nfruits = [\"apple\", \"banana\", \"cherry\"]\nfor idx, fruit in enumerate(fruits, start=1):\n    print(f\"{idx}. {fruit}\")\n```\n",
+        "starter_code": "skills = [\"Python\", \"Algorithms\", \"Databases\"]\nfor idx, skill in enumerate(skills, start=1):\n    print(f\"Step {idx}: Learn {skill}\")\n",
+        "quiz": {
+          "question": "What is the difference between `break` and `continue`?",
+          "options": [
+            "`break` skips the current iteration; `continue` exits the loop.",
+            "`break` exits the entire loop; `continue` skips to the next iteration.",
+            "They both do the exact same thing.",
+            "`break` is only for while loops; `continue` is only for for loops."
+          ],
+          "correct_index": 1,
+          "explanation": "`break` terminates loop execution entirely; `continue` proceeds immediately to the next cycle."
+        },
+        "challenge": {
+          "instructions": "Loop through numbers from 1 to 10. If a number is divisible by 2 (even), skip it using `continue`. Print all remaining odd numbers on separate lines.",
+          "starter": "for n in range(1, 11):\n    # Skip if even:\n\n    # Print odd number:\n    pass\n",
+          "hints": [
+            "if n % 2 == 0: continue",
+            "print(n)"
+          ],
+          "solution": "for n in range(1, 11):\n    if n % 2 == 0:\n        continue\n    print(n)\n",
+          "test_cases": [
+            {
+              "name": "Check odd numbers printed",
+              "expected_output": "1\n3\n5\n7\n9\n"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "module-5",
+    "title": "Module 5: Data Structures",
+    "icon": "\ud83d\udcda",
+    "description": "Store and organize data with Lists, Dictionaries, Sets, Tuples, and List Comprehensions.",
+    "lessons": [
+      {
+        "id": "lesson-5-1",
+        "title": "Lists & List Operations",
+        "difficulty": "Intermediate",
+        "xp": 80,
+        "summary": "Create, index, slice, and manipulate ordered, mutable collections of items.",
+        "content": "### Lists in Python \ud83d\udccb\n\nA list is an ordered, mutable sequence:\n\n```python\nlanguages = [\"Python\", \"JavaScript\", \"Rust\"]\n\n# Indexing & Slicing\nprint(languages[0])   # \"Python\"\nprint(languages[-1])  # \"Rust\"\nnums = [0, 1, 2, 3, 4]\nprint(nums[1:4])      # [1, 2, 3]\n\n# Methods\nlanguages.append(\"Go\")\nlanguages.sort()\nprint(\"Length:\", len(languages))\n```\n",
+        "starter_code": "scores = [88, 92, 79, 95, 84]\nscores.append(100)\nscores.sort(reverse=True)\nprint(\"Top 3 scores:\", scores[:3])\n",
+        "quiz": {
+          "question": "If `colors = ['red', 'green', 'blue', 'yellow']`, what is `colors[-2]`?",
+          "options": [
+            "'green'",
+            "'blue'",
+            "'yellow'",
+            "IndexError"
+          ],
+          "correct_index": 1,
+          "explanation": "Negative indexing counts from right: -1 is 'yellow', -2 is 'blue'."
+        },
+        "challenge": {
+          "instructions": "You are given `numbers = [12, -7, 5, -3, 28, 0, -1]`. Write code to filter out all negative numbers, sort the remaining numbers in ascending order, and print the resulting list.",
+          "starter": "numbers = [12, -7, 5, -3, 28, 0, -1]\n\n# Filter out negatives, sort ascending, and print:\n\n",
+          "hints": [
+            "filtered = [n for n in numbers if n >= 0]",
+            "filtered.sort()",
+            "print(filtered)"
+          ],
+          "solution": "numbers = [12, -7, 5, -3, 28, 0, -1]\nfiltered = [n for n in numbers if n >= 0]\nfiltered.sort()\nprint(filtered)\n",
+          "test_cases": [
+            {
+              "name": "Check filtered sorted list",
+              "expected_output": "[0, 5, 12, 28]\n"
+            }
+          ]
+        }
+      },
+      {
+        "id": "lesson-5-2",
+        "title": "Dictionaries (Key-Value Pairs)",
+        "difficulty": "Intermediate",
+        "xp": 85,
+        "summary": "Store associations and lookup data fast using Python dictionaries.",
+        "content": "### Python Dictionaries \ud83d\udcd6\n\nA dictionary maps unique keys to values:\n\n```python\nuser = {\n    \"username\": \"codemaster\",\n    \"level\": 4\n}\n\n# Safe lookup with .get()\nemail = user.get(\"email\", \"Not Provided\")\n\n# Adding & iterating\nuser[\"xp\"] = 1200\nfor key, value in user.items():\n    print(f\"{key} -> {value}\")\n```\n",
+        "starter_code": "phone_book = {\"Alice\": \"555-0100\", \"Bob\": \"555-0199\"}\nphone_book[\"Charlie\"] = \"555-0250\"\nfor name, num in phone_book.items():\n    print(f\"{name}: {num}\")\n",
+        "quiz": {
+          "question": "What happens when accessing `data['missing']` vs `data.get('missing')`?",
+          "options": [
+            "Both return None",
+            "`data['missing']` raises KeyError, while `.get()` returns None (or a default)",
+            "Both raise KeyError",
+            "`.get()` deletes the key"
+          ],
+          "correct_index": 1,
+          "explanation": "Direct indexing raises KeyError on missing keys; .get() returns None or a default value gracefully."
+        },
+        "challenge": {
+          "instructions": "Count the frequency of each character in `word = 'banana'`. Store counts in a dictionary `counts` and print `counts`.\nExpected output: `{'b': 1, 'a': 3, 'n': 2}`.",
+          "starter": "word = \"banana\"\ncounts = {}\n\n# Count occurrences of each letter and print counts:\n\n",
+          "hints": [
+            "for char in word: counts[char] = counts.get(char, 0) + 1",
+            "print(counts)"
+          ],
+          "solution": "word = \"banana\"\ncounts = {}\nfor char in word:\n    counts[char] = counts.get(char, 0) + 1\nprint(counts)\n",
+          "test_cases": [
+            {
+              "name": "Check character frequency dictionary",
+              "expected_output": "{'b': 1, 'a': 3, 'n': 2}\n"
+            }
+          ]
+        }
+      },
+      {
+        "id": "lesson-5-3",
+        "title": "Tuples, Sets, & List Comprehensions",
+        "difficulty": "Intermediate",
+        "xp": 90,
+        "summary": "Master immutable tuples, unique sets, and pythonic one-line list comprehensions.",
+        "content": "### Sets & List Comprehensions \u26a1\n\n#### Sets:\nSets hold unique items and support set operations:\n```python\nunique_tags = set([\"py\", \"py\", \"ai\", \"web\"])  # {'py', 'ai', 'web'}\n```\n\n#### List Comprehensions:\n```python\n# [expression for item in iterable if condition]\nnumbers = [1, 2, 3, 4, 5, 6]\nevens_squared = [x**2 for x in numbers if x % 2 == 0]  # [4, 16, 36]\n```\n",
+        "starter_code": "# Compare traditional loop vs comprehension\nsquares = [x**2 for x in range(5)]\nprint(\"Squares:\", squares)\n",
+        "quiz": {
+          "question": "What is the output of `len(set([1, 2, 2, 3, 3, 3, 4]))`?",
+          "options": [
+            "7",
+            "4",
+            "3",
+            "TypeError"
+          ],
+          "correct_index": 1,
+          "explanation": "set() discards duplicates, leaving {1, 2, 3, 4}, length 4."
+        },
+        "challenge": {
+          "instructions": "Given `raw_words = ['apple', 'BANANA', 'cherry', 'AVOCADO', 'blueberry']`, use a list comprehension to create a list of all words starting with 'a' or 'A', converted to lowercase. Store in `a_words` and print `a_words`.",
+          "starter": "raw_words = [\"apple\", \"BANANA\", \"cherry\", \"AVOCADO\", \"blueberry\"]\n\n# Create a_words using a list comprehension and print:\n\n",
+          "hints": [
+            "a_words = [w.lower() for w in raw_words if w.lower().startswith('a')]",
+            "print(a_words)"
+          ],
+          "solution": "raw_words = [\"apple\", \"BANANA\", \"cherry\", \"AVOCADO\", \"blueberry\"]\na_words = [w.lower() for w in raw_words if w.lower().startswith(\"a\")]\nprint(a_words)\n",
+          "test_cases": [
+            {
+              "name": "Check list comprehension output",
+              "expected_output": "['apple', 'avocado']\n"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "module-6",
+    "title": "Module 6: Functions & Scope",
+    "icon": "\u2699\ufe0f",
+    "description": "Write reusable, modular code with functions, parameters, return values, *args, and lambdas.",
+    "lessons": [
+      {
+        "id": "lesson-6-1",
+        "title": "Defining Functions & Return Values",
+        "difficulty": "Intermediate",
+        "xp": 80,
+        "summary": "Encapsulate logic into reusable functions with parameters and return statements.",
+        "content": "### Creating Functions with `def` \ud83d\udee0\ufe0f\n\n```python\ndef greet(name, title=\"Developer\"):\n    \"\"\"Greets a user with their title.\"\"\"\n    return f\"Hello, {title} {name}!\"\n\nprint(greet(\"Sarah\"))\n```\n\n- If a function doesn't execute a `return` statement, it returns `None`.\n",
+        "starter_code": "def is_even(number):\n    return number % 2 == 0\n\nprint(\"Is 10 even?\", is_even(10))\nprint(\"Is 7 even?\", is_even(7))\n",
+        "quiz": {
+          "question": "What is the return value of a Python function that has no `return` statement?",
+          "options": [
+            "0",
+            "False",
+            "None",
+            "\"\""
+          ],
+          "correct_index": 2,
+          "explanation": "Functions without an explicit return statement return None."
+        },
+        "challenge": {
+          "instructions": "Define a function `is_prime(n)` that returns `True` if `n` is prime (greater than 1 with no divisors other than 1 and itself) and `False` otherwise.\nThen test and print `[is_prime(2), is_prime(4), is_prime(17), is_prime(1)]`.",
+          "starter": "def is_prime(n):\n    # Your code here:\n    pass\n\nprint([is_prime(2), is_prime(4), is_prime(17), is_prime(1)])\n",
+          "hints": [
+            "if n <= 1: return False",
+            "for i in range(2, int(n**0.5) + 1): if n % i == 0: return False",
+            "return True"
+          ],
+          "solution": "def is_prime(n):\n    if n <= 1:\n        return False\n    for i in range(2, int(n ** 0.5) + 1):\n        if n % i == 0:\n            return False\n    return True\n\nprint([is_prime(2), is_prime(4), is_prime(17), is_prime(1)])\n",
+          "test_cases": [
+            {
+              "name": "Check is_prime outputs",
+              "expected_output": "[True, False, True, False]\n"
+            }
+          ]
+        }
+      },
+      {
+        "id": "lesson-6-2",
+        "title": "*args, **kwargs, & Lambdas",
+        "difficulty": "Intermediate",
+        "xp": 85,
+        "summary": "Accept variable numbers of arguments and create anonymous one-liner lambda functions.",
+        "content": "### Flexible Arguments & Lambdas \ud83c\udfaf\n\n- `*args`: Collects positional arguments into a **tuple**.\n- `**kwargs`: Collects keyword arguments into a **dictionary**.\n- `lambda`: Anonymous one-liner functions: `lambda x, y: x + y`\n",
+        "starter_code": "words = [\"banana\", \"pie\", \"apple\", \"watermelon\"]\nwords_by_len = sorted(words, key=lambda w: len(w))\nprint(\"Sorted by length:\", words_by_len)\n",
+        "quiz": {
+          "question": "What type is `args` inside `def func(*args):`?",
+          "options": [
+            "list",
+            "tuple",
+            "dict",
+            "set"
+          ],
+          "correct_index": 1,
+          "explanation": "*args packages extra positional arguments into an immutable tuple."
+        },
+        "challenge": {
+          "instructions": "Write a function `sum_all(*numbers, multiplier=1)` that sums all `*numbers` and multiplies that total by `multiplier`.\nPrint `sum_all(1, 2, 3, 4, multiplier=2)`.",
+          "starter": "def sum_all(*numbers, multiplier=1):\n    # Your code here:\n    pass\n\nprint(sum_all(1, 2, 3, 4, multiplier=2))\n",
+          "hints": [
+            "return sum(numbers) * multiplier"
+          ],
+          "solution": "def sum_all(*numbers, multiplier=1):\n    return sum(numbers) * multiplier\n\nprint(sum_all(1, 2, 3, 4, multiplier=2))\n",
+          "test_cases": [
+            {
+              "name": "Check sum_all with multiplier",
+              "expected_output": "20\n"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "module-7",
+    "title": "Module 7: String Manipulation & Formatting",
+    "icon": "\ud83d\udd24",
+    "description": "Master string methods, slicing, search/replace, and modern f-string formatting.",
+    "lessons": [
+      {
+        "id": "lesson-7-1",
+        "title": "String Methods & Slicing",
+        "difficulty": "Beginner",
+        "xp": 75,
+        "summary": "Transform, clean, split, and join strings using built-in methods.",
+        "content": "### String Methods in Python \u2702\ufe0f\n\nStrings are immutable sequences with useful methods:\n- `.strip()`: Removes leading/trailing whitespace.\n- `.split(delimiter)`: Splits into a list of strings.\n- `delimiter.join(list)`: Joins list items into a string.\n- `.replace(old, new)`: Replaces occurrences.\n",
+        "starter_code": "sentence = \"learn python in 2026\"\nwords = sentence.split()\ncapitalized = [w.capitalize() for w in words]\nprint(\"Title Case:\", \" \".join(capitalized))\n",
+        "quiz": {
+          "question": "What does `'a,b,c'.split(',')` return?",
+          "options": [
+            "('a', 'b', 'c')",
+            "['a', 'b', 'c']",
+            "'abc'",
+            "{'a', 'b', 'c'}"
+          ],
+          "correct_index": 1,
+          "explanation": "split() returns a list of substring tokens."
+        },
+        "challenge": {
+          "instructions": "Write a function `make_acronym(phrase)` that takes a phrase like `\"Application Programming Interface\"` and returns the uppercase acronym `\"API\"`.\nPrint `make_acronym(\"Application Programming Interface\")`.",
+          "starter": "def make_acronym(phrase):\n    # Your code here:\n    pass\n\nprint(make_acronym(\"Application Programming Interface\"))\n",
+          "hints": [
+            "return ''.join(word[0].upper() for word in phrase.split())"
+          ],
+          "solution": "def make_acronym(phrase):\n    return \"\".join(word[0].upper() for word in phrase.split())\n\nprint(make_acronym(\"Application Programming Interface\"))\n",
+          "test_cases": [
+            {
+              "name": "Check acronym output",
+              "expected_output": "API\n"
+            }
+          ]
+        }
+      },
+      {
+        "id": "lesson-7-2",
+        "title": "Modern f-Strings Formatting",
+        "difficulty": "Beginner",
+        "xp": 75,
+        "summary": "Embed expressions, format numbers, dates, and tables cleanly with f-strings.",
+        "content": "### Formatting with f-Strings \ud83c\udfa8\n\nEmbed expressions and formats directly:\n```python\nname = \"Ada\"\nage = 36\npi = 3.14159\n\nprint(f\"{name} is {age} years old.\")\nprint(f\"Pi: {pi:.2f}\")           # 3.14\nprint(f\"Large: {1000000:,}\")      # 1,000,000\n```\n",
+        "starter_code": "item = \"Mechanical Keyboard\"\nprice = 129.50\ndiscount = 0.15\nfinal_price = price * (1 - discount)\nprint(f\"{item} on sale: ${final_price:.2f} (Save {discount:.0%})\")\n",
+        "quiz": {
+          "question": "Which f-string specifier formats float `x = 45.6789` to 2 decimal places?",
+          "options": [
+            "f\"{x.2}\"",
+            "f\"{x:.2f}\"",
+            "f\"{x:2d}\"",
+            "f\"{round(x, 2):f}\""
+          ],
+          "correct_index": 1,
+          "explanation": ":.2f indicates fixed-point float formatting with 2 digits after the decimal."
+        },
+        "challenge": {
+          "instructions": "Given `item = 'Coffee'`, `qty = 3`, and `price = 4.75`, print formatted receipt:\n`3 x Coffee @ $4.75 = $14.25`\nEnsure prices are formatted to two decimal places.",
+          "starter": "item = \"Coffee\"\nqty = 3\nprice = 4.75\n\n# Print the formatted receipt string:\n\n",
+          "hints": [
+            "total = qty * price",
+            "print(f\"{qty} x {item} @ ${price:.2f} = ${total:.2f}\")"
+          ],
+          "solution": "item = \"Coffee\"\nqty = 3\nprice = 4.75\ntotal = qty * price\nprint(f\"{qty} x {item} @ ${price:.2f} = ${total:.2f}\")\n",
+          "test_cases": [
+            {
+              "name": "Check formatted receipt string",
+              "expected_output": "3 x Coffee @ $4.75 = $14.25\n"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "module-8",
+    "title": "Module 8: Error & Exception Handling",
+    "icon": "\ud83d\udee1\ufe0f",
+    "description": "Handle runtime errors gracefully using try, except, else, finally, and custom exceptions.",
+    "lessons": [
+      {
+        "id": "lesson-8-1",
+        "title": "Try, Except, Else, and Finally",
+        "difficulty": "Intermediate",
+        "xp": 85,
+        "summary": "Prevent crashes by catching exceptions and running cleanup code.",
+        "content": "### Exception Handling \u26a0\ufe0f\n\nCatch runtime errors using `try` / `except`:\n\n```python\ntry:\n    num = int(\"abc\")\nexcept ValueError as e:\n    print(\"Invalid format!\")\nelse:\n    print(\"Success!\")\nfinally:\n    print(\"Always runs.\")\n```\n",
+        "starter_code": "def safe_divide(a, b):\n    try:\n        return a / b\n    except ZeroDivisionError:\n        return \"Error: Division by zero\"\n\nprint(\"10 / 2 =\", safe_divide(10, 2))\nprint(\"10 / 0 =\", safe_divide(10, 0))\n",
+        "quiz": {
+          "question": "When does code inside `finally` execute?",
+          "options": [
+            "Only when an exception occurs",
+            "Only when NO exceptions occur",
+            "Always, regardless of whether an exception occurred",
+            "Only upon fatal error"
+          ],
+          "correct_index": 2,
+          "explanation": "The finally block always runs, making it ideal for resource cleanup."
+        },
+        "challenge": {
+          "instructions": "Write a function `parse_integer(value, default=0)` that converts `value` to int using `int()`. If a `ValueError` or `TypeError` occurs, return `default`.\nPrint `[parse_integer('42'), parse_integer('invalid', -1), parse_integer(None)]`.",
+          "starter": "def parse_integer(value, default=0):\n    # Your code here:\n    pass\n\nprint([parse_integer('42'), parse_integer('invalid', -1), parse_integer(None)])\n",
+          "hints": [
+            "try: return int(value)",
+            "except (ValueError, TypeError): return default"
+          ],
+          "solution": "def parse_integer(value, default=0):\n    try:\n        return int(value)\n    except (ValueError, TypeError):\n        return default\n\nprint([parse_integer('42'), parse_integer('invalid', -1), parse_integer(None)])\n",
+          "test_cases": [
+            {
+              "name": "Check safe integer parsing output",
+              "expected_output": "[42, -1, 0]\n"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "module-9",
+    "title": "Module 9: Object-Oriented Programming (OOP)",
+    "icon": "\ud83c\udfd7\ufe0f",
+    "description": "Model real-world entities using Classes, Objects, Methods, and Inheritance.",
+    "lessons": [
+      {
+        "id": "lesson-9-1",
+        "title": "Classes, Objects, and __init__",
+        "difficulty": "Intermediate",
+        "xp": 90,
+        "summary": "Create classes, instantiate objects, and define attributes with the constructor.",
+        "content": "### Object-Oriented Python \ud83c\udfdb\ufe0f\n\n```python\nclass Dog:\n    def __init__(self, name, breed):\n        self.name = name\n        self.breed = breed\n\n    def bark(self):\n        return f\"{self.name} says Woof!\"\n\ndog1 = Dog(\"Buddy\", \"Labrador\")\nprint(dog1.bark())\n```\n\n- `__init__`: Constructor method called when an object is instantiated.\n- `self`: References the specific object instance calling the method.\n",
+        "starter_code": "class Player:\n    def __init__(self, username):\n        self.username = username\n        self.score = 0\n    \n    def add_points(self, points):\n        self.score += points\n        return f\"{self.username}: {self.score} pts\"\n\np1 = Player(\"PixelCoder\")\nprint(p1.add_points(50))\n",
+        "quiz": {
+          "question": "What is the primary role of the `self` parameter in a class method?",
+          "options": [
+            "Imports external modules",
+            "References the current instance of the class",
+            "Represents the superclass",
+            "An optional modifier"
+          ],
+          "correct_index": 1,
+          "explanation": "self represents the instance on which the method is called."
+        },
+        "challenge": {
+          "instructions": "Create a `BankAccount` class with:\n1. `__init__(self, owner, balance=0)`\n2. `deposit(self, amount)`: adds amount to balance and returns new balance\n3. `withdraw(self, amount)`: if amount <= balance, deducts it and returns balance; else returns `\"Insufficient funds\"`\n\nInstantiate `acc = BankAccount('Alice', 100)`, run `acc.deposit(50)`, run `acc.withdraw(30)`, and print `acc.balance`.",
+          "starter": "class BankAccount:\n    # Implement class here:\n    pass\n\nacc = BankAccount(\"Alice\", 100)\nacc.deposit(50)\nacc.withdraw(30)\nprint(acc.balance)\n",
+          "hints": [
+            "def deposit(self, amount): self.balance += amount; return self.balance",
+            "def withdraw(self, amount): if amount <= self.balance: self.balance -= amount; return self.balance; return 'Insufficient funds'"
+          ],
+          "solution": "class BankAccount:\n    def __init__(self, owner, balance=0):\n        self.owner = owner\n        self.balance = balance\n\n    def deposit(self, amount):\n        self.balance += amount\n        return self.balance\n\n    def withdraw(self, amount):\n        if amount <= self.balance:\n            self.balance -= amount\n            return self.balance\n        return \"Insufficient funds\"\n\nacc = BankAccount(\"Alice\", 100)\nacc.deposit(50)\nacc.withdraw(30)\nprint(acc.balance)\n",
+          "test_cases": [
+            {
+              "name": "Check BankAccount balance after transactions",
+              "expected_output": "120\n"
+            }
+          ]
+        }
+      },
+      {
+        "id": "lesson-9-2",
+        "title": "Inheritance & Special Methods",
+        "difficulty": "Intermediate",
+        "xp": 95,
+        "summary": "Reuse logic via class inheritance and customize object behavior with __str__.",
+        "content": "### Inheritance & Special Methods \ud83e\uddec\n\n```python\nclass Animal:\n    def __init__(self, name):\n        self.name = name\n\n    def speak(self):\n        return f\"{self.name} makes a sound.\"\n\nclass Dog(Animal):\n    def speak(self):  # Override\n        return f\"{self.name} barks!\"\n```\n\n- `super().__init__(...)` delegates to the parent class's constructor.\n- `__str__` determines how the object prints when converted to string.\n",
+        "starter_code": "class Device:\n    def __init__(self, brand):\n        self.brand = brand\n\nclass Phone(Device):\n    def __init__(self, brand, model):\n        super().__init__(brand)\n        self.model = model\n\n    def __str__(self):\n        return f\"{self.brand} {self.model}\"\n\nprint(Phone(\"Google\", \"Pixel\"))\n",
+        "quiz": {
+          "question": "What does `super().__init__(...)` do in a subclass?",
+          "options": [
+            "Creates a static method",
+            "Calls the parent class constructor",
+            "Overrides all child methods",
+            "Deletes parent attributes"
+          ],
+          "correct_index": 1,
+          "explanation": "super() provides access to the parent class constructor and methods."
+        },
+        "challenge": {
+          "instructions": "Create a class `Rectangle` with `__init__(self, width, height)` and a method `area(self)` returning `width * height`.\nThen create a subclass `Square(Rectangle)` whose constructor takes `side_length` and passes it to `super().__init__(side_length, side_length)`.\nInstantiate `sq = Square(5)` and print `sq.area()`.",
+          "starter": "class Rectangle:\n    def __init__(self, width, height):\n        self.width = width\n        self.height = height\n\n    def area(self):\n        return self.width * self.height\n\nclass Square(Rectangle):\n    # Implement constructor with super():\n    pass\n\nsq = Square(5)\nprint(sq.area())\n",
+          "hints": [
+            "class Square(Rectangle):",
+            "    def __init__(self, side_length):",
+            "        super().__init__(side_length, side_length)"
+          ],
+          "solution": "class Rectangle:\n    def __init__(self, width, height):\n        self.width = width\n        self.height = height\n\n    def area(self):\n        return self.width * self.height\n\nclass Square(Rectangle):\n    def __init__(self, side_length):\n        super().__init__(side_length, side_length)\n\nsq = Square(5)\nprint(sq.area())\n",
+          "test_cases": [
+            {
+              "name": "Check Square area inheritance",
+              "expected_output": "25\n"
+            }
+          ]
+        }
+      }
+    ]
+  },
+  {
+    "id": "module-10",
+    "title": "Module 10: Hands-on Mini Projects",
+    "icon": "\ud83c\udfc6",
+    "description": "Put your Python skills to work building real-world utilities and algorithmic solvers.",
+    "lessons": [
+      {
+        "id": "lesson-10-1",
+        "title": "Project: Password Strength Checker",
+        "difficulty": "Advanced",
+        "xp": 120,
+        "summary": "Build a security evaluation utility analyzing password length, diversity, and complexity.",
+        "content": "### Project: Password Security Evaluator \ud83d\udd10\n\nEvaluate passwords based on:\n1. Length >= 8\n2. Has uppercase `[A-Z]`\n3. Has lowercase `[a-z]`\n4. Has digit `[0-9]`\n5. Has special character `[!@#$%^&*]`\n\n- **Strong**: Meets all 5 criteria.\n- **Medium**: Length >= 6 and meets at least 2 bonus criteria (upper, digit, special).\n- **Weak**: Everything else.\n",
+        "starter_code": "pwd = \"PyDev2026!\"\nhas_upper = any(c.isupper() for c in pwd)\nhas_digit = any(c.isdigit() for c in pwd)\nprint(f\"Upper: {has_upper}, Digit: {has_digit}\")\n",
+        "quiz": {
+          "question": "What is the most pythonic way to check if any character in string `s` is a digit?",
+          "options": [
+            "any(c.isdigit() for c in s)",
+            "s.find('0123456789')",
+            "int(s)",
+            "[c for c in s if c == 0]"
+          ],
+          "correct_index": 0,
+          "explanation": "any(c.isdigit() for c in s) cleanly tests each character and short-circuits on the first digit found."
+        },
+        "challenge": {
+          "instructions": "Write a function `check_password(pwd)` returning:\n- `'Strong'` if length >= 8, has upper, lower, digit, and special (from `!@#$%^&*`)\n- `'Medium'` if length >= 6 and has at least two of (upper, digit, special)\n- `'Weak'` otherwise.\n\nPrint `[check_password('P@ssword1'), check_password('secret123'), check_password('hi')]`.",
+          "starter": "def check_password(pwd):\n    # Your evaluation logic here:\n    pass\n\nprint([check_password('P@ssword1'), check_password('secret123'), check_password('hi')])\n",
+          "hints": [
+            "specials = '!@#$%^&*'",
+            "has_upper = any(c.isupper() for c in pwd)",
+            "has_lower = any(c.islower() for c in pwd)",
+            "has_digit = any(c.isdigit() for c in pwd)",
+            "has_special = any(c in specials for c in pwd)"
+          ],
+          "solution": "def check_password(pwd):\n    specials = \"!@#$%^&*\"\n    has_upper = any(c.isupper() for c in pwd)\n    has_lower = any(c.islower() for c in pwd)\n    has_digit = any(c.isdigit() for c in pwd)\n    has_special = any(c in specials for c in pwd)\n\n    if len(pwd) >= 8 and has_upper and has_lower and has_digit and has_special:\n        return \"Strong\"\n    bonus = sum([has_upper, has_digit, has_special])\n    if len(pwd) >= 6 and bonus >= 2:\n        return \"Medium\"\n    return \"Weak\"\n\nprint([check_password('P@ssword1'), check_password('secret123'), check_password('hi')])\n",
+          "test_cases": [
+            {
+              "name": "Check password classifications",
+              "expected_output": "['Strong', 'Medium', 'Weak']\n"
+            }
+          ]
+        }
+      },
+      {
+        "id": "lesson-10-2",
+        "title": "Project: Text Statistics & Word Frequency",
+        "difficulty": "Advanced",
+        "xp": 120,
+        "summary": "Process natural language text to compute word counts, vocabulary size, and average word length.",
+        "content": "### Project: Text Statistics \ud83d\udcca\n\nCalculate key metrics on input text:\n- `words`: Total word count (split by whitespace)\n- `characters`: Total characters excluding spaces\n- `avg_length`: Average word length rounded to 1 decimal place (or 0 if empty)\n",
+        "starter_code": "text = \"Code every single day\"\nwords = text.split()\nprint(\"Words:\", len(words))\n",
+        "quiz": {
+          "question": "Which Python standard library class is specialized for tallying frequency counts?",
+          "options": [
+            "collections.Counter",
+            "math.Frequency",
+            "itertools.count",
+            "functools.reduce"
+          ],
+          "correct_index": 0,
+          "explanation": "collections.Counter is the standard tool for counting occurrences of items."
+        },
+        "challenge": {
+          "instructions": "Write a function `analyze_text(text)` that returns a dictionary:\n- `'words'`: number of words\n- `'characters'`: character count without spaces\n- `'avg_length'`: average word length rounded to 1 decimal place (or 0 if no words)\n\nPrint `analyze_text(\"Code every single day\")`.\nExpected: `{'words': 4, 'characters': 18, 'avg_length': 4.5}`.",
+          "starter": "def analyze_text(text):\n    # Your code here:\n    pass\n\nprint(analyze_text(\"Code every single day\"))\n",
+          "hints": [
+            "words = text.split()",
+            "chars = sum(len(w) for w in words)",
+            "avg = round(chars / len(words), 1) if words else 0",
+            "return {'words': len(words), 'characters': chars, 'avg_length': avg}"
+          ],
+          "solution": "def analyze_text(text):\n    words = text.split()\n    chars = sum(len(w) for w in words)\n    avg = round(chars / len(words), 1) if words else 0\n    return {\n        \"words\": len(words),\n        \"characters\": chars,\n        \"avg_length\": avg\n    }\n\nprint(analyze_text(\"Code every single day\"))\n",
+          "test_cases": [
+            {
+              "name": "Check text analysis dictionary output",
+              "expected_output": "{'words': 4, 'characters': 18, 'avg_length': 4.5}\n"
+            }
+          ]
+        }
+      }
+    ]
+  }
+]

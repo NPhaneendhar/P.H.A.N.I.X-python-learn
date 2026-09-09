@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Phanix — Python Learning Platform</title>
+  <link rel="icon" type="image/png" href="img/logo.png">
+  <link rel="stylesheet" href="css/style.css?v=4.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Global Confetti Canvas -->
+  <canvas id="confetti-canvas"></canvas>
+
+  <!-- Apple macOS / iOS Header Navigation -->
+  <header>
+    <div class="brand-project-group">
+      <a href="#" class="brand" id="brand-link">
+        <img src="img/logo.png" alt="Phanix Logo" class="brand-logo-img">
+        <span class="brand-title">Phanix</span>
+      </a>
+      <a class="project-icon-nav" href="https://p-h-a-n-i-x-phaneendhar-s-investigation-expert.vercel.app/" target="_blank" rel="noopener noreferrer" title="Open Investigation Expert" aria-label="Open Investigation Expert project in a new tab">🕵️</a>
+    </div>
+
+    <!-- Apple Segmented Navigation -->
+    <nav>
+      <ul class="nav-tabs">
+        <li><button class="nav-btn active" data-target="view-learn">📖 Learn</button></li>
+        <li><button class="nav-btn" data-target="view-playground">⚡ Playground</button></li>
+        <li><button class="nav-btn" data-target="view-challenges">🏆 Challenges</button></li>
+        <li><button class="nav-btn" data-target="view-cheatsheet">📑 Cheat Sheet</button></li>
+        <li><button class="nav-btn" data-target="view-projects">🚀 Projects</button></li>
+        <li><button class="nav-btn" data-target="view-achievements">👤 Profile</button></li>
+        <li><button class="nav-btn" data-target="view-reviews">💬 Reviews</button></li>
+      </ul>
+    </nav>
+
+    <div class="header-stats">
+      <!-- About Navigation Button -->
+      <button class="about-nav-btn" id="about-nav-btn" onclick="openProfileModal()" title="About Developer & Contact">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="16" x2="12" y2="12"></line>
+          <line x1="12" y1="8" x2="12.01" y2="8"></line>
+        </svg>
+        <span>About</span>
+      </button>
+
+      <div class="stat-pill xp" title="Experience Points">
+        <span>⚡</span>
+        <span id="header-xp">0 XP</span>
+      </div>
+      <div class="stat-pill streak" title="Daily Learning Streak">
+        <span>🔥</span>
+        <span id="header-streak">1 Day Streak</span>
+      </div>
+      <button class="theme-toggle-btn" id="theme-toggle" title="Toggle Dark/Light Mode">
+        🌙
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <!-- VIEW 1: LEARN (Curriculum, Content, Editor, Console) -->
+    <div id="view-learn" class="view-panel active">
+      <!-- Left Sidebar: Curriculum Tree -->
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <div class="sidebar-title">
+            <span>Curriculum</span>
+            <span id="overall-progress-text" style="color: var(--apple-blue); font-size: 0.85rem;">0%</span>
+          </div>
+          <div class="progress-container">
+            <div class="progress-bar-fill" id="overall-progress-bar"></div>
+          </div>
+        </div>
+        <div class="module-list" id="module-list-container">
+          <!-- Dynamically populated modules and lessons -->
+        </div>
+      </aside>
+
+      <!-- Center: Lesson Content & Quiz -->
+      <section class="lesson-content-area" id="lesson-content-area">
+        <a class="investigation-project-link" href="https://p-h-a-n-i-x-phaneendhar-s-investigation-expert.vercel.app/" target="_blank" rel="noopener noreferrer" title="Open Investigation Expert project" aria-label="Open Investigation Expert project in a new tab">
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="6"></circle>
+            <path d="m16 16 4 4"></path>
+            <path d="M8.5 11h5M11 8.5v5"></path>
+          </svg>
+          <span>Investigation Expert</span>
+          <span class="project-external-mark" aria-hidden="true">↗</span>
+        </a>
+        <div class="lesson-badge-row">
+          <span class="badge difficulty" id="lesson-difficulty">Beginner</span>
+          <span class="badge xp-badge" id="lesson-xp-badge">+50 XP</span>
+          <span id="lesson-completed-tag" style="display: none; font-size: 0.75rem; color: var(--apple-green); font-weight: 700;">✓ Completed</span>
+        </div>
+        <h1 class="lesson-title" id="lesson-title">Welcome to Phanix</h1>
+        
+        <div class="lesson-markdown" id="lesson-body">
+          <!-- Lesson instructions rendered here -->
+        </div>
+
+        <!-- Interactive Quick Quiz Box -->
+        <div class="quiz-box" id="quiz-container">
+          <div class="quiz-header">
+            <span>🧠 Quick Check Quiz</span>
+          </div>
+          <div class="quiz-question" id="quiz-question-text">
+            Loading question...
+          </div>
+          <div class="quiz-options" id="quiz-options-list">
+            <!-- Quiz option buttons -->
+          </div>
+          <div class="quiz-feedback" id="quiz-feedback-box"></div>
+        </div>
+      </section>
+
+      <!-- Right: Workspace (macOS Code Editor + Output Console) -->
+      <section class="workspace-area">
+        <!-- Challenge instructions banner -->
+        <div class="challenge-banner" id="challenge-banner">
+          <div class="challenge-desc">
+            <strong style="color: var(--apple-blue); display: block; margin-bottom: 0.2rem;">🎯 Hands-on Coding Challenge:</strong>
+            <span id="challenge-instructions-text">Follow instructions to complete this challenge.</span>
+          </div>
+          <div class="hint-dropdown">
+            <button class="btn btn-secondary" id="hint-btn">💡 Hint</button>
+            <div class="hint-content" id="hint-box">
+              <p id="hint-text">Hints will appear here.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- macOS Editor Header with Traffic Lights -->
+        <div class="editor-header">
+          <div class="editor-title-group">
+            <div class="traffic-lights">
+              <span class="dot red"></span>
+              <span class="dot yellow"></span>
+              <span class="dot green"></span>
+            </div>
+            <span class="editor-title">main.py</span>
+          </div>
+          <div class="editor-actions">
+            <button class="btn btn-secondary" id="reset-code-btn" title="Reset to starter code">↺ Reset</button>
+            <button class="btn btn-run" id="run-code-btn" title="Run code (Ctrl + Enter)">▶ Run</button>
+            <button class="btn btn-test" id="test-code-btn" title="Run Automated Tests">✓ Check Solution</button>
+          </div>
+        </div>
+
+        <!-- Code Editor -->
+        <div class="editor-wrapper">
+          <div class="line-numbers" id="editor-line-numbers">1</div>
+          <textarea class="code-textarea" id="code-editor" spellcheck="false" placeholder="# Write your Python code here..."></textarea>
+        </div>
+
+        <!-- Terminal Console (macOS Style) -->
+        <div class="terminal-area">
+          <div class="terminal-tabs">
+            <div class="term-tab-group">
+              <div class="traffic-lights">
+                <span class="dot red"></span>
+                <span class="dot yellow"></span>
+                <span class="dot green"></span>
+              </div>
+              <button class="term-tab active" data-term-tab="stdout">Console Output</button>
+              <button class="term-tab" data-term-tab="tests">Test Results (<span id="test-summary-pill">0/0</span>)</button>
+            </div>
+            <div class="term-meta">
+              <span id="term-status">Ready</span>
+              <button class="btn btn-secondary" style="padding: 0.25rem 0.6rem; font-size: 0.72rem;" id="clear-console-btn">Clear</button>
+            </div>
+          </div>
+          <div class="term-body" id="term-body">
+            <div id="stdout-view">
+              <div class="stdout-text" id="stdout-content">Press 'Run' or hit Ctrl+Enter to execute your Python code...</div>
+              <div class="stderr-text" id="stderr-content" style="display: none;"></div>
+            </div>
+            <div id="tests-view" style="display: none;">
+              <div class="test-results-container" id="test-results-container">
+                <p style="color: var(--text-muted);">Click "Check Solution" to run automated tests against your code.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- VIEW 2: PLAYGROUND -->
+    <div id="view-playground" class="view-panel">
+      <div class="playground-topbar">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <label style="font-size: 0.85rem; font-weight: 600; color: var(--text-secondary);">Preset Template:</label>
+          <select class="template-selector" id="pg-template-select">
+            <option value="forensic_hasher">🛡️ Cyber Forensics: File Hasher & Evidence Integrity</option>
+            <option value="log_investigator">🕵️ Forensic Log & IP Threat Extractor</option>
+            <option value="hello">Hello Python & System Info</option>
+            <option value="fibonacci">Fibonacci & Memoization</option>
+            <option value="quicksort">QuickSort Algorithm</option>
+            <option value="palindrome">Palindrome & Anagram Checker</option>
+            <option value="adventure">Text Adventure Mini-Engine</option>
+            <option value="wordstats">Word Frequency Analyzer</option>
+          </select>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+          <button class="btn btn-secondary" id="pg-clear-btn">Clear</button>
+          <button class="btn btn-run" id="pg-run-btn">▶ Run Code</button>
+        </div>
+      </div>
+      <div class="playground-grid">
+        <div class="playground-editor-box">
+          <div class="editor-header">
+            <div class="editor-title-group">
+              <div class="traffic-lights">
+                <span class="dot red"></span>
+                <span class="dot yellow"></span>
+                <span class="dot green"></span>
+              </div>
+              <span class="editor-title">sandbox.py</span>
+            </div>
+          </div>
+          <div class="editor-wrapper">
+            <div class="line-numbers" id="pg-line-numbers">1</div>
+            <textarea class="code-textarea" id="pg-editor" spellcheck="false"></textarea>
+          </div>
+        </div>
+        <div class="playground-console-box">
+          <div class="editor-header">
+            <div class="editor-title-group">
+              <div class="traffic-lights">
+                <span class="dot red"></span>
+                <span class="dot yellow"></span>
+                <span class="dot green"></span>
+              </div>
+              <span class="editor-title">Console Output</span>
+            </div>
+            <span id="pg-duration-meta" style="font-size: 0.75rem; color: var(--text-muted);">Ready</span>
+          </div>
+          <div class="term-body" id="pg-term-body">
+            <pre class="stdout-text" id="pg-stdout"></pre>
+            <pre class="stderr-text" id="pg-stderr" style="display: none;"></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 3: CHALLENGES CATALOG -->
+    <div id="view-challenges" class="view-panel">
+      <div style="margin-bottom: 1.5rem;">
+        <h2 style="font-size: 1.6rem; font-weight: 800; margin-bottom: 0.4rem; letter-spacing: -0.02em;">Coding Challenges</h2>
+        <p style="color: var(--text-secondary);">Test your skills with automated test cases. Earn XP and unlock badges.</p>
+      </div>
+      <div class="sheet-category-grid" id="challenges-catalog-grid">
+        <!-- Dynamically rendered challenge cards -->
+      </div>
+    </div>
+
+    <!-- VIEW 4: CHEAT SHEET -->
+    <div id="view-cheatsheet" class="view-panel">
+      <div class="cheatsheet-header">
+        <div>
+          <h2 style="font-size: 1.6rem; font-weight: 800; margin-bottom: 0.3rem; letter-spacing: -0.02em;">Python Quick Reference</h2>
+          <p style="color: var(--text-secondary);">Essential syntax, data structures, and idioms at your fingertips.</p>
+        </div>
+        <input type="text" class="search-input" id="cheatsheet-search" placeholder="🔍 Search syntax, methods...">
+      </div>
+      <div class="sheet-category-grid" id="cheatsheet-grid">
+        <!-- Dynamically rendered cheat sheet cards -->
+      </div>
+    </div>
+
+    <!-- VIEW 5: FEATURED PROJECTS & WEBSITES -->
+    <div id="view-projects" class="view-panel">
+      <div class="projects-page-header">
+        <div>
+          <h2 style="font-size: 1.6rem; font-weight: 800; margin-bottom: 0.3rem; letter-spacing: -0.02em;">Featured Projects &amp; Security Suites</h2>
+          <p style="color: var(--text-secondary);">Production-ready digital forensics systems, incident investigation platforms, and cryptographic tools created by Phaneendhar Nittala.</p>
+        </div>
+        <button class="btn btn-secondary" onclick="openProfileModal()" title="View Developer Details">
+          <span>ℹ️</span> About Creator
+        </button>
+      </div>
+
+      <div class="projects-showcase-grid">
+        <!-- Project 1: PHANIX Investigation Expert -->
+        <div class="project-showcase-card">
+          <div class="project-card-banner banner-expert">
+            <div class="project-badge-tag">Digital Forensics &amp; OSINT</div>
+            <div class="project-icon-circle">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                <circle cx="12" cy="11" r="3"></circle>
+              </svg>
+            </div>
+          </div>
+          <div class="project-card-body">
+            <h3 class="project-title">PHANIX Investigation Expert</h3>
+            <p class="project-description">
+              An intelligent forensic investigation framework designed for digital investigators. Automates artifact extraction, metadata parsing, threat intelligence correlation, and evidentiary integrity tracking.
+            </p>
+            <div class="project-tags-row">
+              <span class="ptag">Evidence Parsing</span>
+              <span class="ptag">Chain of Custody</span>
+              <span class="ptag">OSINT</span>
+              <span class="ptag">Vercel</span>
+            </div>
+            <div class="project-card-footer">
+              <span class="project-domain-url">p-h-a-n-i-x-investigation-e-xpert.vercel.app</span>
+              <a href="https://p-h-a-n-i-x-investigation-e-xpert.vercel.app/" class="btn btn-run project-launch-btn" target="_blank" rel="noopener">
+                <span>Launch App</span>
+                <span style="font-size: 1rem;">↗</span>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Project 2: Nittala Forensic Suite -->
+        <div class="project-showcase-card">
+          <div class="project-card-banner banner-suite">
+            <div class="project-badge-tag">Cyber Threat Toolkit</div>
+            <div class="project-icon-circle">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+              </svg>
+            </div>
+          </div>
+          <div class="project-card-body">
+            <h3 class="project-title">Nittala Forensic Suite</h3>
+            <p class="project-description">
+              Comprehensive cyber forensic toolkit built for real-time log investigation, malicious IP identification, forensic memory extraction, and system-wide threat auditing for enterprise security analysts.
+            </p>
+            <div class="project-tags-row">
+              <span class="ptag">Incident Response</span>
+              <span class="ptag">Log Forensics</span>
+              <span class="ptag">Threat Analysis</span>
+              <span class="ptag">Vercel</span>
+            </div>
+            <div class="project-card-footer">
+              <span class="project-domain-url">nittala-forensic-suite.vercel.app</span>
+              <a href="https://nittala-forensic-suite.vercel.app/" class="btn btn-run project-launch-btn" target="_blank" rel="noopener">
+                <span>Launch App</span>
+                <span style="font-size: 1rem;">↗</span>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Project 3: PHANIX Forensic QR Architect -->
+        <div class="project-showcase-card">
+          <div class="project-card-banner banner-qr">
+            <div class="project-badge-tag">Cryptographic Encoder</div>
+            <div class="project-icon-circle">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="7" height="7"></rect>
+                <rect x="14" y="3" width="7" height="7"></rect>
+                <rect x="14" y="14" width="7" height="7"></rect>
+                <rect x="3" y="14" width="7" height="7"></rect>
+              </svg>
+            </div>
+          </div>
+          <div class="project-card-body">
+            <h3 class="project-title">PHANIX Forensic QR Architect</h3>
+            <p class="project-description">
+              A high-precision forensic QR architecture tool supporting cryptographic payload generation, tamper verification, Reed-Solomon error correction customization, and payload structural integrity analysis.
+            </p>
+            <div class="project-tags-row">
+              <span class="ptag">QR Architecture</span>
+              <span class="ptag">Cryptographic Hash</span>
+              <span class="ptag">Error Correction</span>
+              <span class="ptag">GitHub Pages</span>
+            </div>
+            <div class="project-card-footer">
+              <span class="project-domain-url">nphaneendhar.github.io/P.H.A.N.I.X-FORENSIC-QR-ARCHITECT</span>
+              <a href="https://nphaneendhar.github.io/P.H.A.N.I.X-FORENSIC-QR-ARCHITECT/" class="btn btn-run project-launch-btn" target="_blank" rel="noopener">
+                <span>Launch App</span>
+                <span style="font-size: 1rem;">↗</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW 7: REVIEWS & QUESTIONS -->
+    <div id="view-reviews" class="view-panel">
+      <div class="reviews-card">
+        <div class="reviews-icon" aria-hidden="true">💬</div>
+        <p class="reviews-eyebrow">Community feedback</p>
+        <h2>Reviews, doubts &amp; suggestions</h2>
+        <p class="reviews-intro">Share what you think about Phanix or send a Python question directly to the developer.</p>
+        <a class="reviews-email" href="mailto:nittalaphaneendhar@gmail.com">nittalaphaneendhar@gmail.com</a>
+
+        <form id="reviews-form" class="reviews-form">
+          <div class="reviews-form-row">
+            <label>Your name<input id="review-name" type="text" maxlength="80" placeholder="Your name"></label>
+            <label>Your email<input id="review-email" type="email" maxlength="120" placeholder="name@example.com"></label>
+          </div>
+          <label>What would you like to share?
+            <select id="review-topic">
+              <option value="Review">Review</option>
+              <option value="Python doubt">Python doubt</option>
+              <option value="Suggestion">Suggestion</option>
+              <option value="Other">Other</option>
+            </select>
+          </label>
+          <label>Your message<textarea id="review-message" required maxlength="2000" placeholder="Write your review, doubt, or suggestion here..."></textarea></label>
+          <button class="btn btn-test reviews-submit" type="submit">✉ Send by email</button>
+        </form>
+        <p class="reviews-note">The button opens your email app with the message ready to send.</p>
+      </div>
+    </div>
+
+    <!-- VIEW 6: USER PROFILE & BADGES -->
+    <div id="view-achievements" class="view-panel">
+      <!-- Profile Page Clean Header -->
+      <div class="ach-top-header">
+        <div>
+          <h2 style="font-size: 1.6rem; font-weight: 800; margin-bottom: 0.3rem; letter-spacing: -0.02em;">Learning Profile &amp; Achievements</h2>
+          <p style="color: var(--text-secondary);">Track your Python milestones, badges, and completion certification.</p>
+        </div>
+        <button class="btn btn-secondary ach-about-trigger" onclick="openProfileModal()" title="View Developer Details">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:4px;">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+          </svg>
+          <span>About Developer</span>
+        </button>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">⚡</div>
+          <div>
+            <div class="stat-value" id="ach-xp">0</div>
+            <div class="stat-label">Total XP</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">📚</div>
+          <div>
+            <div class="stat-value" id="ach-lessons">0/0</div>
+            <div class="stat-label">Lessons Completed</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🎯</div>
+          <div>
+            <div class="stat-value" id="ach-challenges">0/0</div>
+            <div class="stat-label">Challenges Passed</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🧠</div>
+          <div>
+            <div class="stat-value" id="ach-quizzes">0/0</div>
+            <div class="stat-label">Quizzes Mastered</div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1rem; letter-spacing: -0.02em;">Achievement Badges</h3>
+        <div class="badge-grid" id="badges-grid">
+          <!-- Dynamically populated badges -->
+        </div>
+      </div>
+
+      <!-- Apple-style Certificate of Completion -->
+      <div class="certificate-wrapper" id="certificate-box">
+        <div class="cert-seal" title="Certificate Seal">
+          <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="var(--apple-orange)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="8" r="6"></circle>
+            <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"></path>
+          </svg>
+        </div>
+        <div class="cert-title">Certificate of Python Proficiency</div>
+        <p style="color: var(--text-secondary); max-width: 550px;">This certificate recognizes mastery of foundational and intermediate Python programming, data structures, and automation on the <strong>Phanix</strong> platform.</p>
+        <div style="margin: 0.4rem 0;">
+          <span style="font-size: 0.85rem; color: var(--text-muted); display: block;">Awarded to</span>
+          <span class="cert-user-name" id="cert-learner-name" contenteditable="true" title="Click to edit name">Phaneendhar Nittala</span>
+          <span style="display: block; font-size: 0.85rem; color: var(--apple-blue); margin-top: 0.35rem;">Centurion University of Technology and Management</span>
+          <span style="display: block; font-size: 0.8rem; color: var(--text-muted);">MSc Digital Forensic & Cybersecurity</span>
+        </div>
+        <div style="font-size: 0.82rem; color: var(--text-muted);" id="cert-date">Issued: Today</div>
+      </div>
+    </div>
+  </main>
+
+  <!-- About / Profile Popover Modal (Strictly isolated, display:none by default) -->
+  <div class="profile-modal-overlay" id="profile-modal-overlay" style="display: none !important;" role="dialog" aria-modal="true" aria-label="About Developer">
+    <div class="profile-modal" id="profile-modal">
+      <!-- Close Button -->
+      <button class="profile-modal-close" id="profile-modal-close" onclick="closeProfileModal()" title="Close" aria-label="Close">✕</button>
+
+      <!-- Profile Header (Compact & Elegant) -->
+      <div class="about-modal-header">
+        <div class="about-avatar-badge">
+          <span>PN</span>
+        </div>
+        <h2 class="about-name">Phaneendhar Nittala</h2>
+        <div class="about-edu-tag">🎓 MSc Digital Forensic &amp; Cybersecurity</div>
+        <div class="about-college">🏛️ Centurion University of Technology and Management</div>
+        <p class="about-mission">
+          Dedicated to building hands-on educational platforms in Python programming, digital forensics, and cyber security architecture.
+        </p>
+      </div>
+
+      <!-- Educational Pillars / Domains -->
+      <div class="about-section-heading">Core Focus Areas</div>
+      <div class="about-domains-row">
+        <span class="about-domain-pill">🛡️ Digital Forensics</span>
+        <span class="about-domain-pill">🐍 Python Scripting</span>
+        <span class="about-domain-pill">🔐 Cryptography</span>
+        <span class="about-domain-pill">🔍 Threat Analysis</span>
+      </div>
+
+      <!-- Social Media Accounts with SVG Icons -->
+      <div class="about-section-heading">Social &amp; Connect</div>
+      <div class="about-social-grid">
+        <a href="mailto:nittalaphaneendhar@gmail.com" class="about-social-card gmail" target="_blank" rel="noopener" title="Email: nittalaphaneendhar@gmail.com">
+          <div class="about-social-icon-box">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="20" height="16" x="2" y="4" rx="2"></rect>
+              <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+            </svg>
+          </div>
+          <div class="about-social-text">
+            <span class="about-social-name">Gmail</span>
+            <span class="about-social-handle">nittalaphaneendhar@gmail.com</span>
+          </div>
+        </a>
+
+        <a href="https://www.linkedin.com/in/phaneendhar-nittala-a2a3443a1/" class="about-social-card linkedin" target="_blank" rel="noopener" title="LinkedIn Profile">
+          <div class="about-social-icon-box">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 8.76a1.6 1.6 0 0 0 1.6-1.6 1.6 1.6 0 0 0-1.6-1.6 1.6 1.6 0 0 0-1.6 1.6c0 .88.72 1.6 1.6 1.6m1.4 9.74v-8.37H5.06v8.37h2.8z"/>
+            </svg>
+          </div>
+          <div class="about-social-text">
+            <span class="about-social-name">LinkedIn</span>
+            <span class="about-social-handle">Phaneendhar Nittala</span>
+          </div>
+        </a>
+
+        <a href="https://www.instagram.com/phani.49" class="about-social-card instagram" target="_blank" rel="noopener" title="Instagram Profile">
+          <div class="about-social-icon-box">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect width="20" height="20" x="2" y="2" rx="5" ry="5"></rect>
+              <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+              <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"></line>
+            </svg>
+          </div>
+          <div class="about-social-text">
+            <span class="about-social-name">Instagram</span>
+            <span class="about-social-handle">@phani.49</span>
+          </div>
+        </a>
+
+        <a href="https://github.com/nphaneendhar" class="about-social-card github" target="_blank" rel="noopener" title="GitHub Profile">
+          <div class="about-social-icon-box">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+            </svg>
+          </div>
+          <div class="about-social-text">
+            <span class="about-social-name">GitHub</span>
+            <span class="about-social-handle">nphaneendhar</span>
+          </div>
+        </a>
+      </div>
+
+      <!-- Websites & Projects -->
+      <div class="about-section-heading">Websites &amp; Projects</div>
+      <div class="about-projects-list">
+        <a href="https://p-h-a-n-i-x-investigation-e-xpert.vercel.app/" class="about-project-card" target="_blank" rel="noopener">
+          <div class="about-proj-icon" style="background: rgba(10, 132, 255, 0.15); color: var(--apple-blue);">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              <circle cx="12" cy="11" r="3"></circle>
+            </svg>
+          </div>
+          <div class="about-proj-info">
+            <span class="about-proj-title">PHANIX Investigation Expert</span>
+            <span class="about-proj-url">p-h-a-n-i-x-investigation-e-xpert.vercel.app</span>
+          </div>
+          <span class="about-proj-arrow">↗</span>
+        </a>
+
+        <a href="https://nittala-forensic-suite.vercel.app/" class="about-project-card" target="_blank" rel="noopener">
+          <div class="about-proj-icon" style="background: rgba(175, 82, 222, 0.15); color: var(--apple-purple);">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+              <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+            </svg>
+          </div>
+          <div class="about-proj-info">
+            <span class="about-proj-title">Nittala Forensic Suite</span>
+            <span class="about-proj-url">nittala-forensic-suite.vercel.app</span>
+          </div>
+          <span class="about-proj-arrow">↗</span>
+        </a>
+
+        <a href="https://nphaneendhar.github.io/P.H.A.N.I.X-FORENSIC-QR-ARCHITECT/" class="about-project-card" target="_blank" rel="noopener">
+          <div class="about-proj-icon" style="background: rgba(52, 199, 89, 0.15); color: var(--apple-green);">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+          </div>
+          <div class="about-proj-info">
+            <span class="about-proj-title">PHANIX Forensic QR Architect</span>
+            <span class="about-proj-url">nphaneendhar.github.io</span>
+          </div>
+          <span class="about-proj-arrow">↗</span>
+        </a>
+      </div>
+
+      <button class="btn btn-secondary" onclick="closeProfileModal(); switchView('view-projects');" style="width: 100%; margin-top: 1rem; justify-content: center; font-size: 0.82rem; padding: 0.55rem;">
+        <span>🚀</span>
+        <span>Open Projects Showcase</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Application Logic -->
+  <script src="js/app.js?v=4.1"></script>
+</body>
+</html>
