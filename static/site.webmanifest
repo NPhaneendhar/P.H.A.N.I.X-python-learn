@@ -4,8 +4,8 @@
   "description": "Learn Python simply with lessons, examples, quizzes, and coding practice.",
   "icons": [
     {
-      "src": "img/logo.png",
-      "sizes": "any",
+      "src": "img/phanix-favicon-192.png",
+      "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     }
