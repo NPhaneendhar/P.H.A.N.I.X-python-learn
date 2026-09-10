@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Phanix — Python Learning Platform</title>
   <link rel="icon" type="image/png" href="img/logo.png">
-  <link rel="stylesheet" href="css/style.css?v=4.0">
+  <link rel="stylesheet" href="css/style.css?v=4.2">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -72,6 +72,7 @@
             <span>Curriculum</span>
             <span id="overall-progress-text" style="color: var(--apple-blue); font-size: 0.85rem;">0%</span>
           </div>
+          <button class="sidebar-collapse-btn" id="sidebar-collapse-btn" type="button" aria-label="Collapse curriculum" title="Collapse curriculum" aria-expanded="true">‹</button>
           <div class="progress-container">
             <div class="progress-bar-fill" id="overall-progress-bar"></div>
           </div>
@@ -471,24 +472,28 @@
         </div>
       </div>
 
-      <!-- Apple-style Certificate of Completion -->
-      <div class="certificate-wrapper" id="certificate-box">
-        <div class="cert-seal" title="Certificate Seal">
-          <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="var(--apple-orange)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="8" r="6"></circle>
-            <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"></path>
-          </svg>
+      <!-- Personal recognition certificate — not an accredited qualification. -->
+      <section class="certificate-wrapper" id="certificate-box" aria-label="Phanix certificate of completion">
+        <div class="cert-orbit cert-orbit-one" aria-hidden="true"></div>
+        <div class="cert-orbit cert-orbit-two" aria-hidden="true"></div>
+        <div class="cert-topline">
+          <div class="cert-brand"><img class="cert-brand-mark" src="img/logo.png" alt="Phanix logo"> PHANIX</div>
+          <span class="cert-recognition">PERSONAL RECOGNITION</span>
         </div>
-        <div class="cert-title">Certificate of Python Proficiency</div>
-        <p style="color: var(--text-secondary); max-width: 550px;">This certificate recognizes mastery of foundational and intermediate Python programming, data structures, and automation on the <strong>Phanix</strong> platform.</p>
-        <div style="margin: 0.4rem 0;">
-          <span style="font-size: 0.85rem; color: var(--text-muted); display: block;">Awarded to</span>
-          <span class="cert-user-name" id="cert-learner-name" contenteditable="true" title="Click to edit name">Phaneendhar Nittala</span>
-          <span style="display: block; font-size: 0.85rem; color: var(--apple-blue); margin-top: 0.35rem;">Centurion University of Technology and Management</span>
-          <span style="display: block; font-size: 0.8rem; color: var(--text-muted);">MSc Digital Forensic & Cybersecurity</span>
+        <div class="cert-achievement-mark" aria-hidden="true"><span>✦</span><i></i><span>✦</span></div>
+        <p class="cert-kicker">Certificate of Completion</p>
+        <h3 class="cert-title">Python Learning Journey</h3>
+        <p class="cert-intro">This acknowledges that</p>
+        <div class="cert-name-wrap"><input class="cert-user-name" id="cert-learner-name" type="text" maxlength="80" autocomplete="name" aria-label="Learner name for certificate" placeholder="Enter your name"></div>
+        <p class="cert-copy">has completed the Phanix Python learning journey and demonstrated commitment to building practical programming skills.</p>
+        <div class="cert-footer">
+          <div class="cert-meta"><span>COMPLETION DATE</span><strong id="cert-date">Pending completion</strong></div>
+          <div class="cert-footer-brand"><span class="cert-footer-line"></span><strong>PHANIX</strong><small>KEEP BUILDING</small></div>
+          <div class="cert-meta"><span>RECOGNITION</span><strong>Personal achievement</strong></div>
         </div>
-        <div style="font-size: 0.82rem; color: var(--text-muted);" id="cert-date">Issued: Today</div>
-      </div>
+        <p class="cert-disclaimer" id="cert-status">Complete every lesson and hands-on challenge to unlock your certificate.</p>
+        <button class="btn cert-download" id="cert-download-btn" type="button" disabled>🔒 Complete the course to unlock</button>
+      </section>
     </div>
   </main>
 
@@ -498,14 +503,17 @@
       <!-- Close Button -->
       <button class="profile-modal-close" id="profile-modal-close" onclick="closeProfileModal()" title="Close" aria-label="Close">✕</button>
 
-      <!-- Profile Header (Compact & Elegant) -->
+      <!-- Profile Header -->
       <div class="about-modal-header">
-        <div class="about-avatar-badge">
-          <span>PN</span>
+        <div class="about-profile-mark">
+          <img src="img/logo.png" alt="Phanix logo" class="about-logo-img">
+          <span class="about-online-dot" aria-label="Available to connect"></span>
         </div>
+        <span class="about-eyebrow">Creator of Phanix</span>
         <h2 class="about-name">Phaneendhar Nittala</h2>
-        <div class="about-edu-tag">🎓 MSc Digital Forensic &amp; Cybersecurity</div>
-        <div class="about-college">🏛️ Centurion University of Technology and Management</div>
+        <div class="about-role-row">
+          <span>Python education</span><i aria-hidden="true"></i><span>Digital forensics</span>
+        </div>
         <p class="about-mission">
           Dedicated to building hands-on educational platforms in Python programming, digital forensics, and cyber security architecture.
         </p>
@@ -634,6 +642,6 @@
   <div class="toast-container" id="toast-container"></div>
 
   <!-- Application Logic -->
-  <script src="js/app.js?v=4.1"></script>
+  <script src="js/app.js?v=4.2"></script>
 </body>
 </html>

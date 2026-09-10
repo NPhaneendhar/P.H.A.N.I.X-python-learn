@@ -16,7 +16,7 @@ const state = {
   unlockedBadges: JSON.parse(localStorage.getItem('pylearn_badges') || '[]'),
   userCodes: JSON.parse(localStorage.getItem('pylearn_user_codes') || '{}'),
   theme: localStorage.getItem('pylearn_theme') || 'dark',
-  learnerName: localStorage.getItem('pylearn_name') || 'Phaneendhar Nittala'
+  learnerName: localStorage.getItem('pylearn_name') || 'Your Name'
 };
 
 // Playground Preset Templates
@@ -206,6 +206,7 @@ const elements = {
   
   // Learn View
   moduleListContainer: document.getElementById('module-list-container'),
+  sidebarCollapseBtn: document.getElementById('sidebar-collapse-btn'),
   overallProgressBar: document.getElementById('overall-progress-bar'),
   overallProgressText: document.getElementById('overall-progress-text'),
   lessonDifficulty: document.getElementById('lesson-difficulty'),
@@ -273,6 +274,8 @@ const elements = {
   badgesGrid: document.getElementById('badges-grid'),
   certLearnerName: document.getElementById('cert-learner-name'),
   certDate: document.getElementById('cert-date'),
+  certDownloadBtn: document.getElementById('cert-download-btn'),
+  certStatus: document.getElementById('cert-status'),
 
   // Toast & Confetti
   toastContainer: document.getElementById('toast-container'),
@@ -284,6 +287,7 @@ async function initApp() {
   applyTheme(state.theme);
   updateHeaderStats();
   setupEventListeners();
+  setCurriculumCollapsed(localStorage.getItem('pylearn_curriculum_collapsed') === 'true');
   setupEditorHelpers(elements.codeEditor, elements.editorLineNumbers);
   setupEditorHelpers(elements.pgEditor, elements.pgLineNumbers);
 
@@ -293,11 +297,9 @@ async function initApp() {
 
   // Initialize certificate name
   if (elements.certLearnerName) {
-    elements.certLearnerName.textContent = state.learnerName;
+    elements.certLearnerName.value = state.learnerName;
   }
-  if (elements.certDate) {
-    elements.certDate.textContent = `Awarded with distinction: ${new Date().toLocaleDateString()}`;
-  }
+  updateCertificateStatus();
 
   try {
     await Promise.all([loadCurriculum(), loadCheatsheet()]);
@@ -305,6 +307,7 @@ async function initApp() {
     renderChallengesCatalog();
     renderCheatsheet();
     renderAchievements();
+    checkAllProgress(); // restores badges for progress saved from an earlier visit
 
     // Select initial lesson
     const savedLesson = localStorage.getItem('pylearn_current_lesson');
@@ -316,22 +319,39 @@ async function initApp() {
   }
 }
 
+// Fetch data through the Python server. The data directory is intentionally not
+// public, so requesting /data/*.json directly returns an HTML 404 page.
+async function fetchApiJson(url, label) {
+  const res = await fetch(url);
+  const contentType = res.headers.get('content-type') || '';
+
+  if (!res.ok || !contentType.includes('application/json')) {
+    const responseText = await res.text();
+    const detail = responseText.replace(/\s+/g, ' ').slice(0, 120);
+    throw new Error(`${label} could not be loaded (${res.status}). ${detail || 'Start the Python server and refresh.'}`);
+  }
+
+  return res.json();
+}
+
 // Fetch Curriculum from Server API
 async function loadCurriculum() {
-  const res = await fetch('/data/curriculum.json');
-  if (!res.ok) throw new Error('Could not fetch curriculum');
-  state.modules = await res.json();
+  state.modules = await fetchApiJson('/api/curriculum', 'Curriculum');
 }
 
 // Fetch Cheat Sheet from Server API
 async function loadCheatsheet() {
-  const res = await fetch('/data/cheatsheet.json');
-  if (!res.ok) throw new Error('Could not fetch cheatsheet');
-  state.cheatsheet = await res.json();
+  state.cheatsheet = await fetchApiJson('/api/cheatsheet', 'Cheat sheet');
 }
 
 // Setup Event Listeners
 function setupEventListeners() {
+  if (elements.sidebarCollapseBtn) {
+    elements.sidebarCollapseBtn.addEventListener('click', () => {
+      const isCollapsed = !document.querySelector('.sidebar').classList.contains('collapsed');
+      setCurriculumCollapsed(isCollapsed);
+    });
+  }
   // Theme Toggle
   elements.themeToggle.addEventListener('click', () => {
     const nextTheme = state.theme === 'dark' ? 'light' : 'dark';
@@ -428,11 +448,16 @@ function setupEventListeners() {
 
   // Learner Name update on edit
   if (elements.certLearnerName) {
-    elements.certLearnerName.addEventListener('blur', () => {
-      const name = elements.certLearnerName.textContent.trim() || 'Phaneendhar Nittala';
+    elements.certLearnerName.addEventListener('input', () => {
+      const name = elements.certLearnerName.value.trim() || 'Your Name';
       state.learnerName = name;
       localStorage.setItem('pylearn_name', name);
     });
+  }
+
+  // The browser's print dialog lets learners save a crisp, landscape PDF.
+  if (elements.certDownloadBtn) {
+    elements.certDownloadBtn.addEventListener('click', () => window.print());
   }
 
   // Social Links Persistence
@@ -446,6 +471,17 @@ function setupEventListeners() {
       });
     }
   });
+}
+
+function setCurriculumCollapsed(isCollapsed) {
+  const sidebar = document.querySelector('.sidebar');
+  if (!sidebar || !elements.sidebarCollapseBtn) return;
+  sidebar.classList.toggle('collapsed', isCollapsed);
+  elements.sidebarCollapseBtn.textContent = isCollapsed ? '›' : '‹';
+  elements.sidebarCollapseBtn.setAttribute('aria-label', isCollapsed ? 'Expand curriculum' : 'Collapse curriculum');
+  elements.sidebarCollapseBtn.title = isCollapsed ? 'Expand curriculum' : 'Collapse curriculum';
+  elements.sidebarCollapseBtn.setAttribute('aria-expanded', String(!isCollapsed));
+  localStorage.setItem('pylearn_curriculum_collapsed', String(isCollapsed));
 }
 
 // Switch Active View Panel (Seamless switching across all tabs)
@@ -793,6 +829,38 @@ function renderQuiz(quiz) {
 }
 
 // Handle Code Execution (Run Button)
+function recordCodeCompletion() {
+  const lesson = getCurrentLesson();
+  if (!lesson) return;
+
+  let newlyCompleted = false;
+  let newlyCompletedChallenge = false;
+  if (!state.completedLessons.includes(lesson.id)) {
+    state.completedLessons.push(lesson.id);
+    localStorage.setItem('pylearn_completed_lessons', JSON.stringify(state.completedLessons));
+    newlyCompleted = true;
+  }
+  // Every lesson has a hands-on challenge. A successful program is enough to
+  // complete it, so learners can progress by experimenting with the code.
+  if (lesson.challenge && !state.completedChallenges.includes(lesson.id)) {
+    state.completedChallenges.push(lesson.id);
+    localStorage.setItem('pylearn_completed_challenges', JSON.stringify(state.completedChallenges));
+    newlyCompleted = true;
+    newlyCompletedChallenge = true;
+  }
+
+  if (!newlyCompleted) return;
+
+  addXP(lesson.xp || 60);
+  if (newlyCompletedChallenge) checkBadgeUnlock('first_challenge');
+  renderCurriculumTree();
+  renderChallengesCatalog();
+  renderAchievements();
+  elements.lessonCompletedTag.style.display = 'inline';
+  checkAllProgress();
+  showToast(`✓ Lesson completed! +${lesson.xp || 60} XP earned.`, 'success');
+}
+
 async function handleRunCode() {
   const code = elements.codeEditor.value;
   elements.termStatus.textContent = 'Running...';
@@ -807,6 +875,11 @@ async function handleRunCode() {
       body: JSON.stringify({ code })
     });
 
+    const contentType = res.headers.get('content-type') || '';
+    if (!res.ok || !contentType.includes('application/json')) {
+      const responseText = await res.text();
+      throw new Error(`Code runner unavailable (${res.status}): ${responseText.replace(/\s+/g, ' ').slice(0, 100)}`);
+    }
     const data = await res.json();
     elements.stdoutContent.textContent = data.stdout || (data.exit_code === 0 ? '[Script finished with no output]' : '');
     
@@ -820,6 +893,9 @@ async function handleRunCode() {
 
     elements.termStatus.textContent = `Finished in ${data.duration_ms}ms (Exit: ${data.exit_code})`;
     checkBadgeUnlock('first_run');
+    if (data.exit_code === 0 && code.trim()) {
+      recordCodeCompletion();
+    }
   } catch (err) {
     elements.stderrContent.textContent = `Server Connection Error: ${err.message}`;
     elements.stderrContent.style.display = 'block';
@@ -847,36 +923,22 @@ async function handleTestCode() {
       })
     });
 
+    const contentType = res.headers.get('content-type') || '';
+    if (!res.ok || !contentType.includes('application/json')) {
+      const responseText = await res.text();
+      throw new Error(`Challenge service unavailable (${res.status}): ${responseText.replace(/\s+/g, ' ').slice(0, 100)}`);
+    }
     const data = await res.json();
     renderTestResults(data);
 
     if (data.all_passed) {
       fireConfetti();
       checkBadgeUnlock('first_challenge');
-
-      const isFirstPass = !state.completedChallenges.includes(state.currentLessonId);
-      if (isFirstPass) {
-        state.completedChallenges.push(state.currentLessonId);
-        localStorage.setItem('pylearn_completed_challenges', JSON.stringify(state.completedChallenges));
-
-        if (!state.completedLessons.includes(state.currentLessonId)) {
-          state.completedLessons.push(state.currentLessonId);
-          localStorage.setItem('pylearn_completed_lessons', JSON.stringify(state.completedLessons));
-        }
-
-        const currentLesson = getCurrentLesson();
-        const earnedXp = currentLesson?.xp || 60;
-        addXP(earnedXp);
-        showToast(`🎉 Challenge Passed! +${earnedXp} XP earned!`, 'success');
-
-        renderCurriculumTree();
-        elements.lessonCompletedTag.style.display = 'inline';
-        checkAllProgress();
-      } else {
-        showToast(`✓ All tests passed again! Great job!`, 'success');
-      }
+      const alreadyComplete = state.completedChallenges.includes(state.currentLessonId);
+      recordCodeCompletion();
+      if (alreadyComplete) showToast(`✓ Your program runs successfully!`, 'success');
     } else {
-      showToast('Some tests failed. Review the diffs below!', 'error');
+      showToast('Your code needs to run without errors. Check the message below and try again.', 'error');
     }
   } catch (err) {
     elements.testResultsContainer.innerHTML = `<p style="color: var(--accent-red);">Testing Error: ${err.message}</p>`;
@@ -1098,6 +1160,7 @@ function renderAchievements() {
   elements.achLessons.textContent = `${state.completedLessons.length} / ${totalLessons}`;
   elements.achChallenges.textContent = `${state.completedChallenges.length} / ${totalChallenges}`;
   elements.achQuizzes.textContent = `${state.completedQuizzes.length} / ${totalLessons}`;
+  updateCertificateStatus(totalLessons, totalChallenges);
 
   // Badges
   elements.badgesGrid.innerHTML = '';
@@ -1131,6 +1194,7 @@ function checkBadgeUnlock(badgeId) {
 }
 
 function checkAllProgress() {
+  if (state.completedChallenges.length > 0) checkBadgeUnlock('first_challenge');
   if (state.xp >= 200) checkBadgeUnlock('century_xp');
 
   // Check module completions
@@ -1146,6 +1210,42 @@ function checkAllProgress() {
   state.modules.forEach(m => totalLessons += m.lessons.length);
   if (state.completedLessons.length >= totalLessons && totalLessons > 0) {
     checkBadgeUnlock('master_developer');
+  }
+
+  updateCertificateStatus();
+}
+
+function updateCertificateStatus(lessonTotal, challengeTotal) {
+  if (!elements.certDate || !elements.certDownloadBtn || !elements.certStatus) return;
+
+  const totals = state.modules.reduce((result, module) => {
+    result.lessons += module.lessons.length;
+    result.challenges += module.lessons.filter(lesson => lesson.challenge).length;
+    return result;
+  }, { lessons: 0, challenges: 0 });
+  const requiredLessons = lessonTotal ?? totals.lessons;
+  const requiredChallenges = challengeTotal ?? totals.challenges;
+  const isComplete = requiredLessons > 0
+    && state.completedLessons.length >= requiredLessons
+    && state.completedChallenges.length >= requiredChallenges;
+
+  if (isComplete) {
+    let completedOn = localStorage.getItem('pylearn_certificate_completed_on');
+    if (!completedOn) {
+      completedOn = new Date().toISOString();
+      localStorage.setItem('pylearn_certificate_completed_on', completedOn);
+    }
+    elements.certDate.textContent = new Intl.DateTimeFormat(undefined, {
+      day: 'numeric', month: 'long', year: 'numeric'
+    }).format(new Date(completedOn));
+    elements.certStatus.textContent = 'Unlocked — a personal recognition from Phanix for completing the full learning journey.';
+    elements.certDownloadBtn.disabled = false;
+    elements.certDownloadBtn.textContent = '↓ Download certificate';
+  } else {
+    elements.certDate.textContent = 'Pending completion';
+    elements.certStatus.textContent = `Complete all ${requiredLessons} lessons and ${requiredChallenges} hands-on challenges to unlock your certificate.`;
+    elements.certDownloadBtn.disabled = true;
+    elements.certDownloadBtn.textContent = '🔒 Complete the course to unlock';
   }
 }
 
