@@ -18,7 +18,7 @@
   <link rel="shortcut icon" type="image/png" href="img/logo.png">
   <link rel="apple-touch-icon" href="img/logo.png">
   <link rel="manifest" href="site.webmanifest">
-  <link rel="stylesheet" href="css/style.css?v=4.6">
+  <link rel="stylesheet" href="css/style.css?v=5.0">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -55,13 +55,9 @@
 
     <div class="header-stats">
       <!-- About Navigation Button -->
-      <button class="about-nav-btn" id="about-nav-btn" onclick="openProfileModal()" title="About Developer & Contact">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="10"></circle>
-          <line x1="12" y1="16" x2="12" y2="12"></line>
-          <line x1="12" y1="8" x2="12.01" y2="8"></line>
-        </svg>
-        <span>About</span>
+      <button class="about-nav-btn" id="about-nav-btn" onclick="openProfileModal()" title="Meet the creator of Phanix">
+        <span class="about-nav-avatar" aria-hidden="true"><img src="img/phani.png" alt=""></span>
+        <span>Creator</span>
       </button>
 
       <div class="stat-pill xp" title="Experience Points">
@@ -289,6 +285,15 @@
         <div class="sheet-nav" id="cheatsheet-nav" aria-label="Cheat sheet categories"></div>
         <span class="sheet-count" id="cheatsheet-count"></span>
       </div>
+      <section class="sheet-start-card" aria-label="How to start learning Python">
+        <div class="sheet-start-heading"><span>🚀</span><div><strong>Start here — learn Python without getting confused</strong><p>Do not try to memorise everything. Learn one small idea, run it, then change it.</p></div></div>
+        <div class="sheet-start-steps">
+          <div><span>1</span><strong>Pick one topic</strong><p>Start with Variables, then Lists, If statements, Loops, and Functions.</p></div>
+          <div><span>2</span><strong>Read every line</strong><p>Open “Explain every line” below an example before you run it.</p></div>
+          <div><span>3</span><strong>Try a small change</strong><p>Change a name, number, or condition. Then see what changes in the output.</p></div>
+          <div><span>4</span><strong>Practise with a task</strong><p>Use “Learn with task” when you are ready to solve a real challenge.</p></div>
+        </div>
+      </section>
       <div class="sheet-category-grid" id="cheatsheet-grid">
         <!-- Dynamically rendered cheat sheet cards -->
       </div>
@@ -544,10 +549,10 @@
       <!-- Educational Pillars / Domains -->
       <div class="about-section-heading">Core Focus Areas</div>
       <div class="about-domains-row">
-        <span class="about-domain-pill">🛡️ Digital Forensics</span>
-        <span class="about-domain-pill">🐍 Python Scripting</span>
-        <span class="about-domain-pill">🔐 Cryptography</span>
-        <span class="about-domain-pill">🔍 Threat Analysis</span>
+        <span class="about-domain-pill">Digital Forensics</span>
+        <span class="about-domain-pill">Python Scripting</span>
+        <span class="about-domain-pill">Cryptography</span>
+        <span class="about-domain-pill">Threat Analysis</span>
       </div>
 
       <!-- Social Media Accounts with SVG Icons -->
@@ -673,6 +678,6 @@
   <div class="toast-container" id="toast-container"></div>
 
   <!-- Application Logic -->
-  <script src="js/app.js?v=4.6"></script>
+  <script src="js/app.js?v=4.8"></script>
 </body>
 </html>

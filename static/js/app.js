@@ -236,6 +236,12 @@ function explainCodeLine(line) {
   if (/^for\s+.+\s+in\s+.+\s+if\s+/.test(clean) || (/\[.*\bfor\b.*\bif\b.*\]/.test(clean))) return 'This goes through items and keeps only the items that pass the condition.';
   if (clean.startsWith('for ')) return 'This repeats the indented code once for each item or number.';
   if (clean.startsWith('while ')) return 'This repeats the indented code while its condition is true.';
+  if (clean.startsWith('def ')) return 'This creates a reusable function. The function runs only when you call its name later.';
+  if (clean.startsWith('class ')) return 'This creates a class: a blueprint for making related objects.';
+  if (clean.startsWith('try:')) return 'This starts code that might cause an error, so the program can handle it safely.';
+  if (clean.startsWith('except ')) return 'This says what to do if the matching error happens.';
+  if (clean.startsWith('with open(')) return 'This safely opens a file and closes it when this block finishes.';
+  if (clean.startsWith('raise ')) return 'This deliberately stops the code and shows a clear error message.';
   if (clean.startsWith('if ')) return 'This checks a condition. The indented code runs only when the answer is true.';
   if (clean.startsWith('elif ')) return 'This checks another condition when the earlier condition was not true.';
   if (clean === 'else:' || clean.startsWith('else:')) return 'This runs when none of the earlier conditions were true.';
@@ -263,6 +269,15 @@ function buildChallengeWalkthrough(challenge) {
       <strong>One working solution:</strong>${solution}
       <strong>What each code line does:</strong><ol class="solution-line-guide">${lineGuide}</ol>
     </div>
+  </details>`;
+}
+
+function buildCheatsheetExampleGuide(code) {
+  const lines = String(code || '').split('\n');
+  return `<details class="sheet-line-guide">
+    <summary>🔎 Explain every line</summary>
+    <ol>${lines.map(line => `<li><code>${escapeHTML(line || 'blank line')}</code><span>${explainCodeLine(line)}</span></li>`).join('')}</ol>
+    <p><strong>Try this next:</strong> Run the code once, change one small value, and run it again. This is how you learn what each line changes.</p>
   </details>`;
 }
 
@@ -1221,6 +1236,45 @@ const CHEATSHEET_LESSON_MATCHES = {
   'Flexible Args': '*args, **kwargs, & Lambdas', 'Lambda Expressions': '*args, **kwargs, & Lambdas', 'Classes & OOP': 'Classes, Objects, and __init__',
   'Try - Except - Finally': 'Try, Except, Else, and Finally', 'Raising Exceptions': 'Try, Except, Else, and Finally', 'Reading Files Safely': 'Try, Except, Else, and Finally'
 };
+const CHEATSHEET_NEXT_STEPS = {
+  'Variables & Types': 'Change the name, number, and True/False value. Print each one and notice that Python remembers them.',
+  'Lists': 'Add one new item with `.append()`, then print the list. Try reading a different position such as `[1]`.',
+  'Dictionaries': 'Add one more labelled detail such as `"city"`, then print that value using its key.',
+  'For Loop & Range': 'Change `range(3)` to `range(5)`. Count how many times the loop runs.',
+  'If - Elif - Else': 'Change the score or condition and see which message Python chooses.',
+  'Function Definition': 'Call the function with a different name or number and compare the returned result.',
+  'Try - Except - Finally': 'Try a valid value first, then an invalid value. Notice that the program keeps running safely.'
+};
+const CHEATSHEET_EXTRA_EXAMPLES = {
+  'Variables & Types': { label: 'Practice: calculate a total', code: 'item_price = 120\nquantity = 3\ntotal = item_price * quantity\nprint("Total:", total)' },
+  'Type Casting': { label: 'Practice: turn text input into a number', code: 'age_text = "18"\nage = int(age_text)\nnext_year = age + 1\nprint(next_year)' },
+  'Comments & Docstrings': { label: 'Practice: explain a function', code: 'def add_tax(price):\n    """Return a price after adding 5% tax."""\n    return price * 1.05\n\nprint(add_tax(100))' },
+  'Arithmetic': { label: 'Practice: split a bill', code: 'bill = 750\npeople = 3\nper_person = bill / people\nprint(per_person)' },
+  'Comparison & Logic': { label: 'Practice: check a login rule', code: 'has_password = True\nhas_code = False\ncan_login = has_password and has_code\nprint(can_login)' },
+  'If - Elif - Else': { label: 'Practice: choose a delivery fee', code: 'order_total = 650\nif order_total >= 500:\n    print("Free delivery")\nelse:\n    print("Delivery fee applies")' },
+  'Conditional Expression': { label: 'Practice: show stock status', code: 'items_left = 2\nstatus = "In stock" if items_left > 0 else "Out of stock"\nprint(status)' },
+  'For Loop & Range': { label: 'Practice: add scores one by one', code: 'scores = [65, 72, 90]\nfor score in scores:\n    print("Score:", score)' },
+  'While Loop': { label: 'Practice: count down', code: 'count = 3\nwhile count > 0:\n    print(count)\n    count = count - 1\nprint("Go!")' },
+  'Break, Continue & Pass': { label: 'Practice: skip a missing score', code: 'scores = [80, None, 92]\nfor score in scores:\n    if score is None:\n        continue\n    print(score)' },
+  'Lists': { label: 'Practice: filter and sort numbers', code: 'numbers = [12, -7, 5, -3, 28, 0, -1]\npositive_numbers = [n for n in numbers if n >= 0]\npositive_numbers.sort()\nprint(positive_numbers)' },
+  'Dictionaries': { label: 'Practice: update a profile', code: 'profile = {"name": "Asha", "level": 1}\nprofile["level"] = 2\nprofile["city"] = "Hyderabad"\nprint(profile)' },
+  'Sets': { label: 'Practice: find missing topics', code: 'all_topics = {"lists", "loops", "functions"}\nfinished = {"lists"}\nremaining = all_topics - finished\nprint(remaining)' },
+  'List Comprehensions': { label: 'Practice: make prices with tax', code: 'prices = [100, 200, 300]\nwith_tax = [price * 1.05 for price in prices]\nprint(with_tax)' },
+  'Tuples & Unpacking': { label: 'Practice: store a fixed colour', code: 'red, green, blue = (255, 120, 40)\nprint("Red:", red)\nprint("Green:", green)' },
+  'Function Definition': { label: 'Practice: reusable discount function', code: 'def final_price(price, discount):\n    return price - discount\n\nprint(final_price(500, 50))' },
+  'Flexible Args': { label: 'Practice: add many scores', code: 'def total_score(*scores):\n    return sum(scores)\n\nprint(total_score(10, 20, 30))' },
+  'Lambda Expressions': { label: 'Practice: sort names by length', code: 'names = ["Ravi", "An", "Meera"]\nby_length = sorted(names, key=lambda name: len(name))\nprint(by_length)' },
+  'Classes & OOP': { label: 'Practice: create a student object', code: 'class Student:\n    def __init__(self, name, score):\n        self.name = name\n        self.score = score\n\nstudent = Student("Maya", 92)\nprint(student.name, student.score)' },
+  'Try - Except - Finally': { label: 'Practice: divide safely', code: 'try:\n    result = 10 / 0\nexcept ZeroDivisionError:\n    print("You cannot divide by zero")\nfinally:\n    print("Finished")' },
+  'Raising Exceptions': { label: 'Practice: validate an age', code: 'age = -2\nif age < 0:\n    raise ValueError("Age cannot be negative")' },
+  'Reading Files Safely': { label: 'Practice: read a notes file', code: 'try:\n    with open("notes.txt") as file:\n        print(file.read())\nexcept FileNotFoundError:\n    print("Create notes.txt first")' }
+};
+
+function getCheatsheetExamples(item) {
+  const savedExamples = item.examples || [{ label: 'Example', code: item.code || '' }];
+  const extra = CHEATSHEET_EXTRA_EXAMPLES[item.name];
+  return extra ? [...savedExamples, extra] : savedExamples;
+}
 
 function renderCheatsheet(filter = '') {
   elements.cheatsheetGrid.innerHTML = '';
@@ -1238,12 +1292,13 @@ function renderCheatsheet(filter = '') {
   }
 
   let visibleItems = 0;
+  let visibleExamples = 0;
 
   categories.forEach(category => {
     if (activeCheatsheetCategory !== 'All' && activeCheatsheetCategory !== category.category) return;
     const matchingItems = category.items.filter(item => {
       if (!normalizedFilter) return true;
-      const examples = item.examples || [{ code: item.code || '', label: 'Example' }];
+      const examples = getCheatsheetExamples(item);
       return (
         item.name.toLowerCase().includes(normalizedFilter) ||
         examples.some(example => `${example.label || ''} ${example.code || ''}`.toLowerCase().includes(normalizedFilter)) ||
@@ -1253,6 +1308,7 @@ function renderCheatsheet(filter = '') {
 
     if (matchingItems.length === 0) return;
     visibleItems += matchingItems.length;
+    visibleExamples += matchingItems.reduce((total, item) => total + getCheatsheetExamples(item).length, 0);
 
     const catCard = document.createElement('div');
     catCard.className = 'sheet-cat-card';
@@ -1266,19 +1322,21 @@ function renderCheatsheet(filter = '') {
             <div><strong>What is it?</strong><p>${escapeHTML(item.desc)}</p></div>
             <div><strong>Use it for</strong><p>${escapeHTML(CHEATSHEET_USE_CASES[item.name] || 'solving a Python task that needs this idea')}</p></div>
           </div>
-          ${(item.examples || [{ label: 'Example', code: item.code || '' }]).map((example, exampleIndex) => `
+          ${getCheatsheetExamples(item).map((example, exampleIndex) => `
             <div class="sheet-example">
               <div class="sheet-example-label"><span>${exampleIndex + 1}</span>${escapeHTML(example.label || 'Example')}</div>
               <div class="sheet-item-code">
                 <button class="copy-btn" title="Copy ${example.label || 'example'}" data-code="${encodeURIComponent(example.code || '')}">Copy</button>
                 <pre style="margin: 0;"><code>${escapeHTML(example.code || '')}</code></pre>
               </div>
+              ${buildCheatsheetExampleGuide(example.code || '')}
             </div>
           `).join('')}
           <div class="sheet-actions">
-            <button class="sheet-action try-sheet-code" type="button" data-code="${encodeURIComponent((item.examples || [{ code: item.code || '' }])[0].code || '')}">▶ Try this code</button>
+            <button class="sheet-action try-sheet-code" type="button" data-code="${encodeURIComponent(getCheatsheetExamples(item)[0].code || '')}">▶ Try this code</button>
             ${CHEATSHEET_LESSON_MATCHES[item.name] ? `<button class="sheet-action learn-sheet-topic" type="button" data-lesson-title="${escapeHTML(CHEATSHEET_LESSON_MATCHES[item.name])}">📘 Learn with task</button>` : ''}
           </div>
+          <div class="sheet-next-step"><strong>🎯 Your next small practice:</strong> ${escapeHTML(CHEATSHEET_NEXT_STEPS[item.name] || 'Run both examples. Change one value in each example, then explain what changed in the output.')}</div>
         </div>
       `).join('')}
     `;
@@ -1312,7 +1370,7 @@ function renderCheatsheet(filter = '') {
     elements.cheatsheetGrid.appendChild(catCard);
   });
 
-  if (elements.cheatsheetCount) elements.cheatsheetCount.textContent = `${visibleItems} useful topics`;
+  if (elements.cheatsheetCount) elements.cheatsheetCount.textContent = `${visibleItems} topics · ${visibleExamples} examples`;
   if (visibleItems === 0) elements.cheatsheetGrid.innerHTML = '<p class="sheet-empty">No topic found. Try “list”, “loop”, “function”, or “error”.</p>';
 }
 
