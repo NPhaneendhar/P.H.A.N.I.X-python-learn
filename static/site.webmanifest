@@ -1,0 +1,16 @@
+{
+  "name": "Phanix Python Learning Platform",
+  "short_name": "Phanix Python",
+  "description": "Learn Python simply with lessons, examples, quizzes, and coding practice.",
+  "icons": [
+    {
+      "src": "img/logo.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "theme_color": "#0a84ff",
+  "background_color": "#000000",
+  "display": "standalone"
+}

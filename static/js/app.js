@@ -194,6 +194,78 @@ const BADGES_DEFINITIONS = [
   { id: 'master_developer', title: 'Python Graduate', icon: '🎓', desc: 'Completed all challenges and modules' }
 ];
 
+// Plain-language explanations shown in every lesson.
+const CONCEPT_GUIDES = {
+  'Hello, Python! & Output': ['`print()` tells Python to show words or numbers on the screen.', 'Use it to show a greeting, an answer, or a result while testing your program.', 'Put what you want to show inside `print()`, for example `print("Hello")`.'],
+  'Variables & Data Types': ['A variable is a named box that remembers a value, such as a name, score, or price.', 'Use variables when a value will be needed again later in your program.', 'Write a name, then `=`, then the value: `age = 18`.'],
+  'Type Casting & Conversion': ['Type casting changes one kind of value into another, such as text into a number.', 'Use it when user input is text but you need to do maths with it.', 'Use `int()`, `float()`, or `str()` around the value you want to change.'],
+  'Arithmetic Operators & Math': ['Operators are maths symbols such as `+`, `-`, `*`, and `/`.', 'Use them for totals, prices, scores, distances, and any calculation.', 'Put numbers or variables on both sides of the operator: `total = price + tax`.'],
+  'Comparison & Logical Operators': ['Comparisons ask a question and give `True` or `False`.', 'Use them when your program needs to check age, score, password, or any rule.', 'Write a check like `score >= 50`; join checks with `and` or `or` when needed.'],
+  'If, Elif, and Else': ['`if` lets your program choose what to do based on a condition.', 'Use it for grades, logins, discounts, game rules, and many other decisions.', 'Write the condition after `if`, end it with `:`, then indent the code below it.'],
+  'Ternary Operators & Truthiness': ['A ternary expression is a short one-line choice; truthiness means whether Python sees a value as true or false.', 'Use it for small simple choices, such as showing “Adult” or “Minor”.', 'Write `answer_if_true if condition else answer_if_false`.'],
+  'For Loops & The range() Function': ['A `for` loop repeats code once for every item or number.', 'Use it to go through a list, print repeated messages, or count a fixed number of times.', 'Use `for number in range(3):` and indent the action you want repeated.'],
+  'While Loops & Loop Control': ['A `while` loop keeps repeating while its condition is true.', 'Use it when you do not know exactly how many repeats you need, such as asking until an answer is valid.', 'Change something inside the loop so the condition can become false; use `break` to stop early.'],
+  'Lists & List Operations': ['A list is one variable that stores many items in order, like a shopping list.', 'Use it for names, marks, products, tasks, or any group of values.', 'Make one with square brackets: `fruits = ["apple", "banana"]`; get the first item with `fruits[0]`.'],
+  'Dictionaries (Key-Value Pairs)': ['A dictionary stores labelled information: each key has one value, like a form field and its answer.', 'Use it for a user profile, product details, settings, or any named data.', 'Make one with braces: `user = {"name": "Sam"}` and read it with `user["name"]`.'],
+  'Tuples, Sets, & List Comprehensions': ['A tuple is fixed, a set keeps only unique items, and a list comprehension builds a list in one line.', 'Use tuples for values that should not change, sets to remove duplicates, and comprehensions for quick list transformations.', 'Choose `()`, `{}`, or `[]` based on the job, then run the example to see the difference.'],
+  'Defining Functions & Return Values': ['A function is a reusable mini-program with a name.', 'Use functions when the same job may happen many times, such as calculating a total or greeting a user.', 'Write `def name():`, indent the steps, and use `return` when the function should give a result back.'],
+  '*args, **kwargs, & Lambdas': ['`*args` accepts many unnamed values, `**kwargs` accepts named values, and a lambda is a tiny one-line function.', 'Use them when a function needs flexible input or a short calculation.', 'Start with normal functions first; then use these tools when you see why the input may change.'],
+  'String Methods & Slicing': ['A string is text. Methods change or inspect that text; slicing takes out part of it.', 'Use them to clean names, split sentences, search text, or format messages.', 'Use a dot method like `name.upper()` or take part of text with `name[0:3]`.'],
+  'Modern f-Strings Formatting': ['An f-string puts variables directly inside a piece of text.', 'Use it to make readable messages, receipts, reports, and labels.', 'Put `f` before quotes and place a variable in braces: `f"Hello, {name}"`.'],
+  'Try, Except, Else, and Finally': ['These words help your program handle an error without suddenly stopping.', 'Use them for user input, files, network data, or any action that may fail.', 'Put risky code in `try`; tell Python what to do if it fails in `except`.'],
+  'Classes, Objects, and __init__': ['A class is a blueprint; an object is one real thing created from that blueprint.', 'Use classes when many things have the same kind of information and actions, such as students or products.', 'Write a class, then create an object like `dog = Dog("Buddy")`.'],
+  'Inheritance & Special Methods': ['Inheritance lets a new class reuse another class’s code; special methods customise built-in behaviour.', 'Use it when related objects share common features, such as a Dog and Cat both being Animals.', 'Put the parent class in brackets: `class Dog(Animal):`, then add or change only what is different.'],
+  'Project: Password Strength Checker': ['This project checks several password rules and gives a strength result.', 'Use this kind of logic in signup forms and security tools.', 'Check one rule at a time, count the passed rules, then choose the final label.'],
+  'Project: Text Statistics & Word Frequency': ['This project reads text and counts useful information, such as words and characters.', 'Use it in note apps, reports, search tools, and text-analysis projects.', 'First split the text into words, then count or calculate one result at a time.']
+};
+
+function formatConceptText(text) {
+  return String(text)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/`([^`]+)`/g, '<code>$1</code>');
+}
+
+function escapeHTML(text) {
+  return String(text || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function explainCodeLine(line) {
+  const clean = line.trim();
+  if (!clean) return 'This blank line separates the steps so the code is easier to read.';
+  if (clean.startsWith('#')) return 'This is a comment. It explains the code to a person; Python does not run it.';
+  if (/^for\s+.+\s+in\s+.+\s+if\s+/.test(clean) || (/\[.*\bfor\b.*\bif\b.*\]/.test(clean))) return 'This goes through items and keeps only the items that pass the condition.';
+  if (clean.startsWith('for ')) return 'This repeats the indented code once for each item or number.';
+  if (clean.startsWith('while ')) return 'This repeats the indented code while its condition is true.';
+  if (clean.startsWith('if ')) return 'This checks a condition. The indented code runs only when the answer is true.';
+  if (clean.startsWith('elif ')) return 'This checks another condition when the earlier condition was not true.';
+  if (clean === 'else:' || clean.startsWith('else:')) return 'This runs when none of the earlier conditions were true.';
+  if (clean.startsWith('print(')) return 'This shows the result on the screen.';
+  if (clean.startsWith('return ')) return 'This sends the calculated result back from the function.';
+  if (clean.includes('.append(')) return 'This adds one new item to the end of a list.';
+  if (clean.includes('.sort(')) return 'This sorts the items in the list from smallest to largest.';
+  if (clean.includes('sorted(')) return 'This creates a sorted version of the values, from smallest to largest by default.';
+  if (/^[A-Za-z_]\w*\s*=/.test(clean)) return 'This stores a value in a variable so the program can use it later.';
+  return 'Python runs this line as the next small step in the solution.';
+}
+
+function buildChallengeWalkthrough(challenge) {
+  const hints = challenge.hints || [];
+  const solutionLines = String(challenge.solution || '').split('\n').filter(line => line.trim());
+  const plan = hints.length ? hints.map(hint => `<li>${escapeHTML(hint)}</li>`).join('') : '<li>Break the task into small steps and test each step.</li>';
+  const lineGuide = solutionLines.length ? solutionLines.map(line => `<li><code>${escapeHTML(line)}</code><span>${explainCodeLine(line)}</span></li>`).join('') : '<li><span>Write one instruction at a time, then run your code.</span></li>';
+  const solution = solutionLines.length ? `<pre><code>${escapeHTML(challenge.solution)}</code></pre>` : '';
+
+  return `<details class="challenge-walkthrough" open>
+    <summary>📘 How to solve this task — explained step by step</summary>
+    <div class="challenge-walkthrough-body">
+      <p><strong>What you need to do:</strong> ${escapeHTML(challenge.instructions).replace(/\n/g, ' ')}</p>
+      <strong>Small plan:</strong><ol>${plan}</ol>
+      <strong>One working solution:</strong>${solution}
+      <strong>What each code line does:</strong><ol class="solution-line-guide">${lineGuide}</ol>
+    </div>
+  </details>`;
+}
+
 // DOM Elements
 const elements = {
   headerXp: document.getElementById('header-xp'),
@@ -258,6 +330,8 @@ const elements = {
   // Cheat Sheet
   cheatsheetSearch: document.getElementById('cheatsheet-search'),
   cheatsheetGrid: document.getElementById('cheatsheet-grid'),
+  cheatsheetNav: document.getElementById('cheatsheet-nav'),
+  cheatsheetCount: document.getElementById('cheatsheet-count'),
 
   // Reviews
   reviewsForm: document.getElementById('reviews-form'),
@@ -681,7 +755,32 @@ function selectLesson(lessonId) {
   elements.lessonCompletedTag.style.display = state.completedLessons.includes(lessonId) ? 'inline' : 'none';
 
   // Render Lesson Content with Educational Takeaway
+  const conceptGuide = CONCEPT_GUIDES[targetLesson.title] || [
+    targetLesson.summary || 'This lesson teaches one useful Python idea.',
+    'Use this idea when you need to solve a similar real-world coding problem.',
+    'Run the example, then change one small part and watch what happens.'
+  ];
+  const conceptGuideHtml = `
+    <section class="concept-guide-card" aria-label="Simple explanation">
+      <div class="concept-guide-title">🧭 Understand it simply</div>
+      <div class="concept-guide-grid">
+        <div><strong>What is it?</strong><p>${formatConceptText(conceptGuide[0])}</p></div>
+        <div><strong>Where is it used?</strong><p>${formatConceptText(conceptGuide[1])}</p></div>
+        <div><strong>How do I use it?</strong><p>${formatConceptText(conceptGuide[2])}</p></div>
+      </div>
+    </section>`;
   const takeawayHtml = `
+    <div class="beginner-guide-card">
+      <div class="takeaway-header">
+        <span class="takeaway-icon">🪜</span>
+        <span class="takeaway-title">Beginner way to learn this</span>
+      </div>
+      <ol class="beginner-guide-steps">
+        <li>Read the example slowly from top to bottom.</li>
+        <li>Press <strong>▶ Try in Editor</strong>, then press <strong>▶ Run</strong>.</li>
+        <li>Change just one word or number and run it again. Learning by trying is enough.</li>
+      </ol>
+    </div>
     <div class="educational-takeaway-card">
       <div class="takeaway-header">
         <span class="takeaway-icon">💡</span>
@@ -692,14 +791,20 @@ function selectLesson(lessonId) {
       </p>
     </div>
   `;
-  elements.lessonBody.innerHTML = parseMarkdownToHtml(targetLesson.content) + takeawayHtml;
+  elements.lessonBody.innerHTML = conceptGuideHtml + parseMarkdownToHtml(targetLesson.content) + takeawayHtml;
 
   // Populate Quiz
   renderQuiz(targetLesson.quiz);
 
   // Populate Challenge Banner
   if (targetLesson.challenge) {
-    elements.challengeInstructionsText.textContent = targetLesson.challenge.instructions;
+    elements.challengeInstructionsText.innerHTML = `${escapeHTML(targetLesson.challenge.instructions).replace(/\n/g, '<br>')}
+      <div class="challenge-beginner-steps">
+        <strong>Easy steps — follow them slowly:</strong>
+        <span>1. Read the first instruction and write only that part of the code.</span>
+        <span>2. Add the next instruction underneath it. Python reads your code from top to bottom.</span>
+        <span>3. Press <strong>Check Solution</strong>. If it is not correct, read the message and fix one small thing.</span>
+      </div>${buildChallengeWalkthrough(targetLesson.challenge)}`;
     elements.hintText.innerHTML = targetLesson.challenge.hints?.join('<br><br>') || 'No hints available.';
     elements.hintBox.classList.remove('show');
   }
@@ -749,6 +854,12 @@ function parseMarkdownToHtml(md) {
           <button class="try-code-btn" onclick="insertCodeIntoEditor(this)">▶ Try in Editor</button>
         </div>
         <pre><code class="python-code">${cleanCode}</code></pre>
+        <div class="example-explainer">
+          <strong>Understand this example:</strong>
+          <span>1. Python starts at the first line, then runs each line below it.</span>
+          <span>2. Click <em>Try in Editor</em> and press <em>Run</em> to see what the code does.</span>
+          <span>3. Change one value, such as a name or number, then run it again to learn by doing.</span>
+        </div>
       </div>`;
     })
     .replace(/```([\s\S]*?)```/g, (match, code) => {
@@ -759,6 +870,12 @@ function parseMarkdownToHtml(md) {
           <button class="try-code-btn" onclick="insertCodeIntoEditor(this)">▶ Try in Editor</button>
         </div>
         <pre><code>${cleanCode}</code></pre>
+        <div class="example-explainer">
+          <strong>Understand this example:</strong>
+          <span>1. Read the code from the first line to the last line.</span>
+          <span>2. Run it once and look carefully at the result.</span>
+          <span>3. Change one small part and run it again — this is the best way to learn.</span>
+        </div>
       </div>`;
     })
     .replace(/`([^`]+)`/g, '<code>$1</code>')
@@ -1087,11 +1204,43 @@ function renderChallengesCatalog() {
 }
 
 // Render Cheat Sheet Tab
+let activeCheatsheetCategory = 'All';
+const CHEATSHEET_USE_CASES = {
+  'Variables & Types': 'saving a user name, score, price, or yes/no answer', 'Type Casting': 'turning typed input into a number before doing maths', 'Comments & Docstrings': 'explaining your code to yourself or another developer',
+  'Arithmetic': 'calculating totals, marks, prices, and measurements', 'Comparison & Logic': 'checking grades, passwords, permissions, and rules', 'If - Elif - Else': 'making decisions such as pass/fail or discount/no discount', 'Conditional Expression': 'making one small choice in a single line',
+  'For Loop & Range': 'repeating work for every item or a fixed number of times', 'While Loop': 'repeating until an answer or condition becomes correct', 'Break, Continue & Pass': 'controlling a loop when you need to stop, skip, or leave space for later',
+  'Lists': 'keeping ordered names, tasks, scores, products, or numbers', 'Dictionaries': 'storing labelled details such as a student name and age', 'Sets': 'removing duplicates or finding values shared by two groups', 'List Comprehensions': 'building a short new list from another list', 'Tuples & Unpacking': 'keeping fixed values together, such as coordinates or a min/max result',
+  'Function Definition': 'reusing a job such as calculating a total or greeting a user', 'Flexible Args': 'writing functions that can accept different amounts of input', 'Lambda Expressions': 'making a very short one-use calculation', 'Classes & OOP': 'modelling real things like students, products, or game characters',
+  'Try - Except - Finally': 'handling incorrect input, missing files, or other errors safely', 'Raising Exceptions': 'stopping invalid data with a clear message', 'Reading Files Safely': 'opening and reading saved text without crashing the program'
+};
+const CHEATSHEET_LESSON_MATCHES = {
+  'Variables & Types': 'Variables & Data Types', 'Type Casting': 'Type Casting & Conversion', 'Arithmetic': 'Arithmetic Operators & Math', 'Comparison & Logic': 'Comparison & Logical Operators',
+  'If - Elif - Else': 'If, Elif, and Else', 'Conditional Expression': 'Ternary Operators & Truthiness', 'For Loop & Range': 'For Loops & The range() Function', 'While Loop': 'While Loops & Loop Control',
+  'Break, Continue & Pass': 'While Loops & Loop Control', 'Lists': 'Lists & List Operations', 'Dictionaries': 'Dictionaries (Key-Value Pairs)', 'Sets': 'Tuples, Sets, & List Comprehensions',
+  'List Comprehensions': 'Tuples, Sets, & List Comprehensions', 'Tuples & Unpacking': 'Tuples, Sets, & List Comprehensions', 'Function Definition': 'Defining Functions & Return Values',
+  'Flexible Args': '*args, **kwargs, & Lambdas', 'Lambda Expressions': '*args, **kwargs, & Lambdas', 'Classes & OOP': 'Classes, Objects, and __init__',
+  'Try - Except - Finally': 'Try, Except, Else, and Finally', 'Raising Exceptions': 'Try, Except, Else, and Finally', 'Reading Files Safely': 'Try, Except, Else, and Finally'
+};
+
 function renderCheatsheet(filter = '') {
   elements.cheatsheetGrid.innerHTML = '';
   const normalizedFilter = filter.trim().toLowerCase();
+  const categories = state.cheatsheet || [];
 
-  state.cheatsheet.forEach(category => {
+  if (elements.cheatsheetNav) {
+    elements.cheatsheetNav.innerHTML = ['All', ...categories.map(category => category.category)].map(category =>
+      `<button class="sheet-nav-btn ${activeCheatsheetCategory === category ? 'active' : ''}" type="button" data-category="${escapeHTML(category)}">${escapeHTML(category)}</button>`
+    ).join('');
+    elements.cheatsheetNav.querySelectorAll('.sheet-nav-btn').forEach(button => button.addEventListener('click', () => {
+      activeCheatsheetCategory = button.dataset.category;
+      renderCheatsheet(elements.cheatsheetSearch?.value || '');
+    }));
+  }
+
+  let visibleItems = 0;
+
+  categories.forEach(category => {
+    if (activeCheatsheetCategory !== 'All' && activeCheatsheetCategory !== category.category) return;
     const matchingItems = category.items.filter(item => {
       if (!normalizedFilter) return true;
       const examples = item.examples || [{ code: item.code || '', label: 'Example' }];
@@ -1103,25 +1252,33 @@ function renderCheatsheet(filter = '') {
     });
 
     if (matchingItems.length === 0) return;
+    visibleItems += matchingItems.length;
 
     const catCard = document.createElement('div');
     catCard.className = 'sheet-cat-card';
 
     catCard.innerHTML = `
-      <div class="cat-title">${category.category}</div>
+      <div class="sheet-cat-top"><div class="cat-title">${escapeHTML(category.category)}</div><span>${matchingItems.length} topics</span></div>
       ${matchingItems.map(item => `
         <div class="sheet-item">
-          <div class="sheet-item-name">${item.name}</div>
+          <div class="sheet-item-name">${escapeHTML(item.name)}</div>
+          <div class="sheet-explain-grid">
+            <div><strong>What is it?</strong><p>${escapeHTML(item.desc)}</p></div>
+            <div><strong>Use it for</strong><p>${escapeHTML(CHEATSHEET_USE_CASES[item.name] || 'solving a Python task that needs this idea')}</p></div>
+          </div>
           ${(item.examples || [{ label: 'Example', code: item.code || '' }]).map((example, exampleIndex) => `
             <div class="sheet-example">
-              <div class="sheet-example-label"><span>${exampleIndex + 1}</span>${example.label || 'Example'}</div>
+              <div class="sheet-example-label"><span>${exampleIndex + 1}</span>${escapeHTML(example.label || 'Example')}</div>
               <div class="sheet-item-code">
                 <button class="copy-btn" title="Copy ${example.label || 'example'}" data-code="${encodeURIComponent(example.code || '')}">Copy</button>
-                <pre style="margin: 0;">${example.code || ''}</pre>
+                <pre style="margin: 0;"><code>${escapeHTML(example.code || '')}</code></pre>
               </div>
             </div>
           `).join('')}
-          <div class="sheet-item-desc">${item.desc}</div>
+          <div class="sheet-actions">
+            <button class="sheet-action try-sheet-code" type="button" data-code="${encodeURIComponent((item.examples || [{ code: item.code || '' }])[0].code || '')}">▶ Try this code</button>
+            ${CHEATSHEET_LESSON_MATCHES[item.name] ? `<button class="sheet-action learn-sheet-topic" type="button" data-lesson-title="${escapeHTML(CHEATSHEET_LESSON_MATCHES[item.name])}">📘 Learn with task</button>` : ''}
+          </div>
         </div>
       `).join('')}
     `;
@@ -1136,8 +1293,27 @@ function renderCheatsheet(filter = '') {
       });
     });
 
+    catCard.querySelectorAll('.try-sheet-code').forEach(btn => btn.addEventListener('click', () => {
+      elements.pgEditor.value = decodeURIComponent(btn.dataset.code || '');
+      updateLineNumbers(elements.pgEditor, elements.pgLineNumbers);
+      switchView('view-playground');
+      showToast('Example opened in the Playground — press Run to try it.', 'success');
+    }));
+
+    catCard.querySelectorAll('.learn-sheet-topic').forEach(btn => btn.addEventListener('click', () => {
+      let foundLesson;
+      state.modules.some(module => {
+        foundLesson = module.lessons.find(lesson => lesson.title === btn.dataset.lessonTitle);
+        return Boolean(foundLesson);
+      });
+      if (foundLesson) { switchView('view-learn'); selectLesson(foundLesson.id); }
+    }));
+
     elements.cheatsheetGrid.appendChild(catCard);
   });
+
+  if (elements.cheatsheetCount) elements.cheatsheetCount.textContent = `${visibleItems} useful topics`;
+  if (visibleItems === 0) elements.cheatsheetGrid.innerHTML = '<p class="sheet-empty">No topic found. Try “list”, “loop”, “function”, or “error”.</p>';
 }
 
 function filterCheatsheet(query) {
@@ -1380,6 +1556,24 @@ window.closeProfileModal = function() {
   document.removeEventListener('keydown', _escClose);
 };
 
+window.openPhotoViewer = function() {
+  const viewer = document.getElementById('photo-viewer-overlay');
+  if (!viewer) return;
+  viewer.classList.add('open');
+  viewer.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+  document.getElementById('photo-viewer-close')?.focus();
+};
+
+window.closePhotoViewer = function() {
+  const viewer = document.getElementById('photo-viewer-overlay');
+  if (!viewer) return;
+  viewer.classList.remove('open');
+  viewer.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = document.getElementById('profile-modal-overlay')?.classList.contains('open') ? 'hidden' : '';
+  document.getElementById('about-photo-trigger')?.focus();
+};
+
 function _overlayClickClose(e) {
   const modal = document.getElementById('profile-modal');
   if (modal && !modal.contains(e.target)) {
@@ -1388,7 +1582,10 @@ function _overlayClickClose(e) {
 }
 
 function _escClose(e) {
-  if (e.key === 'Escape') window.closeProfileModal();
+  if (e.key === 'Escape') {
+    if (document.getElementById('photo-viewer-overlay')?.classList.contains('open')) window.closePhotoViewer();
+    else window.closeProfileModal();
+  }
 }
 
 // Wire close button & triggers once DOM is ready
@@ -1401,6 +1598,12 @@ function initProfileModal() {
 
   document.querySelectorAll('.ach-about-trigger').forEach(btn => {
     btn.addEventListener('click', window.openProfileModal);
+  });
+
+  document.getElementById('about-photo-trigger')?.addEventListener('click', window.openPhotoViewer);
+  document.getElementById('photo-viewer-close')?.addEventListener('click', window.closePhotoViewer);
+  document.getElementById('photo-viewer-overlay')?.addEventListener('click', (event) => {
+    if (event.target.id === 'photo-viewer-overlay') window.closePhotoViewer();
   });
 }
 
