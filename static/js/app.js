@@ -261,8 +261,8 @@ function buildChallengeWalkthrough(challenge) {
   const lineGuide = solutionLines.length ? solutionLines.map(line => `<li><code>${escapeHTML(line)}</code><span>${explainCodeLine(line)}</span></li>`).join('') : '<li><span>Write one instruction at a time, then run your code.</span></li>';
   const solution = solutionLines.length ? `<pre><code>${escapeHTML(challenge.solution)}</code></pre>` : '';
 
-  return `<details class="challenge-walkthrough" open>
-    <summary>📘 How to solve this task — explained step by step</summary>
+  return `<details class="challenge-walkthrough">
+    <summary><span class="walkthrough-toggle-icon" aria-hidden="true"></span><span>How to solve this task — explained step by step</span></summary>
     <div class="challenge-walkthrough-body">
       <p><strong>What you need to do:</strong> ${escapeHTML(challenge.instructions).replace(/\n/g, ' ')}</p>
       <strong>Small plan:</strong><ol>${plan}</ol>
@@ -813,13 +813,7 @@ function selectLesson(lessonId) {
 
   // Populate Challenge Banner
   if (targetLesson.challenge) {
-    elements.challengeInstructionsText.innerHTML = `${escapeHTML(targetLesson.challenge.instructions).replace(/\n/g, '<br>')}
-      <div class="challenge-beginner-steps">
-        <strong>Easy steps — follow them slowly:</strong>
-        <span>1. Read the first instruction and write only that part of the code.</span>
-        <span>2. Add the next instruction underneath it. Python reads your code from top to bottom.</span>
-        <span>3. Press <strong>Check Solution</strong>. If it is not correct, read the message and fix one small thing.</span>
-      </div>${buildChallengeWalkthrough(targetLesson.challenge)}`;
+    elements.challengeInstructionsText.innerHTML = `${escapeHTML(targetLesson.challenge.instructions).replace(/\n/g, '<br>')}${buildChallengeWalkthrough(targetLesson.challenge)}`;
     elements.hintText.innerHTML = targetLesson.challenge.hints?.join('<br><br>') || 'No hints available.';
     elements.hintBox.classList.remove('show');
   }

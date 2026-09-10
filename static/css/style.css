@@ -2176,21 +2176,6 @@ main {
 .beginner-guide-steps { margin: 0.45rem 0 0 1.25rem; color: var(--text-secondary); font-size: 0.84rem; }
 .beginner-guide-steps li + li { margin-top: 0.2rem; }
 
-.challenge-beginner-steps {
-  margin-top: 0.6rem;
-  padding: 0.5rem 0.65rem;
-  border-left: 3px solid var(--apple-green);
-  border-radius: 0 8px 8px 0;
-  background: rgba(48, 209, 88, 0.1);
-  color: var(--text-secondary);
-  font-size: 0.78rem;
-  line-height: 1.5;
-}
-
-.challenge-beginner-steps strong,
-.challenge-beginner-steps span { display: block; }
-.challenge-beginner-steps span { margin-top: 0.25rem; }
-
 .challenge-walkthrough {
   margin-top: 0.7rem;
   border: 1px solid rgba(10, 132, 255, 0.28);
@@ -2199,7 +2184,20 @@ main {
   color: var(--text-secondary);
 }
 
-.challenge-walkthrough summary { padding: 0.65rem; color: var(--apple-blue); font-size: 0.8rem; font-weight: 800; cursor: pointer; }
+.challenge-walkthrough summary {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.65rem 0.75rem;
+  color: var(--apple-blue);
+  font-size: 0.8rem;
+  font-weight: 800;
+  cursor: pointer;
+  list-style: none;
+}
+.challenge-walkthrough summary::-webkit-details-marker { display: none; }
+.walkthrough-toggle-icon::before { content: '▸'; display: inline-block; font-size: 1rem; transition: transform 0.18s ease; }
+.challenge-walkthrough[open] .walkthrough-toggle-icon::before { transform: rotate(90deg); }
 .challenge-walkthrough-body { padding: 0 0.75rem 0.75rem; font-size: 0.77rem; line-height: 1.52; }
 .challenge-walkthrough-body > p { margin-bottom: 0.55rem; }
 .challenge-walkthrough-body ol { margin: 0.35rem 0 0.65rem 1.1rem; }
