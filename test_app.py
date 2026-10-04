@@ -88,8 +88,21 @@ def run_tests():
             assert eval_result["all_passed"] is True, f"Expected all_passed=True, got {eval_result}"
             print("  ✓ Challenge test runner evaluated solution: ALL TESTS PASSED!")
 
+        # Test 8: POST /api/run with standard input (input() support)
+        print("\n[Test 8] Testing standard input / input() execution...")
+        stdin_data = json.dumps({
+            "code": "name = input('Name: ')\nage = int(input('Age: '))\nprint(f'{name} is {age} years old')",
+            "input": "Phani\n25"
+        }).encode("utf-8")
+        req = urllib.request.Request(f"{base_url}/api/run", data=stdin_data, headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(req) as resp:
+            stdin_result = json.loads(resp.read().decode("utf-8"))
+            assert stdin_result["exit_code"] == 0
+            assert "Phani is 25 years old" in stdin_result["stdout"]
+            print("  ✓ Interactive input() with multi-line stdin successfully processed!")
+
         print("\n========================================================")
-        print(" 🎉 ALL AUTOMATED BACKEND & FRONTEND TESTS PASSED (7/7)!")
+        print(" 🎉 ALL AUTOMATED BACKEND & FRONTEND TESTS PASSED (8/8)!")
         print("========================================================")
 
     except Exception as e:

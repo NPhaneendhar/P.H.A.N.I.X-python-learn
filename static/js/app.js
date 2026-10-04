@@ -16,7 +16,9 @@ const state = {
   unlockedBadges: JSON.parse(localStorage.getItem('pylearn_badges') || '[]'),
   userCodes: JSON.parse(localStorage.getItem('pylearn_user_codes') || '{}'),
   theme: localStorage.getItem('pylearn_theme') || 'dark',
-  learnerName: localStorage.getItem('pylearn_name') || 'Your Name'
+  learnerName: localStorage.getItem('pylearn_name') || 'Your Name',
+  layoutMode: localStorage.getItem('pylearn_layout_mode') || 'split',
+  fontSize: parseInt(localStorage.getItem('pylearn_font_size') || '15', 10)
 };
 
 // Playground Preset Templates
@@ -291,7 +293,12 @@ const elements = {
   navButtons: document.querySelectorAll('.nav-btn'),
   viewPanels: document.querySelectorAll('.view-panel'),
   
-  // Learn View
+  // Learn View & Layouts
+  viewLearn: document.getElementById('view-learn'),
+  layoutPresetSwitcher: document.getElementById('layout-preset-switcher'),
+  layoutBtns: document.querySelectorAll('.layout-btn'),
+  codeModeTheoryBtn: document.getElementById('code-mode-theory-btn'),
+  jumpToCodeBtn: document.getElementById('jump-to-code-btn'),
   moduleListContainer: document.getElementById('module-list-container'),
   sidebarCollapseBtn: document.getElementById('sidebar-collapse-btn'),
   overallProgressBar: document.getElementById('overall-progress-bar'),
@@ -315,29 +322,70 @@ const elements = {
   resetCodeBtn: document.getElementById('reset-code-btn'),
   runCodeBtn: document.getElementById('run-code-btn'),
   testCodeBtn: document.getElementById('test-code-btn'),
+  fontDecBtn: document.getElementById('font-dec-btn'),
+  fontIncBtn: document.getElementById('font-inc-btn'),
   codeEditor: document.getElementById('code-editor'),
+  editorSyntaxLayer: document.getElementById('editor-syntax-layer'),
   editorLineNumbers: document.getElementById('editor-line-numbers'),
   
-  // Terminal
-  termTabs: document.querySelectorAll('.term-tab'),
+  // Terminal (Learn)
+  learnTerminalArea: document.getElementById('learn-terminal-area'),
+  termDotClear: document.getElementById('term-dot-clear'),
+  termDotMinimize: document.getElementById('term-dot-minimize'),
+  termDotExpand: document.getElementById('term-dot-expand'),
+  termTabs: document.querySelectorAll('#learn-terminal-area .term-tab'),
   stdoutView: document.getElementById('stdout-view'),
+  stdinView: document.getElementById('stdin-view'),
   testsView: document.getElementById('tests-view'),
   stdoutContent: document.getElementById('stdout-content'),
   stderrContent: document.getElementById('stderr-content'),
+  learnTerminalScreen: document.getElementById('learn-terminal-screen'),
+  inputNeededBanner: document.getElementById('input-needed-banner'),
+  termInteractiveInput: document.getElementById('term-interactive-input'),
+  termSendInputBtn: document.getElementById('term-send-input-btn'),
+  stdinContent: document.getElementById('stdin-content'),
+  stdinBadge: document.getElementById('stdin-badge'),
+  stdinSampleBtn: document.getElementById('stdin-sample-btn'),
+  stdinClearBtn: document.getElementById('stdin-clear-btn'),
+  stdinRunBtn: document.getElementById('stdin-run-btn'),
+  stdinCharCount: document.getElementById('stdin-char-count'),
   testResultsContainer: document.getElementById('test-results-container'),
   testSummaryPill: document.getElementById('test-summary-pill'),
   termStatus: document.getElementById('term-status'),
+  copyConsoleBtn: document.getElementById('copy-console-btn'),
   clearConsoleBtn: document.getElementById('clear-console-btn'),
+  expandConsoleBtn: document.getElementById('expand-console-btn'),
 
   // Playground
+  pgConsoleBox: document.getElementById('pg-console-box'),
+  pgDotClear: document.getElementById('pg-dot-clear'),
+  pgDotMinimize: document.getElementById('pg-dot-minimize'),
+  pgDotExpand: document.getElementById('pg-dot-expand'),
   pgTemplateSelect: document.getElementById('pg-template-select'),
   pgClearBtn: document.getElementById('pg-clear-btn'),
   pgRunBtn: document.getElementById('pg-run-btn'),
   pgEditor: document.getElementById('pg-editor'),
+  pgSyntaxLayer: document.getElementById('pg-syntax-layer'),
   pgLineNumbers: document.getElementById('pg-line-numbers'),
+  pgTermTabs: document.querySelectorAll('.pg-term-tabs .term-tab'),
+  pgStdoutView: document.getElementById('pg-stdout-view'),
+  pgStdinView: document.getElementById('pg-stdin-view'),
   pgStdout: document.getElementById('pg-stdout'),
   pgStderr: document.getElementById('pg-stderr'),
   pgDurationMeta: document.getElementById('pg-duration-meta'),
+  pgTermStatus: document.getElementById('pg-term-status'),
+  pgCopyBtn: document.getElementById('pg-copy-btn'),
+  pgClearConsoleBtn: document.getElementById('pg-clear-console-btn'),
+  pgTerminalScreen: document.getElementById('pg-terminal-screen'),
+  pgInteractiveInput: document.getElementById('pg-interactive-input'),
+  pgSendInputBtn: document.getElementById('pg-send-input-btn'),
+  pgInputNeededBanner: document.getElementById('pg-input-needed-banner'),
+  pgStdinContent: document.getElementById('pg-stdin-content'),
+  pgStdinBadge: document.getElementById('pg-stdin-badge'),
+  pgStdinSampleBtn: document.getElementById('pg-stdin-sample-btn'),
+  pgStdinClearBtn: document.getElementById('pg-stdin-clear-btn'),
+  pgStdinRunBtn: document.getElementById('pg-stdin-run-btn'),
+  pgStdinCharCount: document.getElementById('pg-stdin-char-count'),
 
   // Challenges Catalog
   challengesCatalogGrid: document.getElementById('challenges-catalog-grid'),
@@ -375,14 +423,17 @@ const elements = {
 async function initApp() {
   applyTheme(state.theme);
   updateHeaderStats();
+  applyFontSize(state.fontSize || 15);
   setupEventListeners();
+  applyLayoutMode(state.layoutMode);
   setCurriculumCollapsed(localStorage.getItem('pylearn_curriculum_collapsed') === 'true');
-  setupEditorHelpers(elements.codeEditor, elements.editorLineNumbers);
-  setupEditorHelpers(elements.pgEditor, elements.pgLineNumbers);
+  setupEditorHelpers(elements.codeEditor, elements.editorLineNumbers, elements.editorSyntaxLayer);
+  setupEditorHelpers(elements.pgEditor, elements.pgLineNumbers, elements.pgSyntaxLayer);
 
   // Load playground initial forensic template
   elements.pgEditor.value = PLAYGROUND_TEMPLATES.forensic_hasher;
   updateLineNumbers(elements.pgEditor, elements.pgLineNumbers);
+  updateSyntaxLayer(elements.pgEditor, elements.pgSyntaxLayer);
 
   // Initialize certificate name
   if (elements.certLearnerName) {
@@ -466,6 +517,40 @@ function setupEventListeners() {
     switchView('view-learn');
   });
 
+  // Layout Preset Switcher (1-Click View Switcher)
+  if (elements.layoutBtns) {
+    elements.layoutBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const mode = btn.getAttribute('data-layout');
+        applyLayoutMode(mode);
+      });
+    });
+  }
+
+  if (elements.jumpToCodeBtn) {
+    elements.jumpToCodeBtn.addEventListener('click', () => {
+      applyLayoutMode('code');
+    });
+  }
+
+  if (elements.codeModeTheoryBtn) {
+    elements.codeModeTheoryBtn.addEventListener('click', () => {
+      applyLayoutMode('split');
+    });
+  }
+
+  // Font Zoom Controls (A- / A+)
+  if (elements.fontDecBtn) {
+    elements.fontDecBtn.addEventListener('click', () => {
+      applyFontSize((state.fontSize || 15) - 1);
+    });
+  }
+  if (elements.fontIncBtn) {
+    elements.fontIncBtn.addEventListener('click', () => {
+      applyFontSize((state.fontSize || 15) + 1);
+    });
+  }
+
   // Learn View Editor Buttons
   elements.runCodeBtn.addEventListener('click', handleRunCode);
   elements.testCodeBtn.addEventListener('click', handleTestCode);
@@ -476,34 +561,227 @@ function setupEventListeners() {
     elements.hintBox.classList.toggle('show');
   });
 
-  // Terminal Tabs
+  // Terminal Tabs (Learn)
   elements.termTabs.forEach(tab => {
     tab.addEventListener('click', () => {
-      elements.termTabs.forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
       const termType = tab.getAttribute('data-term-tab');
-      if (termType === 'stdout') {
-        elements.stdoutView.style.display = 'block';
-        elements.testsView.style.display = 'none';
-      } else {
-        elements.stdoutView.style.display = 'none';
-        elements.testsView.style.display = 'block';
-      }
+      switchTermTab(termType);
     });
   });
 
-  elements.clearConsoleBtn.addEventListener('click', () => {
-    elements.stdoutContent.textContent = 'Console cleared.';
-    elements.stderrContent.textContent = '';
-    elements.stderrContent.style.display = 'none';
-    elements.termStatus.textContent = 'Ready';
-  });
+  // Stdin Buffer (Learn)
+  function updateStdinStats() {
+    if (!elements.stdinContent) return;
+    const lines = elements.stdinContent.value.split('\n').filter(l => l.trim().length > 0).length;
+    if (elements.stdinCharCount) {
+      elements.stdinCharCount.textContent = `${lines} line${lines === 1 ? '' : 's'} buffered`;
+    }
+    if (elements.stdinBadge) {
+      elements.stdinBadge.style.display = lines > 0 ? 'inline-block' : 'none';
+    }
+  }
 
-  // Playground Listeners
+  if (elements.stdinContent) {
+    elements.stdinContent.addEventListener('input', updateStdinStats);
+  }
+  if (elements.stdinSampleBtn) {
+    elements.stdinSampleBtn.addEventListener('click', () => {
+      elements.stdinContent.value = "Phani\n25\nYes";
+      updateStdinStats();
+      showToast('Sample input loaded.', 'success');
+    });
+  }
+  if (elements.stdinClearBtn) {
+    elements.stdinClearBtn.addEventListener('click', () => {
+      elements.stdinContent.value = '';
+      updateStdinStats();
+    });
+  }
+  if (elements.stdinRunBtn) {
+    elements.stdinRunBtn.addEventListener('click', () => handleRunCode());
+  }
+
+  // Interactive Input Bar (Learn)
+  function submitInteractiveInput() {
+    const val = elements.termInteractiveInput ? elements.termInteractiveInput.value : '';
+    if (!val.trim()) return;
+    // Append to stdin buffer
+    if (elements.stdinContent) {
+      if (!elements.stdinContent.value.trim()) {
+        elements.stdinContent.value = val;
+      } else {
+        elements.stdinContent.value += '\n' + val;
+      }
+      updateStdinStats();
+    }
+    const entered = val;
+    if (elements.termInteractiveInput) elements.termInteractiveInput.value = '';
+    handleRunCode(elements.stdinContent ? elements.stdinContent.value : entered);
+  }
+
+  if (elements.termInteractiveInput) {
+    elements.termInteractiveInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        submitInteractiveInput();
+      }
+    });
+  }
+  if (elements.termSendInputBtn) {
+    elements.termSendInputBtn.addEventListener('click', submitInteractiveInput);
+  }
+
+  // Console Action Controls (Learn)
+  if (elements.clearConsoleBtn) {
+    elements.clearConsoleBtn.addEventListener('click', () => {
+      elements.stdoutContent.textContent = 'Console cleared.';
+      elements.stderrContent.textContent = '';
+      elements.stderrContent.style.display = 'none';
+      if (elements.inputNeededBanner) elements.inputNeededBanner.style.display = 'none';
+      setTerminalStatus('ready', 'Ready');
+    });
+  }
+  if (elements.termDotClear) {
+    elements.termDotClear.addEventListener('click', () => {
+      elements.stdoutContent.textContent = 'Console cleared.';
+      elements.stderrContent.textContent = '';
+      elements.stderrContent.style.display = 'none';
+      if (elements.inputNeededBanner) elements.inputNeededBanner.style.display = 'none';
+      setTerminalStatus('ready', 'Ready');
+    });
+  }
+  if (elements.copyConsoleBtn) {
+    elements.copyConsoleBtn.addEventListener('click', () => {
+      const text = [elements.stdoutContent.textContent, elements.stderrContent.textContent].filter(Boolean).join('\n').trim();
+      copyToClipboard(text, elements.copyConsoleBtn);
+    });
+  }
+  if (elements.expandConsoleBtn) {
+    elements.expandConsoleBtn.addEventListener('click', () => {
+      if (elements.learnTerminalArea) elements.learnTerminalArea.classList.toggle('expanded');
+    });
+  }
+  if (elements.termDotExpand) {
+    elements.termDotExpand.addEventListener('click', () => {
+      if (elements.learnTerminalArea) elements.learnTerminalArea.classList.toggle('expanded');
+    });
+  }
+  if (elements.termDotMinimize) {
+    elements.termDotMinimize.addEventListener('click', () => {
+      if (elements.learnTerminalArea) elements.learnTerminalArea.classList.toggle('minimized');
+    });
+  }
+
+  // Playground Console Controls & Stdin
+  if (elements.pgTermTabs) {
+    elements.pgTermTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        const tabType = tab.getAttribute('data-pg-tab');
+        switchPgTab(tabType);
+      });
+    });
+  }
+
+  function updatePgStdinStats() {
+    if (!elements.pgStdinContent) return;
+    const lines = elements.pgStdinContent.value.split('\n').filter(l => l.trim().length > 0).length;
+    if (elements.pgStdinCharCount) {
+      elements.pgStdinCharCount.textContent = `${lines} line${lines === 1 ? '' : 's'} buffered`;
+    }
+    if (elements.pgStdinBadge) {
+      elements.pgStdinBadge.style.display = lines > 0 ? 'inline-block' : 'none';
+    }
+  }
+
+  if (elements.pgStdinContent) {
+    elements.pgStdinContent.addEventListener('input', updatePgStdinStats);
+  }
+  if (elements.pgStdinSampleBtn) {
+    elements.pgStdinSampleBtn.addEventListener('click', () => {
+      elements.pgStdinContent.value = "10\n20\n30";
+      updatePgStdinStats();
+      showToast('Playground sample input loaded.', 'success');
+    });
+  }
+  if (elements.pgStdinClearBtn) {
+    elements.pgStdinClearBtn.addEventListener('click', () => {
+      elements.pgStdinContent.value = '';
+      updatePgStdinStats();
+    });
+  }
+  if (elements.pgStdinRunBtn) {
+    elements.pgStdinRunBtn.addEventListener('click', () => handlePlaygroundRun());
+  }
+
+  function submitPgInteractiveInput() {
+    const val = elements.pgInteractiveInput ? elements.pgInteractiveInput.value : '';
+    if (!val.trim()) return;
+    if (elements.pgStdinContent) {
+      if (!elements.pgStdinContent.value.trim()) {
+        elements.pgStdinContent.value = val;
+      } else {
+        elements.pgStdinContent.value += '\n' + val;
+      }
+      updatePgStdinStats();
+    }
+    const entered = val;
+    if (elements.pgInteractiveInput) elements.pgInteractiveInput.value = '';
+    handlePlaygroundRun(elements.pgStdinContent ? elements.pgStdinContent.value : entered);
+  }
+
+  if (elements.pgInteractiveInput) {
+    elements.pgInteractiveInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        submitPgInteractiveInput();
+      }
+    });
+  }
+  if (elements.pgSendInputBtn) {
+    elements.pgSendInputBtn.addEventListener('click', submitPgInteractiveInput);
+  }
+
+  if (elements.pgCopyBtn) {
+    elements.pgCopyBtn.addEventListener('click', () => {
+      const text = [elements.pgStdout.textContent, elements.pgStderr.textContent].filter(Boolean).join('\n').trim();
+      copyToClipboard(text, elements.pgCopyBtn);
+    });
+  }
+  if (elements.pgClearConsoleBtn) {
+    elements.pgClearConsoleBtn.addEventListener('click', () => {
+      elements.pgStdout.textContent = '';
+      elements.pgStderr.textContent = '';
+      elements.pgStderr.style.display = 'none';
+      if (elements.pgInputNeededBanner) elements.pgInputNeededBanner.style.display = 'none';
+      setPgTerminalStatus('ready', 'Ready');
+    });
+  }
+  if (elements.pgDotClear) {
+    elements.pgDotClear.addEventListener('click', () => {
+      elements.pgStdout.textContent = '';
+      elements.pgStderr.textContent = '';
+      elements.pgStderr.style.display = 'none';
+      if (elements.pgInputNeededBanner) elements.pgInputNeededBanner.style.display = 'none';
+      setPgTerminalStatus('ready', 'Ready');
+    });
+  }
+  if (elements.pgDotExpand) {
+    elements.pgDotExpand.addEventListener('click', () => {
+      if (elements.pgConsoleBox) elements.pgConsoleBox.classList.toggle('expanded');
+    });
+  }
+  if (elements.pgDotMinimize) {
+    elements.pgDotMinimize.addEventListener('click', () => {
+      if (elements.pgConsoleBox) elements.pgConsoleBox.classList.toggle('minimized');
+    });
+  }
+
+  // Playground Template and Run
   elements.pgTemplateSelect.addEventListener('change', (e) => {
     const template = PLAYGROUND_TEMPLATES[e.target.value] || '';
     elements.pgEditor.value = template;
     updateLineNumbers(elements.pgEditor, elements.pgLineNumbers);
+    updateSyntaxLayer(elements.pgEditor, elements.pgSyntaxLayer);
   });
 
   elements.pgClearBtn.addEventListener('click', () => {
@@ -511,10 +789,12 @@ function setupEventListeners() {
     elements.pgStdout.textContent = '';
     elements.pgStderr.textContent = '';
     elements.pgStderr.style.display = 'none';
+    if (elements.pgInputNeededBanner) elements.pgInputNeededBanner.style.display = 'none';
     updateLineNumbers(elements.pgEditor, elements.pgLineNumbers);
+    updateSyntaxLayer(elements.pgEditor, elements.pgSyntaxLayer);
   });
 
-  elements.pgRunBtn.addEventListener('click', handlePlaygroundRun);
+  elements.pgRunBtn.addEventListener('click', () => handlePlaygroundRun());
 
   // Cheat Sheet Search
   elements.cheatsheetSearch.addEventListener('input', (e) => {
@@ -573,6 +853,36 @@ function setCurriculumCollapsed(isCollapsed) {
   localStorage.setItem('pylearn_curriculum_collapsed', String(isCollapsed));
 }
 
+// Layout Preset Mode Controller (Reading / Split / Code)
+function applyLayoutMode(mode) {
+  if (!['reading', 'split', 'code'].includes(mode)) mode = 'split';
+  state.layoutMode = mode;
+  localStorage.setItem('pylearn_layout_mode', mode);
+
+  if (elements.viewLearn) {
+    elements.viewLearn.classList.remove('layout-reading', 'layout-split', 'layout-code');
+    elements.viewLearn.classList.add(`layout-${mode}`);
+  }
+
+  if (elements.layoutBtns) {
+    elements.layoutBtns.forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('data-layout') === mode);
+    });
+  }
+
+  if (elements.codeModeTheoryBtn) {
+    elements.codeModeTheoryBtn.style.display = mode === 'code' ? 'inline-flex' : 'none';
+  }
+
+  // Refresh code editor line numbers when entering a mode with visible editor
+  if (mode !== 'reading' && elements.codeEditor && elements.editorLineNumbers) {
+    setTimeout(() => {
+      updateLineNumbers(elements.codeEditor, elements.editorLineNumbers);
+    }, 60);
+  }
+}
+window.applyLayoutMode = applyLayoutMode;
+
 // Switch Active View Panel (Seamless switching across all tabs)
 function switchView(targetId) {
   elements.navButtons.forEach(btn => {
@@ -593,7 +903,12 @@ function switchView(targetId) {
     }
   });
 
+  if (elements.layoutPresetSwitcher) {
+    elements.layoutPresetSwitcher.classList.toggle('hidden', targetId !== 'view-learn');
+  }
+
   if (targetId === 'view-learn') {
+    applyLayoutMode(state.layoutMode);
     updateLineNumbers(elements.codeEditor, elements.editorLineNumbers);
   } else if (targetId === 'view-achievements') {
     renderAchievements();
@@ -603,12 +918,104 @@ function switchView(targetId) {
 }
 window.switchView = switchView; // expose to inline onclick attributes
 
-// Code Editor Helpers
-function setupEditorHelpers(textarea, lineNumbersEl) {
+// Editor & Terminal Font Zoom Controller
+function applyFontSize(sizePx) {
+  sizePx = Math.max(12, Math.min(22, sizePx));
+  state.fontSize = sizePx;
+  localStorage.setItem('pylearn_font_size', String(sizePx));
+  document.documentElement.style.setProperty('--editor-font-size', `${sizePx}px`);
+  document.documentElement.style.setProperty('--term-font-size', `${sizePx}px`);
+  document.documentElement.style.setProperty('--editor-line-height', `${Math.round(sizePx * 1.62)}px`);
+}
+window.applyFontSize = applyFontSize;
+
+// High-Speed Python Syntax Tokenizer
+function highlightPython(code) {
+  if (!code) return '';
+  const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  
+  const tokenRegex = /(f?b?r?"""[\s\S]*?"""|f?b?r?'''[\s\S]*?'''|f?b?r?"(?:\\.|[^"\\])*"|f?b?r?'(?:\\.|[^'\\])*')|(#.*)|(\b\d+(?:\.\d+)?\b)|(\bdef\s+)([A-Za-z_]\w*)|([A-Za-z_]\w*)|([+\-*/%=<>!&|^~:]+)/g;
+
+  const KEYWORDS = new Set([
+    'and', 'as', 'assert', 'async', 'await', 'break', 'class', 'continue', 'def',
+    'del', 'elif', 'else', 'except', 'finally', 'for', 'from', 'global', 'if',
+    'import', 'in', 'is', 'lambda', 'nonlocal', 'not', 'or', 'pass', 'raise',
+    'return', 'try', 'while', 'with', 'yield'
+  ]);
+
+  const BUILTINS = new Set([
+    'print', 'input', 'len', 'range', 'int', 'str', 'float', 'bool', 'list', 'dict',
+    'set', 'tuple', 'sum', 'min', 'max', 'abs', 'round', 'enumerate', 'zip',
+    'sorted', 'reversed', 'open', 'type', 'isinstance', 'issubclass', 'id',
+    'map', 'filter', 'any', 'all', 'format', 'repr', 'super', 'dir', 'help'
+  ]);
+
+  const CONSTANTS = new Set(['True', 'False', 'None']);
+
+  let lastIndex = 0;
+  let html = '';
+  let match;
+
+  while ((match = tokenRegex.exec(code)) !== null) {
+    if (match.index > lastIndex) {
+      html += esc(code.slice(lastIndex, match.index));
+    }
+    lastIndex = tokenRegex.lastIndex;
+
+    const [full, str, comment, num, defPrefix, funcName, word, op] = match;
+
+    if (str !== undefined) {
+      html += `<span class="tok-string">${esc(str)}</span>`;
+    } else if (comment !== undefined) {
+      html += `<span class="tok-comment">${esc(comment)}</span>`;
+    } else if (num !== undefined) {
+      html += `<span class="tok-number">${esc(num)}</span>`;
+    } else if (defPrefix !== undefined && funcName !== undefined) {
+      html += `<span class="tok-keyword">${esc(defPrefix)}</span><span class="tok-funcname">${esc(funcName)}</span>`;
+    } else if (word !== undefined) {
+      if (KEYWORDS.has(word)) {
+        html += `<span class="tok-keyword">${esc(word)}</span>`;
+      } else if (BUILTINS.has(word)) {
+        html += `<span class="tok-builtin">${esc(word)}</span>`;
+      } else if (CONSTANTS.has(word)) {
+        html += `<span class="tok-constant">${esc(word)}</span>`;
+      } else {
+        html += `<span class="tok-variable">${esc(word)}</span>`;
+      }
+    } else if (op !== undefined) {
+      html += `<span class="tok-operator">${esc(op)}</span>`;
+    } else {
+      html += esc(full);
+    }
+  }
+
+  if (lastIndex < code.length) {
+    html += esc(code.slice(lastIndex));
+  }
+
+  if (code.endsWith('\n')) {
+    html += ' ';
+  }
+
+  return html;
+}
+
+function updateSyntaxLayer(textarea, syntaxLayer) {
+  if (!syntaxLayer || !textarea) return;
+  const codeEl = syntaxLayer.querySelector('code') || syntaxLayer;
+  codeEl.innerHTML = highlightPython(textarea.value);
+  syntaxLayer.scrollTop = textarea.scrollTop;
+  syntaxLayer.scrollLeft = textarea.scrollLeft;
+}
+
+// Code Editor Helpers: Auto-closing pairs, indent, and synced syntax highlighting
+function setupEditorHelpers(textarea, lineNumbersEl, syntaxLayer) {
   const syncLines = () => updateLineNumbers(textarea, lineNumbersEl);
+  const syncSyntax = () => updateSyntaxLayer(textarea, syntaxLayer);
 
   textarea.addEventListener('input', () => {
     syncLines();
+    syncSyntax();
     if (textarea === elements.codeEditor && state.currentLessonId) {
       state.userCodes[state.currentLessonId] = textarea.value;
       localStorage.setItem('pylearn_user_codes', JSON.stringify(state.userCodes));
@@ -617,6 +1024,10 @@ function setupEditorHelpers(textarea, lineNumbersEl) {
 
   textarea.addEventListener('scroll', () => {
     lineNumbersEl.scrollTop = textarea.scrollTop;
+    if (syntaxLayer) {
+      syntaxLayer.scrollTop = textarea.scrollTop;
+      syntaxLayer.scrollLeft = textarea.scrollLeft;
+    }
   });
 
   textarea.addEventListener('keydown', (e) => {
@@ -631,22 +1042,83 @@ function setupEditorHelpers(textarea, lineNumbersEl) {
       return;
     }
 
-    // Tab indentation (4 spaces)
-    if (e.key === 'Tab') {
+    const PAIRS = {
+      '(': ')',
+      '[': ']',
+      '{': '}',
+      '"': '"',
+      "'": "'"
+    };
+    const CLOSERS = new Set([')', ']', '}', '"', "'"]);
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const val = textarea.value;
+
+    // 1. Skip over closing bracket/quote if already typed
+    if (CLOSERS.has(e.key) && start === end && val[start] === e.key) {
       e.preventDefault();
-      const start = textarea.selectionStart;
-      const end = textarea.selectionEnd;
-      textarea.value = textarea.value.substring(0, start) + '    ' + textarea.value.substring(end);
-      textarea.selectionStart = textarea.selectionEnd = start + 4;
-      syncLines();
+      textarea.selectionStart = textarea.selectionEnd = start + 1;
       return;
     }
 
-    // Auto-indent on Enter
+    // 2. Auto-close opening pair or wrap selection
+    if (PAIRS[e.key]) {
+      const closer = PAIRS[e.key];
+      if (start !== end) {
+        // Wrap selected text
+        e.preventDefault();
+        const selected = val.substring(start, end);
+        textarea.value = val.substring(0, start) + e.key + selected + closer + val.substring(end);
+        textarea.selectionStart = start + 1;
+        textarea.selectionEnd = end + 1;
+        syncLines();
+        syncSyntax();
+        return;
+      } else {
+        // Avoid auto-closing quote if right before alphanumeric word char
+        const nextChar = val[start] || '';
+        const isQuote = (e.key === '"' || e.key === "'");
+        if (!isQuote || !/\w/.test(nextChar)) {
+          e.preventDefault();
+          textarea.value = val.substring(0, start) + e.key + closer + val.substring(end);
+          textarea.selectionStart = textarea.selectionEnd = start + 1;
+          syncLines();
+          syncSyntax();
+          return;
+        }
+      }
+    }
+
+    // 3. Smart Backspace: deletes both if inside () [] {} "" ''
+    if (e.key === 'Backspace' && start === end && start > 0) {
+      const prev = val[start - 1];
+      const next = val[start];
+      if (PAIRS[prev] && PAIRS[prev] === next) {
+        e.preventDefault();
+        textarea.value = val.substring(0, start - 1) + val.substring(start + 1);
+        textarea.selectionStart = textarea.selectionEnd = start - 1;
+        syncLines();
+        syncSyntax();
+        return;
+      }
+    }
+
+    // 4. Tab indentation (4 spaces)
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      textarea.value = val.substring(0, start) + '    ' + val.substring(end);
+      textarea.selectionStart = textarea.selectionEnd = start + 4;
+      syncLines();
+      syncSyntax();
+      return;
+    }
+
+    // 5. Auto-indent on Enter with smart brace expansion
     if (e.key === 'Enter') {
-      const pos = textarea.selectionStart;
-      const lineStart = textarea.value.lastIndexOf('\n', pos - 1) + 1;
-      const currentLine = textarea.value.substring(lineStart, pos);
+      const pos = start;
+      const lineStart = val.lastIndexOf('\n', pos - 1) + 1;
+      const currentLine = val.substring(lineStart, pos);
       const match = currentLine.match(/^(\s+)/);
       let indent = match ? match[1] : '';
 
@@ -655,17 +1127,33 @@ function setupEditorHelpers(textarea, lineNumbersEl) {
         indent += '    ';
       }
 
+      // Smart brace expansion e.g. { | }
+      const prevChar = val[pos - 1];
+      const nextChar = val[pos];
+      if (prevChar && PAIRS[prevChar] && PAIRS[prevChar] === nextChar) {
+        e.preventDefault();
+        const insertText = '\n' + indent + '    \n' + indent;
+        textarea.value = val.substring(0, pos) + insertText + val.substring(textarea.selectionEnd);
+        textarea.selectionStart = textarea.selectionEnd = pos + indent.length + 5;
+        syncLines();
+        syncSyntax();
+        return;
+      }
+
       if (indent.length > 0) {
         e.preventDefault();
         const insertText = '\n' + indent;
-        textarea.value = textarea.value.substring(0, pos) + insertText + textarea.value.substring(textarea.selectionEnd);
+        textarea.value = val.substring(0, pos) + insertText + val.substring(textarea.selectionEnd);
         textarea.selectionStart = textarea.selectionEnd = pos + insertText.length;
         syncLines();
+        syncSyntax();
+        return;
       }
     }
   });
 
   syncLines();
+  syncSyntax();
 }
 
 function updateLineNumbers(textarea, lineNumbersEl) {
@@ -822,6 +1310,7 @@ function selectLesson(lessonId) {
   const codeToLoad = state.userCodes[lessonId] !== undefined ? state.userCodes[lessonId] : (targetLesson.starter_code || '');
   elements.codeEditor.value = codeToLoad;
   updateLineNumbers(elements.codeEditor, elements.editorLineNumbers);
+  updateSyntaxLayer(elements.codeEditor, elements.editorSyntaxLayer);
 
   // Reset console
   elements.stdoutContent.textContent = "Press 'Run' or hit Ctrl+Enter to execute your Python code...";
@@ -844,6 +1333,7 @@ window.insertCodeIntoEditor = function(btn) {
   const rawCode = codeEl.textContent.trim();
   elements.codeEditor.value = rawCode;
   updateLineNumbers(elements.codeEditor, elements.editorLineNumbers);
+  updateSyntaxLayer(elements.codeEditor, elements.editorSyntaxLayer);
   showToast('🚀 Example loaded into editor! Hit "Run" (Ctrl+Enter) to test.', 'success');
   elements.termStatus.textContent = 'Example Loaded';
 };
@@ -987,18 +1477,88 @@ function recordCodeCompletion() {
   showToast(`✓ Lesson completed! +${lesson.xp || 60} XP earned.`, 'success');
 }
 
-async function handleRunCode() {
+function setTerminalStatus(type, label) {
+  if (!elements.termStatus) return;
+  elements.termStatus.className = `term-status-pill ${type}`;
+  const labelEl = elements.termStatus.querySelector('.status-label');
+  if (labelEl) labelEl.textContent = label;
+  else elements.termStatus.textContent = label;
+}
+
+function setPgTerminalStatus(type, label) {
+  if (!elements.pgTermStatus) return;
+  elements.pgTermStatus.className = `term-status-pill ${type}`;
+  if (elements.pgDurationMeta) elements.pgDurationMeta.textContent = label;
+}
+
+async function copyToClipboard(text, btn) {
+  if (!text) {
+    showToast('Nothing to copy.', 'error');
+    return;
+  }
+  try {
+    await navigator.clipboard.writeText(text);
+    const originalHtml = btn.innerHTML;
+    btn.innerHTML = '<span>✓ Copied!</span>';
+    setTimeout(() => { btn.innerHTML = originalHtml; }, 1600);
+    showToast('Copied to clipboard!', 'success');
+  } catch (err) {
+    showToast('Could not copy to clipboard.', 'error');
+  }
+}
+
+// Switch Terminal Sub-tab (Learn)
+function switchTermTab(tabName) {
+  if (elements.termTabs) {
+    elements.termTabs.forEach(t => {
+      if (t.getAttribute('data-term-tab') === tabName) {
+        t.classList.add('active');
+      } else {
+        t.classList.remove('active');
+      }
+    });
+  }
+
+  if (elements.stdoutView) elements.stdoutView.style.display = tabName === 'stdout' ? 'flex' : 'none';
+  if (elements.stdinView) elements.stdinView.style.display = tabName === 'stdin' ? 'flex' : 'none';
+  if (elements.testsView) elements.testsView.style.display = tabName === 'tests' ? 'block' : 'none';
+}
+
+// Switch Terminal Sub-tab (Playground)
+function switchPgTab(tabName) {
+  if (elements.pgTermTabs) {
+    elements.pgTermTabs.forEach(t => {
+      if (t.getAttribute('data-pg-tab') === tabName) {
+        t.classList.add('active');
+      } else {
+        t.classList.remove('active');
+      }
+    });
+  }
+
+  if (elements.pgStdoutView) elements.pgStdoutView.style.display = tabName === 'stdout' ? 'flex' : 'none';
+  if (elements.pgStdinView) elements.pgStdinView.style.display = tabName === 'stdin' ? 'flex' : 'none';
+}
+
+async function handleRunCode(customInput = null) {
   const code = elements.codeEditor.value;
-  elements.termStatus.textContent = 'Running...';
+  setTerminalStatus('running', 'Running...');
   elements.runCodeBtn.disabled = true;
 
   switchTermTab('stdout');
+
+  let stdinInput = '';
+  if (customInput !== null && customInput !== undefined) {
+    stdinInput = String(customInput);
+  } else if (elements.stdinContent && elements.stdinContent.value.trim()) {
+    stdinInput = elements.stdinContent.value;
+  }
 
   try {
     const res = await fetch('/api/run', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code })
+      body: JSON.stringify({ code, input: stdinInput })
     });
 
     const contentType = res.headers.get('content-type') || '';
@@ -1017,7 +1577,26 @@ async function handleRunCode() {
       elements.stderrContent.style.display = 'none';
     }
 
-    elements.termStatus.textContent = `Finished in ${data.duration_ms}ms (Exit: ${data.exit_code})`;
+    if (data.needs_input) {
+      if (elements.inputNeededBanner) elements.inputNeededBanner.style.display = 'flex';
+      setTerminalStatus('needs-input', 'Input Needed');
+      if (elements.termInteractiveInput) {
+        elements.termInteractiveInput.focus();
+        elements.termInteractiveInput.placeholder = 'Program waiting for input... Type here and press Enter';
+      }
+    } else {
+      if (elements.inputNeededBanner) elements.inputNeededBanner.style.display = 'none';
+      if (data.exit_code === 0) {
+        setTerminalStatus('ready', `✓ ${data.duration_ms}ms`);
+      } else {
+        setTerminalStatus('error', `Exit ${data.exit_code}`);
+      }
+    }
+
+    if (elements.learnTerminalScreen) {
+      elements.learnTerminalScreen.scrollTop = elements.learnTerminalScreen.scrollHeight;
+    }
+
     checkBadgeUnlock('first_run');
     if (data.exit_code === 0 && code.trim()) {
       recordCodeCompletion();
@@ -1025,7 +1604,7 @@ async function handleRunCode() {
   } catch (err) {
     elements.stderrContent.textContent = `Server Connection Error: ${err.message}`;
     elements.stderrContent.style.display = 'block';
-    elements.termStatus.textContent = 'Execution Failed';
+    setTerminalStatus('error', 'Failed');
   } finally {
     elements.runCodeBtn.disabled = false;
   }
@@ -1034,10 +1613,12 @@ async function handleRunCode() {
 // Handle Challenge Solution Testing (Check Solution Button)
 async function handleTestCode() {
   const code = elements.codeEditor.value;
-  elements.termStatus.textContent = 'Testing Solution...';
+  setTerminalStatus('running', 'Testing Solution...');
   elements.testCodeBtn.disabled = true;
 
   switchTermTab('tests');
+
+  const stdinInput = elements.stdinContent ? elements.stdinContent.value : '';
 
   try {
     const res = await fetch('/api/test', {
@@ -1045,6 +1626,7 @@ async function handleTestCode() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         code,
+        input: stdinInput,
         lesson_id: state.currentLessonId
       })
     });
@@ -1063,14 +1645,16 @@ async function handleTestCode() {
       const alreadyComplete = state.completedChallenges.includes(state.currentLessonId);
       recordCodeCompletion();
       if (alreadyComplete) showToast(`✓ Your program runs successfully!`, 'success');
+      setTerminalStatus('ready', 'All Tests Passed');
     } else {
       showToast('Your code needs to run without errors. Check the message below and try again.', 'error');
+      setTerminalStatus('error', 'Test Failed');
     }
   } catch (err) {
     elements.testResultsContainer.innerHTML = `<p style="color: var(--accent-red);">Testing Error: ${err.message}</p>`;
+    setTerminalStatus('error', 'Test Error');
   } finally {
     elements.testCodeBtn.disabled = false;
-    elements.termStatus.textContent = 'Ready';
   }
 }
 
@@ -1115,42 +1699,33 @@ function handleResetCode() {
   if (lesson && confirm('Reset code to the original starter code? Any unsaved edits will be discarded.')) {
     elements.codeEditor.value = lesson.starter_code || '';
     updateLineNumbers(elements.codeEditor, elements.editorLineNumbers);
+    updateSyntaxLayer(elements.codeEditor, elements.editorSyntaxLayer);
     state.userCodes[state.currentLessonId] = lesson.starter_code || '';
     localStorage.setItem('pylearn_user_codes', JSON.stringify(state.userCodes));
     showToast('Code reset to starter template.', 'success');
   }
 }
 
-// Switch Terminal Sub-tab
-function switchTermTab(tabName) {
-  elements.termTabs.forEach(t => {
-    if (t.getAttribute('data-term-tab') === tabName) {
-      t.classList.add('active');
-    } else {
-      t.classList.remove('active');
-    }
-  });
-
-  if (tabName === 'stdout') {
-    elements.stdoutView.style.display = 'block';
-    elements.testsView.style.display = 'none';
-  } else {
-    elements.stdoutView.style.display = 'none';
-    elements.testsView.style.display = 'block';
-  }
-}
-
 // Handle Playground Code Execution
-async function handlePlaygroundRun() {
+async function handlePlaygroundRun(customInput = null) {
   const code = elements.pgEditor.value;
   elements.pgRunBtn.disabled = true;
-  elements.pgDurationMeta.textContent = 'Running...';
+  setPgTerminalStatus('running', 'Running...');
+
+  switchPgTab('stdout');
+
+  let stdinInput = '';
+  if (customInput !== null && customInput !== undefined) {
+    stdinInput = String(customInput);
+  } else if (elements.pgStdinContent && elements.pgStdinContent.value.trim()) {
+    stdinInput = elements.pgStdinContent.value;
+  }
 
   try {
     const res = await fetch('/api/run', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code })
+      body: JSON.stringify({ code, input: stdinInput })
     });
 
     const data = await res.json();
@@ -1164,12 +1739,31 @@ async function handlePlaygroundRun() {
       elements.pgStderr.style.display = 'none';
     }
 
-    elements.pgDurationMeta.textContent = `Completed in ${data.duration_ms}ms (Exit: ${data.exit_code})`;
+    if (data.needs_input) {
+      if (elements.pgInputNeededBanner) elements.pgInputNeededBanner.style.display = 'flex';
+      setPgTerminalStatus('needs-input', 'Input Needed');
+      if (elements.pgInteractiveInput) {
+        elements.pgInteractiveInput.focus();
+        elements.pgInteractiveInput.placeholder = 'Sandbox waiting for input... Type here and press Enter';
+      }
+    } else {
+      if (elements.pgInputNeededBanner) elements.pgInputNeededBanner.style.display = 'none';
+      if (data.exit_code === 0) {
+        setPgTerminalStatus('ready', `✓ ${data.duration_ms}ms`);
+      } else {
+        setPgTerminalStatus('error', `Exit ${data.exit_code}`);
+      }
+    }
+
+    if (elements.pgTerminalScreen) {
+      elements.pgTerminalScreen.scrollTop = elements.pgTerminalScreen.scrollHeight;
+    }
+
     checkBadgeUnlock('first_run');
   } catch (err) {
     elements.pgStderr.textContent = `Execution Error: ${err.message}`;
     elements.pgStderr.style.display = 'block';
-    elements.pgDurationMeta.textContent = 'Error';
+    setPgTerminalStatus('error', 'Error');
   } finally {
     elements.pgRunBtn.disabled = false;
   }
@@ -1348,6 +1942,7 @@ function renderCheatsheet(filter = '') {
     catCard.querySelectorAll('.try-sheet-code').forEach(btn => btn.addEventListener('click', () => {
       elements.pgEditor.value = decodeURIComponent(btn.dataset.code || '');
       updateLineNumbers(elements.pgEditor, elements.pgLineNumbers);
+      updateSyntaxLayer(elements.pgEditor, elements.pgSyntaxLayer);
       switchView('view-playground');
       showToast('Example opened in the Playground — press Run to try it.', 'success');
     }));

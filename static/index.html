@@ -55,6 +55,22 @@
     </nav>
 
     <div class="header-stats">
+      <!-- Layout Preset Switcher (1-Click View Switcher) -->
+      <div class="layout-preset-switcher" id="layout-preset-switcher" title="Switch workspace layout">
+        <button type="button" class="layout-btn" data-layout="reading" title="Reading Mode: Maximize theory & quizzes">
+          <span class="layout-btn-icon">📖</span>
+          <span class="layout-btn-text">Reading</span>
+        </button>
+        <button type="button" class="layout-btn active" data-layout="split" title="Split Mode: Balanced theory and code">
+          <span class="layout-btn-icon">⚡</span>
+          <span class="layout-btn-text">Split</span>
+        </button>
+        <button type="button" class="layout-btn" data-layout="code" title="Code Focus Mode: Full-width editor & terminal">
+          <span class="layout-btn-icon">💻</span>
+          <span class="layout-btn-text">Code</span>
+        </button>
+      </div>
+
       <!-- About Navigation Button -->
       <button class="about-nav-btn" id="about-nav-btn" onclick="openProfileModal()" title="Meet the creator of Phanix">
         <span class="about-nav-avatar" aria-hidden="true"><img src="img/phani.png" alt=""></span>
@@ -130,6 +146,15 @@
           </div>
           <div class="quiz-feedback" id="quiz-feedback-box"></div>
         </div>
+
+        <!-- Reading Mode Quick Jump Bar -->
+        <div class="reading-mode-next-bar" id="reading-mode-next-bar">
+          <div class="reading-next-info">
+            <span class="reading-next-title">⚡ Ready for the Coding Challenge?</span>
+            <span class="reading-next-sub">Switch to code editor to put theory into practice.</span>
+          </div>
+          <button type="button" class="btn btn-run" id="jump-to-code-btn">💻 Start Coding ➔</button>
+        </div>
       </section>
 
       <!-- Right: Workspace (macOS Code Editor + Output Console) -->
@@ -140,10 +165,13 @@
             <strong style="color: var(--apple-blue); display: block; margin-bottom: 0.2rem;">🎯 Hands-on Coding Challenge:</strong>
             <span id="challenge-instructions-text">Follow instructions to complete this challenge.</span>
           </div>
-          <div class="hint-dropdown">
-            <button class="btn btn-secondary" id="hint-btn">💡 Hint</button>
-            <div class="hint-content" id="hint-box">
-              <p id="hint-text">Hints will appear here.</p>
+          <div class="challenge-actions-group" style="display: flex; align-items: center; gap: 0.45rem;">
+            <button class="btn btn-secondary code-mode-theory-btn" id="code-mode-theory-btn" title="View lesson theory and quiz">📖 Read Theory</button>
+            <div class="hint-dropdown">
+              <button class="btn btn-secondary" id="hint-btn">💡 Hint</button>
+              <div class="hint-content" id="hint-box">
+                <p id="hint-text">Hints will appear here.</p>
+              </div>
             </div>
           </div>
         </div>
@@ -159,6 +187,10 @@
             <span class="editor-title">main.py</span>
           </div>
           <div class="editor-actions">
+            <div class="font-zoom-control" title="Adjust font size">
+              <button type="button" class="font-zoom-btn" id="font-dec-btn" title="Decrease font size (A−)">A−</button>
+              <button type="button" class="font-zoom-btn" id="font-inc-btn" title="Increase font size (A+)">A+</button>
+            </div>
             <button class="btn btn-secondary" id="reset-code-btn" title="Reset to starter code">↺ Reset</button>
             <button class="btn btn-run" id="run-code-btn" title="Run code (Ctrl + Enter)">▶ Run</button>
             <button class="btn btn-test" id="test-code-btn" title="Run Automated Tests">✓ Check Solution</button>
@@ -168,32 +200,91 @@
         <!-- Code Editor -->
         <div class="editor-wrapper">
           <div class="line-numbers" id="editor-line-numbers">1</div>
-          <textarea class="code-textarea" id="code-editor" spellcheck="false" placeholder="# Write your Python code here..."></textarea>
+          <div class="editor-stage">
+            <pre class="syntax-highlight-layer" id="editor-syntax-layer" aria-hidden="true"><code></code></pre>
+            <textarea class="code-textarea" id="code-editor" spellcheck="false" placeholder="# Write your Python code here..."></textarea>
+          </div>
         </div>
 
-        <!-- Terminal Console (macOS Style) -->
-        <div class="terminal-area">
+        <!-- Terminal Console (macOS Pro Terminal) -->
+        <div class="terminal-area" id="learn-terminal-area">
           <div class="terminal-tabs">
             <div class="term-tab-group">
-              <div class="traffic-lights">
-                <span class="dot red"></span>
-                <span class="dot yellow"></span>
-                <span class="dot green"></span>
+              <div class="traffic-lights" title="Terminal Controls">
+                <span class="dot red" id="term-dot-clear" title="Clear Console"></span>
+                <span class="dot yellow" id="term-dot-minimize" title="Minimize / Restore Height"></span>
+                <span class="dot green" id="term-dot-expand" title="Maximize Height"></span>
               </div>
-              <button class="term-tab active" data-term-tab="stdout">Console Output</button>
-              <button class="term-tab" data-term-tab="tests">Test Results (<span id="test-summary-pill">0/0</span>)</button>
+              <button class="term-tab active" data-term-tab="stdout">
+                <span class="term-tab-icon">🖥️</span> Console Output
+              </button>
+              <button class="term-tab" data-term-tab="stdin">
+                <span class="term-tab-icon">⌨️</span> Input (stdin)
+                <span class="tab-badge" id="stdin-badge" style="display: none;">•</span>
+              </button>
+              <button class="term-tab" data-term-tab="tests">
+                <span class="term-tab-icon">🧪</span> Test Results (<span id="test-summary-pill">0/0</span>)
+              </button>
             </div>
             <div class="term-meta">
-              <span id="term-status">Ready</span>
-              <button class="btn btn-secondary" style="padding: 0.25rem 0.6rem; font-size: 0.72rem;" id="clear-console-btn">Clear</button>
+              <span class="term-status-pill" id="term-status">
+                <span class="status-dot"></span>
+                <span class="status-label">Ready</span>
+              </span>
+              <button class="term-action-btn" id="copy-console-btn" title="Copy console output">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                <span>Copy</span>
+              </button>
+              <button class="term-action-btn" id="clear-console-btn" title="Clear console">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                <span>Clear</span>
+              </button>
+              <button class="term-action-btn expand-btn" id="expand-console-btn" title="Expand / Restore terminal height">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+              </button>
             </div>
           </div>
           <div class="term-body" id="term-body">
-            <div id="stdout-view">
-              <div class="stdout-text" id="stdout-content">Press 'Run' or hit Ctrl+Enter to execute your Python code...</div>
-              <div class="stderr-text" id="stderr-content" style="display: none;"></div>
+            <div id="stdout-view" class="term-view-pane active">
+              <div class="terminal-screen" id="learn-terminal-screen">
+                <div class="term-session-header" id="term-session-header">
+                  <span class="term-prompt-user">phani@phanix</span>:<span class="term-prompt-path">~</span>$ <span class="term-prompt-cmd">python3 main.py</span>
+                </div>
+                <div class="stdout-text" id="stdout-content">Press '▶ Run' or hit Ctrl+Enter to execute your Python code...</div>
+                <div class="stderr-text" id="stderr-content" style="display: none;"></div>
+                <div class="term-input-needed-banner" id="input-needed-banner" style="display: none;">
+                  <div class="input-needed-icon">💡</div>
+                  <div class="input-needed-text">
+                    <strong>Input Required:</strong> Your program requested input with <code>input()</code>. Enter your input below and press <strong>Send ↵</strong> to run!
+                  </div>
+                </div>
+              </div>
+              <div class="terminal-interactive-bar" id="term-input-bar">
+                <span class="term-bar-ps">❯</span>
+                <input type="text" id="term-interactive-input" class="term-bar-input" placeholder="Enter input for input() and press Enter..." autocomplete="off" spellcheck="false" />
+                <button type="button" class="term-bar-send-btn" id="term-send-input-btn" title="Send input & run (Enter)">Send ↵</button>
+              </div>
             </div>
-            <div id="tests-view" style="display: none;">
+            <div id="stdin-view" class="term-view-pane" style="display: none;">
+              <div class="stdin-pane-content">
+                <div class="stdin-guide">
+                  <div class="stdin-guide-left">
+                    <span class="stdin-guide-title">Standard Input (stdin) Buffer</span>
+                    <span class="stdin-guide-sub">Provide values line-by-line for each <code>input()</code> prompt in your code:</span>
+                  </div>
+                  <div class="stdin-guide-actions">
+                    <button type="button" class="term-mini-btn" id="stdin-sample-btn" title="Insert sample input lines">Sample</button>
+                    <button type="button" class="term-mini-btn" id="stdin-clear-btn" title="Clear stdin buffer">Clear</button>
+                  </div>
+                </div>
+                <textarea id="stdin-content" class="stdin-textarea" spellcheck="false" placeholder="# Line 1: first input()&#10;# Line 2: second input()&#10;# Example:&#10;Alice&#10;25"></textarea>
+                <div class="stdin-pane-footer">
+                  <span class="stdin-char-count" id="stdin-char-count">0 lines buffered</span>
+                  <button type="button" class="btn btn-run btn-sm" id="stdin-run-btn">▶ Run with Stdin Buffer</button>
+                </div>
+              </div>
+            </div>
+            <div id="tests-view" class="term-view-pane" style="display: none;">
               <div class="test-results-container" id="test-results-container">
                 <p style="color: var(--text-muted);">Click "Check Solution" to run automated tests against your code.</p>
               </div>
@@ -238,24 +329,85 @@
           </div>
           <div class="editor-wrapper">
             <div class="line-numbers" id="pg-line-numbers">1</div>
-            <textarea class="code-textarea" id="pg-editor" spellcheck="false"></textarea>
+            <div class="editor-stage">
+              <pre class="syntax-highlight-layer" id="pg-syntax-layer" aria-hidden="true"><code></code></pre>
+              <textarea class="code-textarea" id="pg-editor" spellcheck="false"></textarea>
+            </div>
           </div>
         </div>
-        <div class="playground-console-box">
+        <div class="playground-console-box" id="pg-console-box">
           <div class="editor-header">
             <div class="editor-title-group">
-              <div class="traffic-lights">
-                <span class="dot red"></span>
-                <span class="dot yellow"></span>
-                <span class="dot green"></span>
+              <div class="traffic-lights" title="Console Controls">
+                <span class="dot red" id="pg-dot-clear" title="Clear console"></span>
+                <span class="dot yellow" id="pg-dot-minimize" title="Minimize / Restore Height"></span>
+                <span class="dot green" id="pg-dot-expand" title="Maximize Console"></span>
               </div>
-              <span class="editor-title">Console Output</span>
+              <div class="term-tab-group pg-term-tabs">
+                <button class="term-tab active" data-pg-tab="stdout">
+                  <span class="term-tab-icon">🖥️</span> Output
+                </button>
+                <button class="term-tab" data-pg-tab="stdin">
+                  <span class="term-tab-icon">⌨️</span> Input (stdin)
+                  <span class="tab-badge" id="pg-stdin-badge" style="display: none;">•</span>
+                </button>
+              </div>
             </div>
-            <span id="pg-duration-meta" style="font-size: 0.75rem; color: var(--text-muted);">Ready</span>
+            <div class="term-meta">
+              <span class="term-status-pill" id="pg-term-status">
+                <span class="status-dot"></span>
+                <span class="status-label" id="pg-duration-meta">Ready</span>
+              </span>
+              <button class="term-action-btn" id="pg-copy-btn" title="Copy output">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                <span>Copy</span>
+              </button>
+              <button class="term-action-btn" id="pg-clear-console-btn" title="Clear console">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                <span>Clear</span>
+              </button>
+            </div>
           </div>
           <div class="term-body" id="pg-term-body">
-            <pre class="stdout-text" id="pg-stdout"></pre>
-            <pre class="stderr-text" id="pg-stderr" style="display: none;"></pre>
+            <div id="pg-stdout-view" class="term-view-pane active">
+              <div class="terminal-screen" id="pg-terminal-screen">
+                <div class="term-session-header" id="pg-session-header">
+                  <span class="term-prompt-user">phani@phanix</span>:<span class="term-prompt-path">~</span>$ <span class="term-prompt-cmd">python3 sandbox.py</span>
+                </div>
+                <pre class="stdout-text" id="pg-stdout">Press '▶ Run Code' to execute sandbox script...</pre>
+                <pre class="stderr-text" id="pg-stderr" style="display: none;"></pre>
+                <div class="term-input-needed-banner" id="pg-input-needed-banner" style="display: none;">
+                  <div class="input-needed-icon">💡</div>
+                  <div class="input-needed-text">
+                    <strong>Input Required:</strong> Your sandbox code requested input with <code>input()</code>. Enter your input below and press <strong>Send ↵</strong> to run!
+                  </div>
+                </div>
+              </div>
+              <div class="terminal-interactive-bar" id="pg-term-input-bar">
+                <span class="term-bar-ps">❯</span>
+                <input type="text" id="pg-interactive-input" class="term-bar-input" placeholder="Enter input for input() and press Enter..." autocomplete="off" spellcheck="false" />
+                <button type="button" class="term-bar-send-btn" id="pg-send-input-btn" title="Send input & run (Enter)">Send ↵</button>
+              </div>
+            </div>
+            <div id="pg-stdin-view" class="term-view-pane" style="display: none;">
+              <div class="stdin-pane-content">
+                <div class="stdin-guide">
+                  <div class="stdin-guide-left">
+                    <span class="stdin-guide-title">Playground Standard Input (stdin)</span>
+                    <span class="stdin-guide-sub">Values fed line-by-line into <code>input()</code> calls:</span>
+                  </div>
+                  <div class="stdin-guide-actions">
+                    <button type="button" class="term-mini-btn" id="pg-stdin-sample-btn" title="Insert sample input lines">Sample</button>
+                    <button type="button" class="term-mini-btn" id="pg-stdin-clear-btn" title="Clear stdin buffer">Clear</button>
+                  </div>
+                </div>
+                <textarea id="pg-stdin-content" class="stdin-textarea" spellcheck="false" placeholder="# Enter sandbox inputs here (one per line):&#10;Alice&#10;100"></textarea>
+                <div class="stdin-pane-footer">
+                  <span class="stdin-char-count" id="pg-stdin-char-count">0 lines buffered</span>
+                  <button type="button" class="btn btn-run btn-sm" id="pg-stdin-run-btn">▶ Run with Stdin Buffer</button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -498,8 +650,12 @@
           <!-- Dynamically populated badges -->
         </div>
       </div>
-         </div><h1
-         style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1rem; letter-spacing: -0.02em;align-items: center;">---This certificate is for the motivating your skills not for the accredited qualifications</h1><dev/>
+
+      <!-- Certificate Motivation Disclaimer -->
+      <p style="font-size: 0.95rem; font-weight: 600; color: var(--text-secondary); text-align: center; margin: 2.5rem 0 1rem; letter-spacing: -0.01em;">
+        ✦ Note: This certificate is for motivating your skills, not for accredited qualifications.
+      </p>
+
       <section class="certificate-wrapper" id="certificate-box" aria-label="Phanix certificate of completion">
         <div class="cert-orbit cert-orbit-one" aria-hidden="true"></div>
         <div class="cert-orbit cert-orbit-two" aria-hidden="true"></div>

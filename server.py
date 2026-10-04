@@ -86,7 +86,7 @@ class PyLearnRequestHandler(http.server.SimpleHTTPRequestHandler):
             post_data = self.rfile.read(content_length).decode("utf-8")
             body = json.loads(post_data) if post_data else {}
             code = body.get("code", "")
-            stdin_input = body.get("input", "")
+            stdin_input = body.get("input") if body.get("input") is not None else body.get("stdin", "")
 
             result = self.execute_python_code(code, stdin_input=stdin_input)
             self.send_json_response(200, result)
@@ -100,6 +100,7 @@ class PyLearnRequestHandler(http.server.SimpleHTTPRequestHandler):
             body = json.loads(post_data) if post_data else {}
             code = body.get("code", "")
             lesson_id = body.get("lesson_id", "")
+            stdin_input = body.get("input") if body.get("input") is not None else body.get("stdin", "")
 
             curr_file = os.path.join(DATA_DIR, "curriculum.json")
             with open(curr_file, "r", encoding="utf-8") as f:
@@ -121,7 +122,7 @@ class PyLearnRequestHandler(http.server.SimpleHTTPRequestHandler):
             # Beginner-friendly completion: a non-empty program that runs without
             # an error completes the lesson. Exact-output grading made a correct
             # learning attempt look like a failure for many early lessons.
-            res = self.execute_python_code(code)
+            res = self.execute_python_code(code, stdin_input=stdin_input)
             actual = res.get("stdout", "")
             stderr = res.get("stderr", "")
             passed = bool(code.strip()) and res.get("exit_code") == 0
@@ -157,6 +158,9 @@ class PyLearnRequestHandler(http.server.SimpleHTTPRequestHandler):
             temp_file.write(code)
 
         try:
+            if stdin_input and not stdin_input.endswith("\n"):
+                stdin_input = stdin_input + "\n"
+
             process = subprocess.Popen(
                 [sys.executable, "-u", temp_path],
                 stdin=subprocess.PIPE,
@@ -166,11 +170,13 @@ class PyLearnRequestHandler(http.server.SimpleHTTPRequestHandler):
             )
             stdout, stderr = process.communicate(input=stdin_input, timeout=timeout)
             duration_ms = round((time.perf_counter() - start_time) * 1000, 2)
+            needs_input = "EOFError: EOF when reading a line" in (stderr or "")
             return {
                 "stdout": stdout,
                 "stderr": stderr,
                 "exit_code": process.returncode,
-                "duration_ms": duration_ms
+                "duration_ms": duration_ms,
+                "needs_input": needs_input
             }
         except subprocess.TimeoutExpired:
             process.kill()
@@ -225,7 +231,7 @@ def run(port=PORT):
     print(f" Press Ctrl+C to stop the server")
     print(f"==================================================")
     try:
-        httpd.serve_forever()
+        httpd.serve_forever() 
     except KeyboardInterrupt:
         print("\nShutting down PyLearn server...")
         httpd.server_close()
