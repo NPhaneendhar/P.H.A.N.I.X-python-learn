@@ -1625,9 +1625,14 @@ def main():
         json.dump(CURRICULUM, f, indent=2)
     print(f"Generated data/curriculum.json ({len(CURRICULUM)} modules)")
 
-    with open("data/cheatsheet.json", "w", encoding="utf-8") as f:
-        json.dump(CHEATSHEET, f, indent=2)
-    print(f"Generated data/cheatsheet.json ({len(CHEATSHEET)} categories)")
+    if os.path.exists("data/cheatsheet.json"):
+        with open("data/cheatsheet.json", "r", encoding="utf-8") as f:
+            sheet_data = json.load(f)
+        print(f"Verified data/cheatsheet.json ({len(sheet_data)} categories)")
+    else:
+        with open("data/cheatsheet.json", "w", encoding="utf-8") as f:
+            json.dump(CHEATSHEET, f, indent=2)
+        print(f"Generated data/cheatsheet.json ({len(CHEATSHEET)} categories)")
 
 if __name__ == "__main__":
     main()

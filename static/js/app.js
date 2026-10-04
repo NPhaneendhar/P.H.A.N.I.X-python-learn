@@ -392,9 +392,13 @@ const elements = {
 
   // Cheat Sheet
   cheatsheetSearch: document.getElementById('cheatsheet-search'),
+  cheatsheetSearchClear: document.getElementById('cheatsheet-search-clear'),
   cheatsheetGrid: document.getElementById('cheatsheet-grid'),
   cheatsheetNav: document.getElementById('cheatsheet-nav'),
   cheatsheetCount: document.getElementById('cheatsheet-count'),
+  sheetViewToggle: document.getElementById('sheet-view-toggle'),
+  sheetStartDismiss: document.getElementById('sheet-start-dismiss'),
+  sheetStartCard: document.getElementById('sheet-start-card'),
 
   // Reviews
   reviewsForm: document.getElementById('reviews-form'),
@@ -796,9 +800,72 @@ function setupEventListeners() {
 
   elements.pgRunBtn.addEventListener('click', () => handlePlaygroundRun());
 
-  // Cheat Sheet Search
-  elements.cheatsheetSearch.addEventListener('input', (e) => {
-    filterCheatsheet(e.target.value.trim().toLowerCase());
+  // Cheat Sheet Search & Controls
+  if (elements.cheatsheetSearch) {
+    elements.cheatsheetSearch.addEventListener('input', (e) => {
+      const val = e.target.value.trim();
+      if (elements.cheatsheetSearchClear) {
+        elements.cheatsheetSearchClear.style.display = val ? 'flex' : 'none';
+      }
+      filterCheatsheet(val.toLowerCase());
+    });
+  }
+
+  if (elements.cheatsheetSearchClear) {
+    elements.cheatsheetSearchClear.addEventListener('click', () => {
+      if (elements.cheatsheetSearch) {
+        elements.cheatsheetSearch.value = '';
+        elements.cheatsheetSearch.focus();
+        elements.cheatsheetSearchClear.style.display = 'none';
+        filterCheatsheet('');
+      }
+    });
+  }
+
+  // Keyboard shortcut '/' to search cheatsheet
+  window.addEventListener('keydown', (e) => {
+    if (e.key === '/' && document.activeElement?.tagName !== 'INPUT' && document.activeElement?.tagName !== 'TEXTAREA') {
+      const sheetView = document.getElementById('view-cheatsheet');
+      if (sheetView && sheetView.classList.contains('active')) {
+        e.preventDefault();
+        elements.cheatsheetSearch?.focus();
+      }
+    }
+  });
+
+  if (elements.sheetStartDismiss && elements.sheetStartCard) {
+    elements.sheetStartDismiss.addEventListener('click', () => {
+      elements.sheetStartCard.style.display = 'none';
+    });
+  }
+
+  // Layout View Switcher (Cards vs Compact)
+  if (elements.sheetViewToggle) {
+    elements.sheetViewToggle.querySelectorAll('.sheet-view-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        elements.sheetViewToggle.querySelectorAll('.sheet-view-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const viewMode = btn.dataset.view;
+        if (elements.cheatsheetGrid) {
+          if (viewMode === 'compact') {
+            elements.cheatsheetGrid.classList.add('view-compact');
+          } else {
+            elements.cheatsheetGrid.classList.remove('view-compact');
+          }
+        }
+      });
+    });
+  }
+
+  // Copy Project URLs in Projects tab
+  document.querySelectorAll('.copy-project-url').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const url = btn.dataset.url || 'https://nittala-forensic-suite.vercel.app/';
+      navigator.clipboard.writeText(url);
+      btn.textContent = '✓ Copied!';
+      showToast('Website link copied: ' + url, 'success');
+      setTimeout(() => { btn.textContent = '🔗 Copy Link'; }, 2000);
+    });
   });
 
   // Reviews form: prepares an email so feedback reaches the developer directly.
@@ -1770,39 +1837,122 @@ async function handlePlaygroundRun(customInput = null) {
 }
 
 // Render Challenges Catalog Tab
+let activeChallengeFilter = 'all';
+let challengeSearchQuery = '';
+
 function renderChallengesCatalog() {
+  if (!elements.challengesCatalogGrid) return;
   elements.challengesCatalogGrid.innerHTML = '';
 
+  const allChallenges = [];
   state.modules.forEach(mod => {
     mod.lessons.forEach(lesson => {
-      if (!lesson.challenge) return;
-
-      const isPassed = state.completedChallenges.includes(lesson.id);
-      const card = document.createElement('div');
-      card.className = 'sheet-cat-card';
-
-      card.innerHTML = `
-        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-          <div>
-            <span style="font-size: 0.75rem; color: var(--apple-blue); font-weight: 700; text-transform: uppercase;">${mod.title.split(':')[0]}</span>
-            <h4 style="font-size: 1.1rem; font-weight: 700; margin: 0.2rem 0; color: var(--text-primary);">${lesson.title}</h4>
-          </div>
-          <span class="badge ${isPassed ? 'xp-badge' : 'difficulty'}">${isPassed ? '✓ Solved' : (lesson.difficulty || 'Easy')}</span>
-        </div>
-        <p style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5;">${lesson.summary || 'Coding challenge with automated test cases.'}</p>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 0.5rem;">
-          <span style="font-size: 0.85rem; font-weight: 700; color: var(--apple-orange);">⚡ +${lesson.xp || 60} XP</span>
-          <button class="btn btn-test" style="padding: 0.35rem 0.85rem; font-size: 0.8rem;">${isPassed ? 'Review Code' : 'Solve Challenge'}</button>
-        </div>
-      `;
-
-      card.querySelector('.btn-test').addEventListener('click', () => {
-        switchView('view-learn');
-        selectLesson(lesson.id);
-      });
-
-      elements.challengesCatalogGrid.appendChild(card);
+      if (lesson.challenge) {
+        allChallenges.push({ mod, lesson });
+      }
     });
+  });
+
+  const totalChallenges = allChallenges.length;
+  const solvedCount = state.completedChallenges.length;
+  const earnedXP = allChallenges
+    .filter(({ lesson }) => state.completedChallenges.includes(lesson.id))
+    .reduce((sum, { lesson }) => sum + (lesson.xp || 60), 0);
+  const progressPct = totalChallenges > 0 ? Math.round((solvedCount / totalChallenges) * 100) : 0;
+
+  // Update header stats
+  const solvedStatEl = document.getElementById('challenges-solved-stat');
+  const totalXpEl = document.getElementById('ch-total-xp');
+  const progressPctEl = document.getElementById('ch-progress-pct');
+
+  if (solvedStatEl) solvedStatEl.textContent = `${solvedCount} / ${totalChallenges} Solved`;
+  if (totalXpEl) totalXpEl.textContent = `${earnedXP} XP`;
+  if (progressPctEl) progressPctEl.textContent = `${progressPct}%`;
+
+  // Wire filter buttons
+  const filtersNav = document.getElementById('challenge-filters-nav');
+  if (filtersNav && !filtersNav.dataset.wired) {
+    filtersNav.dataset.wired = 'true';
+    filtersNav.querySelectorAll('.ch-filter-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        filtersNav.querySelectorAll('.ch-filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        activeChallengeFilter = btn.dataset.filter || 'all';
+        renderChallengesCatalog();
+      });
+    });
+  }
+
+  // Wire search input
+  const searchInput = document.getElementById('challenges-search-input');
+  if (searchInput && !searchInput.dataset.wired) {
+    searchInput.dataset.wired = 'true';
+    searchInput.addEventListener('input', (e) => {
+      challengeSearchQuery = e.target.value.trim().toLowerCase();
+      renderChallengesCatalog();
+    });
+  }
+
+  // Filter challenges
+  const filtered = allChallenges.filter(({ mod, lesson }) => {
+    const isPassed = state.completedChallenges.includes(lesson.id);
+    const difficulty = (lesson.difficulty || 'Beginner').toLowerCase();
+
+    // Filter type
+    if (activeChallengeFilter === 'pending' && isPassed) return false;
+    if (activeChallengeFilter === 'solved' && !isPassed) return false;
+    if (['beginner', 'intermediate', 'advanced'].includes(activeChallengeFilter.toLowerCase())) {
+      if (difficulty !== activeChallengeFilter.toLowerCase()) return false;
+    }
+
+    // Text search
+    if (challengeSearchQuery) {
+      const match = lesson.title.toLowerCase().includes(challengeSearchQuery) ||
+                    (lesson.summary && lesson.summary.toLowerCase().includes(challengeSearchQuery)) ||
+                    mod.title.toLowerCase().includes(challengeSearchQuery);
+      if (!match) return false;
+    }
+
+    return true;
+  });
+
+  if (filtered.length === 0) {
+    elements.challengesCatalogGrid.innerHTML = `
+      <div style="grid-column: 1 / -1; padding: 3rem; text-align: center; border: 1px dashed var(--border-color); border-radius: var(--radius-lg);">
+        <p style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.35rem;">No challenges match your filter</p>
+        <p style="color: var(--text-secondary); font-size: 0.85rem;">Try selecting "All Challenges" or clearing your search query.</p>
+      </div>
+    `;
+    return;
+  }
+
+  filtered.forEach(({ mod, lesson }) => {
+    const isPassed = state.completedChallenges.includes(lesson.id);
+    const card = document.createElement('div');
+    card.className = `challenge-item-card ${isPassed ? 'solved-card' : ''}`;
+
+    card.innerHTML = `
+      <div class="challenge-card-top">
+        <span class="challenge-module-tag">${escapeHTML(mod.title.split(':')[0])}</span>
+        <div class="challenge-card-badges">
+          <span class="badge ${lesson.difficulty ? lesson.difficulty.toLowerCase() : 'beginner'}">${escapeHTML(lesson.difficulty || 'Beginner')}</span>
+          ${isPassed ? '<span class="badge xp-badge">✓ Solved</span>' : ''}
+        </div>
+      </div>
+      <h3 class="challenge-card-title">${escapeHTML(lesson.title)}</h3>
+      <p class="challenge-card-desc">${escapeHTML(lesson.summary || 'Solve practical programming task with automated verification.')}</p>
+      <div class="challenge-card-footer">
+        <span class="challenge-xp-reward">⚡ +${lesson.xp || 60} XP</span>
+        <button type="button" class="btn ${isPassed ? 'btn-secondary' : 'btn-run'} challenge-action-btn">${isPassed ? 'Review Solution' : 'Solve Challenge 🚀'}</button>
+      </div>
+    `;
+
+    card.querySelector('.challenge-action-btn').addEventListener('click', () => {
+      switchView('view-learn');
+      selectLesson(lesson.id);
+    });
+
+    elements.challengesCatalogGrid.appendChild(card);
   });
 }
 
@@ -1870,9 +2020,18 @@ function renderCheatsheet(filter = '') {
   const categories = state.cheatsheet || [];
 
   if (elements.cheatsheetNav) {
-    elements.cheatsheetNav.innerHTML = ['All', ...categories.map(category => category.category)].map(category =>
-      `<button class="sheet-nav-btn ${activeCheatsheetCategory === category ? 'active' : ''}" type="button" data-category="${escapeHTML(category)}">${escapeHTML(category)}</button>`
+    const totalAllCount = categories.reduce((sum, c) => sum + (c.items?.length || 0), 0);
+    elements.cheatsheetNav.innerHTML = [
+      { category: 'All', icon: '⚡', count: totalAllCount },
+      ...categories.map(c => ({ category: c.category, icon: c.icon || '📌', count: c.items?.length || 0 }))
+    ].map(cat =>
+      `<button class="sheet-nav-btn ${activeCheatsheetCategory === cat.category ? 'active' : ''}" type="button" data-category="${escapeHTML(cat.category)}">
+        <span>${cat.icon}</span>
+        <span>${escapeHTML(cat.category)}</span>
+        <span class="pill-count">${cat.count}</span>
+      </button>`
     ).join('');
+
     elements.cheatsheetNav.querySelectorAll('.sheet-nav-btn').forEach(button => button.addEventListener('click', () => {
       activeCheatsheetCategory = button.dataset.category;
       renderCheatsheet(elements.cheatsheetSearch?.value || '');
@@ -1884,13 +2043,14 @@ function renderCheatsheet(filter = '') {
 
   categories.forEach(category => {
     if (activeCheatsheetCategory !== 'All' && activeCheatsheetCategory !== category.category) return;
-    const matchingItems = category.items.filter(item => {
+    const matchingItems = (category.items || []).filter(item => {
       if (!normalizedFilter) return true;
       const examples = getCheatsheetExamples(item);
       return (
         item.name.toLowerCase().includes(normalizedFilter) ||
-        examples.some(example => `${example.label || ''} ${example.code || ''}`.toLowerCase().includes(normalizedFilter)) ||
-        item.desc.toLowerCase().includes(normalizedFilter)
+        (item.desc && item.desc.toLowerCase().includes(normalizedFilter)) ||
+        (item.use_case && item.use_case.toLowerCase().includes(normalizedFilter)) ||
+        examples.some(example => `${example.label || ''} ${example.code || ''}`.toLowerCase().includes(normalizedFilter))
       );
     });
 
@@ -1898,56 +2058,117 @@ function renderCheatsheet(filter = '') {
     visibleItems += matchingItems.length;
     visibleExamples += matchingItems.reduce((total, item) => total + getCheatsheetExamples(item).length, 0);
 
-    const catCard = document.createElement('div');
-    catCard.className = 'sheet-cat-card';
+    const catSection = document.createElement('div');
+    catSection.className = 'sheet-category-section';
 
-    catCard.innerHTML = `
-      <div class="sheet-cat-top"><div class="cat-title">${escapeHTML(category.category)}</div><span>${matchingItems.length} topics</span></div>
-      ${matchingItems.map(item => `
-        <div class="sheet-item">
-          <div class="sheet-item-name">${escapeHTML(item.name)}</div>
-          <div class="sheet-explain-grid">
-            <div><strong>What is it?</strong><p>${escapeHTML(item.desc)}</p></div>
-            <div><strong>Use it for</strong><p>${escapeHTML(CHEATSHEET_USE_CASES[item.name] || 'solving a Python task that needs this idea')}</p></div>
+    catSection.innerHTML = `
+      <div class="sheet-section-header">
+        <div class="sheet-section-header-left">
+          <span class="sheet-section-icon">${category.icon || '📌'}</span>
+          <div>
+            <h3 class="sheet-section-title">${escapeHTML(category.category)}</h3>
+            <p class="sheet-section-desc">${escapeHTML(category.desc || '')}</p>
           </div>
-          ${getCheatsheetExamples(item).map((example, exampleIndex) => `
-            <div class="sheet-example">
-              <div class="sheet-example-label"><span>${exampleIndex + 1}</span>${escapeHTML(example.label || 'Example')}</div>
-              <div class="sheet-item-code">
-                <button class="copy-btn" title="Copy ${example.label || 'example'}" data-code="${encodeURIComponent(example.code || '')}">Copy</button>
-                <pre style="margin: 0;"><code>${escapeHTML(example.code || '')}</code></pre>
-              </div>
-              ${buildCheatsheetExampleGuide(example.code || '')}
-            </div>
-          `).join('')}
-          <div class="sheet-actions">
-            <button class="sheet-action try-sheet-code" type="button" data-code="${encodeURIComponent(getCheatsheetExamples(item)[0].code || '')}">▶ Try this code</button>
-            ${CHEATSHEET_LESSON_MATCHES[item.name] ? `<button class="sheet-action learn-sheet-topic" type="button" data-lesson-title="${escapeHTML(CHEATSHEET_LESSON_MATCHES[item.name])}">📘 Learn with task</button>` : ''}
-          </div>
-          <div class="sheet-next-step"><strong>🎯 Your next small practice:</strong> ${escapeHTML(CHEATSHEET_NEXT_STEPS[item.name] || 'Run both examples. Change one value in each example, then explain what changed in the output.')}</div>
         </div>
-      `).join('')}
+        <span class="sheet-section-badge">${matchingItems.length} topics</span>
+      </div>
+      <div class="sheet-cards-grid">
+        ${matchingItems.map((item, itemIdx) => {
+          const examples = getCheatsheetExamples(item);
+          const firstEx = examples[0] || { label: 'Example', code: '' };
+          const useCase = item.use_case || CHEATSHEET_USE_CASES[item.name];
+
+          return `
+            <div class="sheet-topic-card" data-topic="${escapeHTML(item.name)}">
+              <div class="sheet-card-top">
+                <h4 class="sheet-topic-name">${escapeHTML(item.name)}</h4>
+                <div class="sheet-card-actions">
+                  <button class="sheet-action-mini try-sheet-code" type="button" data-code="${encodeURIComponent(firstEx.code || '')}" title="Try in Playground">⚡ Try</button>
+                  <button class="sheet-action-mini copy-btn" type="button" data-code="${encodeURIComponent(firstEx.code || '')}" title="Copy code">📋 Copy</button>
+                </div>
+              </div>
+              <p class="sheet-topic-desc">${escapeHTML(item.desc || '')}</p>
+              ${useCase ? `
+                <div class="sheet-usecase-pill">
+                  <strong>Use for:</strong> <span>${escapeHTML(useCase)}</span>
+                </div>
+              ` : ''}
+
+              ${examples.length > 1 ? `
+                <div class="sheet-example-tabs">
+                  ${examples.map((ex, exIdx) => `
+                    <button type="button" class="sheet-tab-btn ${exIdx === 0 ? 'active' : ''}" data-item-idx="${itemIdx}" data-ex-idx="${exIdx}">${escapeHTML(ex.label || `Ex ${exIdx + 1}`)}</button>
+                  `).join('')}
+                </div>
+              ` : ''}
+
+              <div class="sheet-code-display-wrap">
+                ${examples.map((ex, exIdx) => `
+                  <div class="sheet-code-panel ${exIdx === 0 ? 'active' : ''}" data-panel-idx="${exIdx}">
+                    <div class="sheet-item-code">
+                      <button class="copy-btn mini" title="Copy snippet" data-code="${encodeURIComponent(ex.code || '')}">Copy</button>
+                      <pre style="margin: 0;"><code>${escapeHTML(ex.code || '')}</code></pre>
+                    </div>
+                    ${buildCheatsheetExampleGuide(ex.code || '')}
+                  </div>
+                `).join('')}
+              </div>
+
+              <div class="sheet-card-footer">
+                ${CHEATSHEET_LESSON_MATCHES[item.name] ? `<button class="sheet-action-link learn-sheet-topic" type="button" data-lesson-title="${escapeHTML(CHEATSHEET_LESSON_MATCHES[item.name])}">📘 Learn with task ↗</button>` : '<span></span>'}
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
     `;
 
-    // Attach copy listeners
-    catCard.querySelectorAll('.copy-btn').forEach(btn => {
+    // Example tab click listeners to switch code panel & update action buttons
+    catSection.querySelectorAll('.sheet-tab-btn').forEach(tabBtn => {
+      tabBtn.addEventListener('click', () => {
+        const card = tabBtn.closest('.sheet-topic-card');
+        if (!card) return;
+        const exIdx = tabBtn.dataset.exIdx;
+
+        card.querySelectorAll('.sheet-tab-btn').forEach(b => b.classList.remove('active'));
+        tabBtn.classList.add('active');
+
+        card.querySelectorAll('.sheet-code-panel').forEach(p => {
+          if (p.dataset.panelIdx === exIdx) {
+            p.classList.add('active');
+            const code = p.querySelector('.copy-btn')?.dataset.code || '';
+            const tryBtn = card.querySelector('.sheet-card-actions .try-sheet-code');
+            const copyBtn = card.querySelector('.sheet-card-actions .copy-btn');
+            if (tryBtn) tryBtn.dataset.code = code;
+            if (copyBtn) copyBtn.dataset.code = code;
+          } else {
+            p.classList.remove('active');
+          }
+        });
+      });
+    });
+
+    // Copy buttons
+    catSection.querySelectorAll('.copy-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const snippet = decodeURIComponent(btn.dataset.code || '');
         navigator.clipboard.writeText(snippet);
         btn.textContent = 'Copied!';
-        setTimeout(() => { btn.textContent = 'Copy'; }, 1500);
+        setTimeout(() => { btn.textContent = btn.classList.contains('mini') ? 'Copy' : '📋 Copy'; }, 1500);
       });
     });
 
-    catCard.querySelectorAll('.try-sheet-code').forEach(btn => btn.addEventListener('click', () => {
+    // Try in Playground buttons
+    catSection.querySelectorAll('.try-sheet-code').forEach(btn => btn.addEventListener('click', () => {
       elements.pgEditor.value = decodeURIComponent(btn.dataset.code || '');
       updateLineNumbers(elements.pgEditor, elements.pgLineNumbers);
       updateSyntaxLayer(elements.pgEditor, elements.pgSyntaxLayer);
       switchView('view-playground');
-      showToast('Example opened in the Playground — press Run to try it.', 'success');
+      showToast('Example opened in Playground — click Run Code to execute!', 'success');
     }));
 
-    catCard.querySelectorAll('.learn-sheet-topic').forEach(btn => btn.addEventListener('click', () => {
+    // Learn with task links
+    catSection.querySelectorAll('.learn-sheet-topic').forEach(btn => btn.addEventListener('click', () => {
       let foundLesson;
       state.modules.some(module => {
         foundLesson = module.lessons.find(lesson => lesson.title === btn.dataset.lessonTitle);
@@ -1956,11 +2177,20 @@ function renderCheatsheet(filter = '') {
       if (foundLesson) { switchView('view-learn'); selectLesson(foundLesson.id); }
     }));
 
-    elements.cheatsheetGrid.appendChild(catCard);
+    elements.cheatsheetGrid.appendChild(catSection);
   });
 
-  if (elements.cheatsheetCount) elements.cheatsheetCount.textContent = `${visibleItems} topics · ${visibleExamples} examples`;
-  if (visibleItems === 0) elements.cheatsheetGrid.innerHTML = '<p class="sheet-empty">No topic found. Try “list”, “loop”, “function”, or “error”.</p>';
+  if (elements.cheatsheetCount) {
+    elements.cheatsheetCount.textContent = `${visibleItems} Topics · ${visibleExamples} Snippets`;
+  }
+  if (visibleItems === 0) {
+    elements.cheatsheetGrid.innerHTML = `
+      <div class="sheet-empty">
+        <p style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.4rem;">No matching topics found</p>
+        <p>Try searching for "variables", "slicing", "loop", "api", "json", "hash", or "regex".</p>
+      </div>
+    `;
+  }
 }
 
 function filterCheatsheet(query) {
