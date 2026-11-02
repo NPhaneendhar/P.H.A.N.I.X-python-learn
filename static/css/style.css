@@ -1133,20 +1133,22 @@ main {
   background-color: var(--bg-secondary);
 }
 
-/* Keep the console directly under the challenge so results are visible sooner. */
+/* Keep the code editor above its output, so learners can write then inspect results. */
 .workspace-area .challenge-banner {
   order: 1;
 }
 
-.workspace-area .terminal-area {
+.workspace-area>.editor-header {
   order: 2;
 }
 
-.workspace-area>.editor-header {
+.workspace-area>.editor-wrapper {
   order: 3;
+  flex: 0 0 clamp(280px, 38vh, 380px);
+  min-height: 0;
 }
 
-.workspace-area>.editor-wrapper {
+.workspace-area .terminal-area {
   order: 4;
 }
 

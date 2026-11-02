@@ -701,6 +701,7 @@ function setupEventListeners() {
     }
     const entered = val;
     if (elements.termInteractiveInput) elements.termInteractiveInput.value = '';
+    showToast('Input submitted.', 'success');
     handleRunCode(elements.stdinContent ? elements.stdinContent.value : entered);
   }
 
@@ -1521,7 +1522,6 @@ function parseMarkdownToHtml(md) {
       return `<div class="code-block-wrapper">
         <div class="code-block-header">
           <span class="code-lang-label">🐍 Python Example</span>
-          <button class="try-code-btn" onclick="insertCodeIntoEditor(this)">▶ Try in Editor</button>
         </div>
         <pre><code class="python-code">${escapeHTML(cleanCode)}</code></pre>
         <div class="example-explainer">
@@ -1756,11 +1756,14 @@ async function handleRunCode(customInput = null) {
     const data = await res.json();
     elements.stdoutContent.textContent = data.stdout || (data.exit_code === 0 ? '[Script finished with no output]' : '');
     
-    if (data.needs_input) {
+    const inputRequested = Boolean(data.needs_input)
+      || (!stdinInput.trim() && /\binput\s*\(/.test(code));
+    if (inputRequested) {
       elements.stderrContent.textContent = '';
       elements.stderrContent.style.display = 'none';
       if (elements.inputNeededBanner) elements.inputNeededBanner.style.display = 'flex';
       setTerminalStatus('needs-input', 'Input Needed');
+      showToast('Your program needs input. Write your answer in the input box below, then press Send.', 'success');
       if (elements.termInteractiveInput) {
         elements.termInteractiveInput.focus();
         elements.termInteractiveInput.placeholder = 'Program waiting for input... Type here and press Enter';
@@ -3140,12 +3143,10 @@ async function handleAuthStateChanged(user) {
           currentUserIsAdmin = true;
           if (elements.navItemAdmin) elements.navItemAdmin.style.display = 'inline-block';
           if (elements.adminBadgeTag) elements.adminBadgeTag.style.display = 'inline-block';
-          showToast(`🛡️ Welcome Admin, ${displayName}!`, 'success');
         } else {
           currentUserIsAdmin = false;
           if (elements.navItemAdmin) elements.navItemAdmin.style.display = 'none';
           if (elements.adminBadgeTag) elements.adminBadgeTag.style.display = 'none';
-          showToast(`Welcome back, ${displayName}!`, 'success');
         }
       }
     } catch (err) {
