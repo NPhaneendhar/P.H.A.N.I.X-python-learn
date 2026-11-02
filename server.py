@@ -171,10 +171,12 @@ class PyLearnRequestHandler(http.server.SimpleHTTPRequestHandler):
             stdout, stderr = process.communicate(input=stdin_input, timeout=timeout)
             duration_ms = round((time.perf_counter() - start_time) * 1000, 2)
             needs_input = "EOFError: EOF when reading a line" in (stderr or "")
+            clean_stderr = "" if needs_input else stderr
+            exit_code = 0 if needs_input else process.returncode
             return {
                 "stdout": stdout,
-                "stderr": stderr,
-                "exit_code": process.returncode,
+                "stderr": clean_stderr,
+                "exit_code": exit_code,
                 "duration_ms": duration_ms,
                 "needs_input": needs_input
             }

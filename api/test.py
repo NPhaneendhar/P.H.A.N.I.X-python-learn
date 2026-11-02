@@ -10,9 +10,10 @@ class handler(BaseHTTPRequestHandler):
         try:
             size = int(self.headers.get("Content-Length", "0"))
             request = json.loads(self.rfile.read(size) or b"{}")
-            code = request.get("code", "")
+            code = request.get("code")
+            stdin_input = request.get("input") if request.get("input") is not None else request.get("stdin", "")
             runner = RunHandler.__new__(RunHandler)
-            result = runner._execute(code, "")
+            result = runner._execute(code, stdin_input)
             passed = bool(isinstance(code, str) and code.strip()) and result["exit_code"] == 0
             self._send_json(200, {
                 "all_passed": passed,

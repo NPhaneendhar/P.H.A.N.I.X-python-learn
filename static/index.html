@@ -1,16 +1,20 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="google-site-verification" content="Omz8Zcce9O7_tmeijsxOzw4Te4RGSzS4GA5Kip7jMzs" />
   <title>Phanix Python — Learn Python Simply, Step by Step</title>
-  <meta name="description" content="Phanix Python is a free, beginner-friendly platform to learn Python step by step with simple examples, quizzes, coding practice, and challenges.">
-  <meta name="keywords" content="Phanix Python, learn Python, Python for beginners, Python examples, Python practice, coding challenges">
+  <meta name="description"
+    content="Phanix Python is a free, beginner-friendly platform to learn Python step by step with simple examples, quizzes, coding practice, and challenges.">
+  <meta name="keywords"
+    content="Phanix Python, learn Python, Python for beginners, Python examples, Python practice, coding challenges">
   <meta name="robots" content="index, follow">
   <meta property="og:type" content="website">
   <meta property="og:title" content="Phanix Python — Learn Python Simply">
-  <meta property="og:description" content="Simple Python lessons, examples, quizzes, and hands-on practice for beginners.">
+  <meta property="og:description"
+    content="Simple Python lessons, examples, quizzes, and hands-on practice for beginners.">
   <meta property="og:image" content="/img/logo.png">
   <meta name="twitter:card" content="summary">
   <meta name="theme-color" content="#0a84ff">
@@ -19,11 +23,14 @@
   <link rel="shortcut icon" type="image/png" href="/img/phanix-favicon-192.png">
   <link rel="apple-touch-icon" sizes="192x192" href="/img/phanix-favicon-192.png">
   <link rel="manifest" href="site.webmanifest">
-  <link rel="stylesheet" href="css/style.css?v=5.2">
+  <link rel="stylesheet" href="css/style.css?v=5.3">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
 </head>
+
 <body>
   <!-- Global Confetti Canvas -->
   <canvas id="confetti-canvas"></canvas>
@@ -35,12 +42,26 @@
         <img src="img/logo.png" alt="Phanix Logo" class="brand-logo-img">
         <span class="brand-title">Phanix</span>
       </a>
-      <a class="project-icon-nav suite-header-nav" href="https://nittala-forensic-suite.vercel.app/" target="_blank" rel="noopener noreferrer" title="Launch Nittala Forensic Suite (Original Platform)" aria-label="Launch Nittala Forensic Suite in a new tab">
-        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+      <a class="project-icon-nav suite-header-nav" href="https://nittala-forensic-suite.vercel.app/" target="_blank"
+        rel="noopener noreferrer" title="Launch Nittala Forensic Suite (Original Platform)"
+        aria-label="Launch Nittala Forensic Suite in a new tab">
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
+          stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+          <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+        </svg>
         <span>Forensic Suite</span><i aria-hidden="true"></i>
       </a>
-      <a class="project-icon-nav" href="https://p-h-a-n-i-x-phaneendhar-s-investigation-expert.vercel.app/" target="_blank" rel="noopener noreferrer" title="Explore the Investigation Expert case file" aria-label="Explore the Investigation Expert project in a new tab">
-        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4.5h8l4 4V19.5H5z"></path><path d="M13 4.5v4h4"></path><circle cx="10" cy="14" r="2.75"></circle><path d="m12 16 2.25 2.25"></path></svg>
+      <a class="project-icon-nav" href="https://p-h-a-n-i-x-phaneendhar-s-investigation-expert.vercel.app/"
+        target="_blank" rel="noopener noreferrer" title="Explore the Investigation Expert case file"
+        aria-label="Explore the Investigation Expert project in a new tab">
+        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 4.5h8l4 4V19.5H5z"></path>
+          <path d="M13 4.5v4h4"></path>
+          <circle cx="10" cy="14" r="2.75"></circle>
+          <path d="m12 16 2.25 2.25"></path>
+        </svg>
         <span>Case file</span><i aria-hidden="true"></i>
       </a>
     </div>
@@ -65,11 +86,13 @@
           <span class="layout-btn-icon">📖</span>
           <span class="layout-btn-text">Reading</span>
         </button>
-        <button type="button" class="layout-btn active" data-layout="split" title="Split Mode: Balanced theory and code">
+        <button type="button" class="layout-btn active" data-layout="split"
+          title="Split Mode: Balanced theory and code">
           <span class="layout-btn-icon">⚡</span>
           <span class="layout-btn-text">Split</span>
         </button>
-        <button type="button" class="layout-btn" data-layout="code" title="Code Focus Mode: Full-width editor & terminal">
+        <button type="button" class="layout-btn" data-layout="code"
+          title="Code Focus Mode: Full-width editor & terminal">
           <span class="layout-btn-icon">💻</span>
           <span class="layout-btn-text">Code</span>
         </button>
@@ -105,7 +128,8 @@
             <span>Curriculum</span>
             <span id="overall-progress-text" style="color: var(--apple-blue); font-size: 0.85rem;">0%</span>
           </div>
-          <button class="sidebar-collapse-btn" id="sidebar-collapse-btn" type="button" aria-label="Collapse curriculum" title="Collapse curriculum" aria-expanded="true">‹</button>
+          <button class="sidebar-collapse-btn" id="sidebar-collapse-btn" type="button" aria-label="Collapse curriculum"
+            title="Collapse curriculum" aria-expanded="true">‹</button>
           <div class="progress-container">
             <div class="progress-bar-fill" id="overall-progress-bar"></div>
           </div>
@@ -117,8 +141,11 @@
 
       <!-- Center: Lesson Content & Quiz -->
       <section class="lesson-content-area" id="lesson-content-area">
-        <a class="investigation-project-link" href="https://p-h-a-n-i-x-phaneendhar-s-investigation-expert.vercel.app/" target="_blank" rel="noopener noreferrer" title="Open Investigation Expert project" aria-label="Open Investigation Expert project in a new tab">
-          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+        <a class="investigation-project-link" href="https://p-h-a-n-i-x-phaneendhar-s-investigation-expert.vercel.app/"
+          target="_blank" rel="noopener noreferrer" title="Open Investigation Expert project"
+          aria-label="Open Investigation Expert project in a new tab">
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
+            stroke-linecap="round" stroke-linejoin="round">
             <circle cx="11" cy="11" r="6"></circle>
             <path d="m16 16 4 4"></path>
             <path d="M8.5 11h5M11 8.5v5"></path>
@@ -129,10 +156,11 @@
         <div class="lesson-badge-row">
           <span class="badge difficulty" id="lesson-difficulty">Beginner</span>
           <span class="badge xp-badge" id="lesson-xp-badge">+50 XP</span>
-          <span id="lesson-completed-tag" style="display: none; font-size: 0.75rem; color: var(--apple-green); font-weight: 700;">✓ Completed</span>
+          <span id="lesson-completed-tag"
+            style="display: none; font-size: 0.75rem; color: var(--apple-green); font-weight: 700;">✓ Completed</span>
         </div>
         <h1 class="lesson-title" id="lesson-title">Welcome to Phanix</h1>
-        
+
         <div class="lesson-markdown" id="lesson-body">
           <!-- Lesson instructions rendered here -->
         </div>
@@ -166,11 +194,13 @@
         <!-- Challenge instructions banner -->
         <div class="challenge-banner" id="challenge-banner">
           <div class="challenge-desc">
-            <strong style="color: var(--apple-blue); display: block; margin-bottom: 0.2rem;">🎯 Hands-on Coding Challenge:</strong>
+            <strong style="color: var(--apple-blue); display: block; margin-bottom: 0.2rem;">🎯 Hands-on Coding
+              Challenge:</strong>
             <span id="challenge-instructions-text">Follow instructions to complete this challenge.</span>
           </div>
           <div class="challenge-actions-group" style="display: flex; align-items: center; gap: 0.45rem;">
-            <button class="btn btn-secondary code-mode-theory-btn" id="code-mode-theory-btn" title="View lesson theory and quiz">📖 Read Theory</button>
+            <button class="btn btn-secondary code-mode-theory-btn" id="code-mode-theory-btn"
+              title="View lesson theory and quiz">📖 Read Theory</button>
             <div class="hint-dropdown">
               <button class="btn btn-secondary" id="hint-btn">💡 Hint</button>
               <div class="hint-content" id="hint-box">
@@ -206,7 +236,8 @@
           <div class="line-numbers" id="editor-line-numbers">1</div>
           <div class="editor-stage">
             <pre class="syntax-highlight-layer" id="editor-syntax-layer" aria-hidden="true"><code></code></pre>
-            <textarea class="code-textarea" id="code-editor" spellcheck="false" placeholder="# Write your Python code here..."></textarea>
+            <textarea class="code-textarea" id="code-editor" spellcheck="false"
+              placeholder="# Write your Python code here..."></textarea>
           </div>
         </div>
 
@@ -236,15 +267,27 @@
                 <span class="status-label">Ready</span>
               </span>
               <button class="term-action-btn" id="copy-console-btn" title="Copy console output">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
                 <span>Copy</span>
               </button>
               <button class="term-action-btn" id="clear-console-btn" title="Clear console">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
                 <span>Clear</span>
               </button>
-              <button class="term-action-btn expand-btn" id="expand-console-btn" title="Expand / Restore terminal height">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+              <button class="term-action-btn expand-btn" id="expand-console-btn"
+                title="Expand / Restore terminal height">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="15 3 21 3 21 9"></polyline>
+                  <polyline points="9 21 3 21 3 15"></polyline>
+                  <line x1="21" y1="3" x2="14" y2="10"></line>
+                  <line x1="3" y1="21" x2="10" y2="14"></line>
+                </svg>
               </button>
             </div>
           </div>
@@ -252,21 +295,26 @@
             <div id="stdout-view" class="term-view-pane active">
               <div class="terminal-screen" id="learn-terminal-screen">
                 <div class="term-session-header" id="term-session-header">
-                  <span class="term-prompt-user">phani@phanix</span>:<span class="term-prompt-path">~</span>$ <span class="term-prompt-cmd">python3 main.py</span>
+                  <span class="term-prompt-user">phani@phanix</span>:<span class="term-prompt-path">~</span>$ <span
+                    class="term-prompt-cmd">python3 main.py</span>
                 </div>
-                <div class="stdout-text" id="stdout-content">Press '▶ Run' or hit Ctrl+Enter to execute your Python code...</div>
+                <div class="stdout-text" id="stdout-content">Press '▶ Run' or hit Ctrl+Enter to execute your Python
+                  code...</div>
                 <div class="stderr-text" id="stderr-content" style="display: none;"></div>
                 <div class="term-input-needed-banner" id="input-needed-banner" style="display: none;">
                   <div class="input-needed-icon">💡</div>
                   <div class="input-needed-text">
-                    <strong>Input Required:</strong> Your program requested input with <code>input()</code>. Enter your input below and press <strong>Send ↵</strong> to run!
+                    <strong>Input Required:</strong> Your program requested input with <code>input()</code>. Enter your
+                    input below and press <strong>Send ↵</strong> to run!
                   </div>
                 </div>
               </div>
               <div class="terminal-interactive-bar" id="term-input-bar">
                 <span class="term-bar-ps">❯</span>
-                <input type="text" id="term-interactive-input" class="term-bar-input" placeholder="Enter input for input() and press Enter..." autocomplete="off" spellcheck="false" />
-                <button type="button" class="term-bar-send-btn" id="term-send-input-btn" title="Send input & run (Enter)">Send ↵</button>
+                <input type="text" id="term-interactive-input" class="term-bar-input"
+                  placeholder="Enter input for input() and press Enter..." autocomplete="off" spellcheck="false" />
+                <button type="button" class="term-bar-send-btn" id="term-send-input-btn"
+                  title="Send input & run (Enter)">Send ↵</button>
               </div>
             </div>
             <div id="stdin-view" class="term-view-pane" style="display: none;">
@@ -274,14 +322,18 @@
                 <div class="stdin-guide">
                   <div class="stdin-guide-left">
                     <span class="stdin-guide-title">Standard Input (stdin) Buffer</span>
-                    <span class="stdin-guide-sub">Provide values line-by-line for each <code>input()</code> prompt in your code:</span>
+                    <span class="stdin-guide-sub">Provide values line-by-line for each <code>input()</code> prompt in
+                      your code:</span>
                   </div>
                   <div class="stdin-guide-actions">
-                    <button type="button" class="term-mini-btn" id="stdin-sample-btn" title="Insert sample input lines">Sample</button>
-                    <button type="button" class="term-mini-btn" id="stdin-clear-btn" title="Clear stdin buffer">Clear</button>
+                    <button type="button" class="term-mini-btn" id="stdin-sample-btn"
+                      title="Insert sample input lines">Sample</button>
+                    <button type="button" class="term-mini-btn" id="stdin-clear-btn"
+                      title="Clear stdin buffer">Clear</button>
                   </div>
                 </div>
-                <textarea id="stdin-content" class="stdin-textarea" spellcheck="false" placeholder="# Line 1: first input()&#10;# Line 2: second input()&#10;# Example:&#10;Alice&#10;25"></textarea>
+                <textarea id="stdin-content" class="stdin-textarea" spellcheck="false"
+                  placeholder="# Line 1: first input()&#10;# Line 2: second input()&#10;# Example:&#10;Alice&#10;25"></textarea>
                 <div class="stdin-pane-footer">
                   <span class="stdin-char-count" id="stdin-char-count">0 lines buffered</span>
                   <button type="button" class="btn btn-run btn-sm" id="stdin-run-btn">▶ Run with Stdin Buffer</button>
@@ -290,7 +342,8 @@
             </div>
             <div id="tests-view" class="term-view-pane" style="display: none;">
               <div class="test-results-container" id="test-results-container">
-                <p style="color: var(--text-muted);">Click "Check Solution" to run automated tests against your code.</p>
+                <p style="color: var(--text-muted);">Click "Check Solution" to run automated tests against your code.
+                </p>
               </div>
             </div>
           </div>
@@ -363,11 +416,17 @@
                 <span class="status-label" id="pg-duration-meta">Ready</span>
               </span>
               <button class="term-action-btn" id="pg-copy-btn" title="Copy output">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
                 <span>Copy</span>
               </button>
               <button class="term-action-btn" id="pg-clear-console-btn" title="Clear console">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
                 <span>Clear</span>
               </button>
             </div>
@@ -376,21 +435,25 @@
             <div id="pg-stdout-view" class="term-view-pane active">
               <div class="terminal-screen" id="pg-terminal-screen">
                 <div class="term-session-header" id="pg-session-header">
-                  <span class="term-prompt-user">phani@phanix</span>:<span class="term-prompt-path">~</span>$ <span class="term-prompt-cmd">python3 sandbox.py</span>
+                  <span class="term-prompt-user">phani@phanix</span>:<span class="term-prompt-path">~</span>$ <span
+                    class="term-prompt-cmd">python3 sandbox.py</span>
                 </div>
                 <pre class="stdout-text" id="pg-stdout">Press '▶ Run Code' to execute sandbox script...</pre>
                 <pre class="stderr-text" id="pg-stderr" style="display: none;"></pre>
                 <div class="term-input-needed-banner" id="pg-input-needed-banner" style="display: none;">
                   <div class="input-needed-icon">💡</div>
                   <div class="input-needed-text">
-                    <strong>Input Required:</strong> Your sandbox code requested input with <code>input()</code>. Enter your input below and press <strong>Send ↵</strong> to run!
+                    <strong>Input Required:</strong> Your sandbox code requested input with <code>input()</code>. Enter
+                    your input below and press <strong>Send ↵</strong> to run!
                   </div>
                 </div>
               </div>
               <div class="terminal-interactive-bar" id="pg-term-input-bar">
                 <span class="term-bar-ps">❯</span>
-                <input type="text" id="pg-interactive-input" class="term-bar-input" placeholder="Enter input for input() and press Enter..." autocomplete="off" spellcheck="false" />
-                <button type="button" class="term-bar-send-btn" id="pg-send-input-btn" title="Send input & run (Enter)">Send ↵</button>
+                <input type="text" id="pg-interactive-input" class="term-bar-input"
+                  placeholder="Enter input for input() and press Enter..." autocomplete="off" spellcheck="false" />
+                <button type="button" class="term-bar-send-btn" id="pg-send-input-btn"
+                  title="Send input & run (Enter)">Send ↵</button>
               </div>
             </div>
             <div id="pg-stdin-view" class="term-view-pane" style="display: none;">
@@ -401,14 +464,18 @@
                     <span class="stdin-guide-sub">Values fed line-by-line into <code>input()</code> calls:</span>
                   </div>
                   <div class="stdin-guide-actions">
-                    <button type="button" class="term-mini-btn" id="pg-stdin-sample-btn" title="Insert sample input lines">Sample</button>
-                    <button type="button" class="term-mini-btn" id="pg-stdin-clear-btn" title="Clear stdin buffer">Clear</button>
+                    <button type="button" class="term-mini-btn" id="pg-stdin-sample-btn"
+                      title="Insert sample input lines">Sample</button>
+                    <button type="button" class="term-mini-btn" id="pg-stdin-clear-btn"
+                      title="Clear stdin buffer">Clear</button>
                   </div>
                 </div>
-                <textarea id="pg-stdin-content" class="stdin-textarea" spellcheck="false" placeholder="# Enter sandbox inputs here (one per line):&#10;Alice&#10;100"></textarea>
+                <textarea id="pg-stdin-content" class="stdin-textarea" spellcheck="false"
+                  placeholder="# Enter sandbox inputs here (one per line):&#10;Alice&#10;100"></textarea>
                 <div class="stdin-pane-footer">
                   <span class="stdin-char-count" id="pg-stdin-char-count">0 lines buffered</span>
-                  <button type="button" class="btn btn-run btn-sm" id="pg-stdin-run-btn">▶ Run with Stdin Buffer</button>
+                  <button type="button" class="btn btn-run btn-sm" id="pg-stdin-run-btn">▶ Run with Stdin
+                    Buffer</button>
                 </div>
               </div>
             </div>
@@ -452,7 +519,8 @@
           <button type="button" class="ch-filter-btn" data-filter="Advanced">Advanced</button>
         </div>
         <div class="challenges-search-box">
-          <input type="text" id="challenges-search-input" class="search-input" placeholder="🔍 Search challenge..." aria-label="Search challenges">
+          <input type="text" id="challenges-search-input" class="search-input" placeholder="🔍 Search challenge..."
+            aria-label="Search challenges">
         </div>
       </div>
 
@@ -470,12 +538,20 @@
             <span class="sheet-version-badge">Python 3.12+ Ready</span>
           </div>
           <h2>Python Cheat Sheet &amp; Interactive Reference</h2>
-          <p>Super-aligned quick syntax, practical code patterns, instant copy, and one-click execution in the Playground.</p>
+          <p>Super-aligned quick syntax, practical code patterns, instant copy, and one-click execution in the
+            Playground.</p>
         </div>
         <div class="sheet-search-wrap">
-          <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-          <input type="text" class="search-input" id="cheatsheet-search" placeholder="🔍 Search variables, slicing, regex, forensics, OOP..." aria-label="Search the Python cheat sheet">
-          <button type="button" class="sheet-search-clear" id="cheatsheet-search-clear" aria-label="Clear search" title="Clear search">✕</button>
+          <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input type="text" class="search-input" id="cheatsheet-search"
+            placeholder="🔍 Search variables, slicing, regex, forensics, OOP..."
+            aria-label="Search the Python cheat sheet">
+          <button type="button" class="sheet-search-clear" id="cheatsheet-search-clear" aria-label="Clear search"
+            title="Clear search">✕</button>
         </div>
       </div>
 
@@ -486,11 +562,20 @@
         <div class="sheet-controls-right">
           <div class="sheet-view-toggle" id="sheet-view-toggle" role="group" aria-label="Layout view">
             <button type="button" class="sheet-view-btn active" data-view="grid" title="Card Grid View">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect></svg>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <rect x="3" y="3" width="7" height="7" rx="1"></rect>
+                <rect x="14" y="3" width="7" height="7" rx="1"></rect>
+                <rect x="14" y="14" width="7" height="7" rx="1"></rect>
+                <rect x="3" y="14" width="7" height="7" rx="1"></rect>
+              </svg>
               <span>Cards</span>
             </button>
             <button type="button" class="sheet-view-btn" data-view="compact" title="Compact Table / List View">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+              </svg>
               <span>Compact</span>
             </button>
           </div>
@@ -504,16 +589,26 @@
             <span class="sheet-start-icon">🚀</span>
             <div>
               <strong>Quick Study Guide — Master concepts without overwhelm</strong>
-              <p>Pick a topic card below, check the example, and click <strong>⚡ Try in Playground</strong> to experiment with live code!</p>
+              <p>Pick a topic card below, check the example, and click <strong>⚡ Try in Playground</strong> to
+                experiment with live code!</p>
             </div>
           </div>
-          <button type="button" class="sheet-start-dismiss" id="sheet-start-dismiss" title="Hide guide" aria-label="Hide guide">✕</button>
+          <button type="button" class="sheet-start-dismiss" id="sheet-start-dismiss" title="Hide guide"
+            aria-label="Hide guide">✕</button>
         </div>
         <div class="sheet-start-steps">
-          <div><span>1</span><strong>Pick a Topic</strong><p>Filter by category or search syntax directly above.</p></div>
-          <div><span>2</span><strong>Switch Tabs</strong><p>Toggle between Quick Syntax &amp; Real-World examples.</p></div>
-          <div><span>3</span><strong>Copy &amp; Run</strong><p>One-click copy or run instantly in the live Python engine.</p></div>
-          <div><span>4</span><strong>Curriculum Task</strong><p>Follow 'Learn with task' for guided hands-on quizzes.</p></div>
+          <div><span>1</span><strong>Pick a Topic</strong>
+            <p>Filter by category or search syntax directly above.</p>
+          </div>
+          <div><span>2</span><strong>Switch Tabs</strong>
+            <p>Toggle between Quick Syntax &amp; Real-World examples.</p>
+          </div>
+          <div><span>3</span><strong>Copy &amp; Run</strong>
+            <p>One-click copy or run instantly in the live Python engine.</p>
+          </div>
+          <div><span>4</span><strong>Curriculum Task</strong>
+            <p>Follow 'Learn with task' for guided hands-on quizzes.</p>
+          </div>
         </div>
       </section>
 
@@ -526,8 +621,10 @@
     <div id="view-projects" class="view-panel">
       <div class="projects-page-header">
         <div>
-          <h2 style="font-size: 1.6rem; font-weight: 800; margin-bottom: 0.3rem; letter-spacing: -0.02em;">Featured Projects &amp; Security Suites</h2>
-          <p style="color: var(--text-secondary);">Production-ready digital forensics systems, incident investigation platforms, and cryptographic tools created by Phaneendhar Nittala.</p>
+          <h2 style="font-size: 1.6rem; font-weight: 800; margin-bottom: 0.3rem; letter-spacing: -0.02em;">Featured
+            Projects &amp; Security Suites</h2>
+          <p style="color: var(--text-secondary);">Production-ready digital forensics systems, incident investigation
+            platforms, and cryptographic tools created by Phaneendhar Nittala.</p>
         </div>
         <button class="btn btn-secondary" onclick="openProfileModal()" title="View Developer Details">
           <span>ℹ️</span> About Creator
@@ -540,7 +637,8 @@
           <div class="project-card-banner banner-expert">
             <div class="project-badge-tag">Digital Forensics &amp; OSINT</div>
             <div class="project-icon-circle">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
                 <circle cx="12" cy="11" r="3"></circle>
               </svg>
@@ -549,7 +647,8 @@
           <div class="project-card-body">
             <h3 class="project-title">PHANIX Investigation Expert</h3>
             <p class="project-description">
-              An intelligent forensic investigation framework designed for digital investigators. Automates artifact extraction, metadata parsing, threat intelligence correlation, and evidentiary integrity tracking.
+              An intelligent forensic investigation framework designed for digital investigators. Automates artifact
+              extraction, metadata parsing, threat intelligence correlation, and evidentiary integrity tracking.
             </p>
             <div class="project-tags-row">
               <span class="ptag">Evidence Parsing</span>
@@ -559,7 +658,8 @@
             </div>
             <div class="project-card-footer">
               <span class="project-domain-url">p-h-a-n-i-x-investigation-e-xpert.vercel.app</span>
-              <a href="https://p-h-a-n-i-x-investigation-e-xpert.vercel.app/" class="btn btn-run project-launch-btn" target="_blank" rel="noopener">
+              <a href="https://p-h-a-n-i-x-investigation-e-xpert.vercel.app/" class="btn btn-run project-launch-btn"
+                target="_blank" rel="noopener">
                 <span>Launch App</span>
                 <span style="font-size: 1rem;">↗</span>
               </a>
@@ -571,11 +671,11 @@
         <div class="project-showcase-card project-card-flagship">
           <div class="project-card-banner banner-suite">
             <div class="project-badge-tag-wrap">
-              <span class="project-badge-tag flagship-tag">⭐ Creator Flagship</span>
-              <span class="project-badge-subtag">Original Cyber Suite</span>
+              <span class="project-badge-subtag">My first project ⭐</span>
             </div>
             <div class="project-icon-circle">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
                 <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
                 <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
               </svg>
@@ -587,7 +687,8 @@
               <span class="project-status-dot" title="Live Platform">🟢 Live</span>
             </div>
             <p class="project-description">
-              Phaneendhar Nittala's classic cyber forensic platform. Built for real-time security incident response, forensic memory extraction, malicious IP/IOC triage, and log integrity auditing for security analysts.
+              Phaneendhar Nittala's classic cyber forensic platform. Built for real-time security incident response,
+              forensic memory extraction, malicious IP/IOC triage, and log integrity auditing for security analysts.
             </p>
             <div class="project-features-list">
               <div class="pfeature"><span>✓</span> Real-Time Log Forensics &amp; Event Parser</div>
@@ -604,8 +705,10 @@
             <div class="project-card-footer">
               <span class="project-domain-url">nittala-forensic-suite.vercel.app</span>
               <div class="project-action-btns">
-                <button type="button" class="btn btn-secondary copy-project-url" data-url="https://nittala-forensic-suite.vercel.app/" title="Copy Website Link">🔗 Copy Link</button>
-                <a href="https://nittala-forensic-suite.vercel.app/" class="btn btn-run project-launch-btn" target="_blank" rel="noopener">
+                <button type="button" class="btn btn-secondary copy-project-url"
+                  data-url="https://nittala-forensic-suite.vercel.app/" title="Copy Website Link">🔗 Copy Link</button>
+                <a href="https://nittala-forensic-suite.vercel.app/" class="btn btn-run project-launch-btn"
+                  target="_blank" rel="noopener">
                   <span>Launch Live App</span>
                   <span style="font-size: 1rem;">↗</span>
                 </a>
@@ -617,9 +720,11 @@
         <!-- Project 3: PHANIX Forensic QR Architect -->
         <div class="project-showcase-card">
           <div class="project-card-banner banner-qr">
-            <div class="project-badge-tag">Cryptographic Encoder</div>
+
+            <div class="project-badge-tag">⭐ Creator Flagship</div>
             <div class="project-icon-circle">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
                 <rect x="3" y="3" width="7" height="7"></rect>
                 <rect x="14" y="3" width="7" height="7"></rect>
                 <rect x="14" y="14" width="7" height="7"></rect>
@@ -630,7 +735,8 @@
           <div class="project-card-body">
             <h3 class="project-title">PHANIX Forensic QR Architect</h3>
             <p class="project-description">
-              A high-precision forensic QR architecture tool supporting cryptographic payload generation, tamper verification, Reed-Solomon error correction customization, and payload structural integrity analysis.
+              A high-precision forensic QR architecture tool supporting cryptographic payload generation, tamper
+              verification, Reed-Solomon error correction customization, and payload structural integrity analysis.
             </p>
             <div class="project-tags-row">
               <span class="ptag">QR Architecture</span>
@@ -640,7 +746,8 @@
             </div>
             <div class="project-card-footer">
               <span class="project-domain-url">nphaneendhar.github.io/P.H.A.N.I.X-FORENSIC-QR-ARCHITECT</span>
-              <a href="https://nphaneendhar.github.io/P.H.A.N.I.X-FORENSIC-QR-ARCHITECT/" class="btn btn-run project-launch-btn" target="_blank" rel="noopener">
+              <a href="https://nphaneendhar.github.io/P.H.A.N.I.X-FORENSIC-QR-ARCHITECT/"
+                class="btn btn-run project-launch-btn" target="_blank" rel="noopener">
                 <span>Launch App</span>
                 <span style="font-size: 1rem;">↗</span>
               </a>
@@ -656,13 +763,15 @@
         <div class="reviews-icon" aria-hidden="true">💬</div>
         <p class="reviews-eyebrow">Community feedback</p>
         <h2>Reviews, doubts &amp; suggestions</h2>
-        <p class="reviews-intro">Share what you think about Phanix or send a Python question directly to the developer.</p>
+        <p class="reviews-intro">Share what you think about Phanix or send a Python question directly to the developer.
+        </p>
         <a class="reviews-email" href="mailto:nittalaphaneendhar@gmail.com">nittalaphaneendhar@gmail.com</a>
 
         <form id="reviews-form" class="reviews-form">
           <div class="reviews-form-row">
             <label>Your name<input id="review-name" type="text" maxlength="80" placeholder="Your name"></label>
-            <label>Your email<input id="review-email" type="email" maxlength="120" placeholder="name@example.com"></label>
+            <label>Your email<input id="review-email" type="email" maxlength="120"
+                placeholder="name@example.com"></label>
           </div>
           <label>What would you like to share?
             <select id="review-topic">
@@ -672,7 +781,8 @@
               <option value="Other">Other</option>
             </select>
           </label>
-          <label>Your message<textarea id="review-message" required maxlength="2000" placeholder="Write your review, doubt, or suggestion here..."></textarea></label>
+          <label>Your message<textarea id="review-message" required maxlength="2000"
+              placeholder="Write your review, doubt, or suggestion here..."></textarea></label>
           <button class="btn btn-test reviews-submit" type="submit">✉ Send by email</button>
         </form>
         <p class="reviews-note">The button opens your email app with the message ready to send.</p>
@@ -684,11 +794,15 @@
       <!-- Profile Page Clean Header -->
       <div class="ach-top-header">
         <div>
-          <h2 style="font-size: 1.6rem; font-weight: 800; margin-bottom: 0.3rem; letter-spacing: -0.02em;">Learning Profile &amp; Achievements</h2>
-          <p style="color: var(--text-secondary);">Track your Python milestones, badges, and completion certification.</p>
+          <h2 style="font-size: 1.6rem; font-weight: 800; margin-bottom: 0.3rem; letter-spacing: -0.02em;">Learning
+            Profile &amp; Achievements</h2>
+          <p style="color: var(--text-secondary);">Track your Python milestones, badges, and completion certification.
+          </p>
         </div>
         <button class="btn btn-secondary ach-about-trigger" onclick="openProfileModal()" title="View Developer Details">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:4px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round"
+            style="display:inline-block; vertical-align:middle; margin-right:4px;">
             <circle cx="12" cy="12" r="10"></circle>
             <line x1="12" y1="16" x2="12" y2="12"></line>
             <line x1="12" y1="8" x2="12.01" y2="8"></line>
@@ -730,14 +844,16 @@
       </div>
 
       <div>
-        <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1rem; letter-spacing: -0.02em;">Achievement Badges</h3>
+        <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1rem; letter-spacing: -0.02em;">Achievement
+          Badges</h3>
         <div class="badge-grid" id="badges-grid">
           <!-- Dynamically populated badges -->
         </div>
       </div>
 
       <!-- Certificate Motivation Disclaimer -->
-      <p style="font-size: 0.95rem; font-weight: 600; color: var(--text-secondary); text-align: center; margin: 2.5rem 0 1rem; letter-spacing: -0.01em;">
+      <p
+        style="font-size: 0.95rem; font-weight: 600; color: var(--text-secondary); text-align: center; margin: 2.5rem 0 1rem; letter-spacing: -0.01em;">
         ✦ Note: This certificate is for motivating your skills, not for accredited qualifications.
       </p>
 
@@ -752,31 +868,42 @@
         <p class="cert-kicker">Certificate of Completion</p>
         <h3 class="cert-title">Python Learning Journey</h3>
         <p class="cert-intro">This acknowledges that</p>
-        <div class="cert-name-wrap"><input class="cert-user-name" id="cert-learner-name" type="text" maxlength="80" autocomplete="name" aria-label="Learner name for certificate" placeholder="Enter your name"></div>
-        <p class="cert-copy">has completed the Phanix Python learning journey and demonstrated commitment to building practical programming skills.</p>
+        <div class="cert-name-wrap"><input class="cert-user-name" id="cert-learner-name" type="text" maxlength="80"
+            autocomplete="name" aria-label="Learner name for certificate" placeholder="Enter your name"></div>
+        <p class="cert-copy">has completed the Phanix Python learning journey and demonstrated commitment to building
+          practical programming skills.</p>
         <div class="cert-footer">
           <div class="cert-meta"><span>COMPLETION DATE</span><strong id="cert-date">Pending completion</strong></div>
-          <div class="cert-footer-brand"><span class="cert-footer-line"></span><strong>PHANIX</strong><small>KEEP BUILDING</small></div>
+          <div class="cert-footer-brand"><span class="cert-footer-line"></span><strong>PHANIX</strong><small>KEEP
+              BUILDING</small></div>
           <div class="cert-meta"><span>RECOGNITION</span><strong>Personal achievement</strong></div>
         </div>
-        <p class="cert-disclaimer" id="cert-status">Complete every lesson and hands-on challenge to unlock your certificate.</p>
-        <button class="btn cert-download" id="cert-download-btn" type="button" disabled>🔒 Complete the course to unlock</button>
+        <p class="cert-disclaimer" id="cert-status">Complete every lesson and hands-on challenge to unlock your
+          certificate.</p>
+        <button class="btn cert-download" id="cert-download-btn" type="button" disabled>🔒 Complete the course to
+          unlock</button>
       </section>
     </div>
   </main>
 
   <!-- About / Profile Popover Modal (Strictly isolated, display:none by default) -->
-  <div class="profile-modal-overlay" id="profile-modal-overlay" style="display: none !important;" role="dialog" aria-modal="true" aria-label="About Developer">
+  <div class="profile-modal-overlay" id="profile-modal-overlay" style="display: none !important;" role="dialog"
+    aria-modal="true" aria-label="About Developer">
     <div class="profile-modal" id="profile-modal">
       <!-- Close Button -->
-      <button class="profile-modal-close" id="profile-modal-close" onclick="closeProfileModal()" title="Close" aria-label="Close">✕</button>
+      <button class="profile-modal-close" id="profile-modal-close" onclick="closeProfileModal()" title="Close"
+        aria-label="Close">✕</button>
 
       <!-- Profile Header -->
       <div class="about-modal-header">
-        <button class="about-profile-mark" id="about-photo-trigger" type="button" title="View Phaneendhar's photo" aria-label="View a larger photo of Phaneendhar Nittala">
+        <button class="about-profile-mark" id="about-photo-trigger" type="button" title="View Phaneendhar's photo"
+          aria-label="View a larger photo of Phaneendhar Nittala">
           <img src="img/phani.png" alt="Phaneendhar Nittala" class="about-logo-img">
           <span class="about-online-dot" aria-label="Available to connect"></span>
-          <span class="about-photo-cta"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M21 3l-7 7M9 21H3v-6M3 21l7-7"></path></svg><span>View photo</span></span>
+          <span class="about-photo-cta"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M15 3h6v6M21 3l-7 7M9 21H3v-6M3 21l7-7"></path>
+            </svg><span>View photo</span></span>
         </button>
         <span class="about-eyebrow">Creator of Phanix</span>
         <h2 class="about-name">Phaneendhar Nittala</h2>
@@ -784,7 +911,8 @@
           <span>Python education</span><i aria-hidden="true"></i><span>Digital forensics</span>
         </div>
         <p class="about-mission">
-          Dedicated to building hands-on educational platforms in Python programming, digital forensics, and cyber security architecture.
+          Dedicated to building hands-on educational platforms in Python programming, digital forensics, and cyber
+          security architecture.
         </p>
       </div>
 
@@ -800,11 +928,13 @@
       <!-- Featured Platforms -->
       <div class="about-section-heading">Featured Security Platforms</div>
       <div class="about-platforms-row">
-        <a href="https://nittala-forensic-suite.vercel.app/" target="_blank" rel="noopener" class="about-platform-btn suite">
+        <a href="https://nittala-forensic-suite.vercel.app/" target="_blank" rel="noopener"
+          class="about-platform-btn suite">
           <span class="about-platform-title">🛡️ Nittala Forensic Suite (Original)</span>
           <span class="about-platform-arrow">↗</span>
         </a>
-        <a href="https://p-h-a-n-i-x-phaneendhar-s-investigation-expert.vercel.app/" target="_blank" rel="noopener" class="about-platform-btn expert">
+        <a href="https://p-h-a-n-i-x-phaneendhar-s-investigation-expert.vercel.app/" target="_blank" rel="noopener"
+          class="about-platform-btn expert">
           <span class="about-platform-title">🔍 Investigation Expert</span>
           <span class="about-platform-arrow">↗</span>
         </a>
@@ -813,9 +943,11 @@
       <!-- Social Media Accounts with SVG Icons -->
       <div class="about-section-heading">Social &amp; Connect</div>
       <div class="about-social-grid">
-        <a href="mailto:nittalaphaneendhar@gmail.com" class="about-social-card gmail" target="_blank" rel="noopener" title="Email: nittalaphaneendhar@gmail.com">
+        <a href="mailto:nittalaphaneendhar@gmail.com" class="about-social-card gmail" target="_blank" rel="noopener"
+          title="Email: nittalaphaneendhar@gmail.com">
           <div class="about-social-icon-box">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
               <rect width="20" height="16" x="2" y="4" rx="2"></rect>
               <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
             </svg>
@@ -826,10 +958,12 @@
           </div>
         </a>
 
-        <a href="https://www.linkedin.com/in/phaneendhar-nittala-a2a3443a1/" class="about-social-card linkedin" target="_blank" rel="noopener" title="LinkedIn Profile">
+        <a href="https://www.linkedin.com/in/phaneendhar-nittala-a2a3443a1/" class="about-social-card linkedin"
+          target="_blank" rel="noopener" title="LinkedIn Profile">
           <div class="about-social-icon-box">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 8.76a1.6 1.6 0 0 0 1.6-1.6 1.6 1.6 0 0 0-1.6-1.6 1.6 1.6 0 0 0-1.6 1.6c0 .88.72 1.6 1.6 1.6m1.4 9.74v-8.37H5.06v8.37h2.8z"/>
+              <path
+                d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 8.76a1.6 1.6 0 0 0 1.6-1.6 1.6 1.6 0 0 0-1.6-1.6 1.6 1.6 0 0 0-1.6 1.6c0 .88.72 1.6 1.6 1.6m1.4 9.74v-8.37H5.06v8.37h2.8z" />
             </svg>
           </div>
           <div class="about-social-text">
@@ -838,9 +972,11 @@
           </div>
         </a>
 
-        <a href="https://www.instagram.com/phani.49" class="about-social-card instagram" target="_blank" rel="noopener" title="Instagram Profile">
+        <a href="https://www.instagram.com/phani.49" class="about-social-card instagram" target="_blank" rel="noopener"
+          title="Instagram Profile">
           <div class="about-social-icon-box">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
               <rect width="20" height="20" x="2" y="2" rx="5" ry="5"></rect>
               <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
               <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"></line>
@@ -852,10 +988,12 @@
           </div>
         </a>
 
-        <a href="https://github.com/nphaneendhar" class="about-social-card github" target="_blank" rel="noopener" title="GitHub Profile">
+        <a href="https://github.com/nphaneendhar" class="about-social-card github" target="_blank" rel="noopener"
+          title="GitHub Profile">
           <div class="about-social-icon-box">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-              <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+              <path fill-rule="evenodd" clip-rule="evenodd"
+                d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
             </svg>
           </div>
           <div class="about-social-text">
@@ -869,7 +1007,8 @@
   </div>
 
   <!-- Full-size creator photo viewer -->
-  <div class="photo-viewer-overlay" id="photo-viewer-overlay" role="dialog" aria-modal="true" aria-label="Photo of Phaneendhar Nittala" aria-hidden="true">
+  <div class="photo-viewer-overlay" id="photo-viewer-overlay" role="dialog" aria-modal="true"
+    aria-label="Photo of Phaneendhar Nittala" aria-hidden="true">
     <div class="photo-viewer-card">
       <button class="photo-viewer-close" id="photo-viewer-close" type="button" aria-label="Close photo">✕</button>
       <img src="img/phani.png" alt="Phaneendhar Nittala">
@@ -881,6 +1020,7 @@
   <div class="toast-container" id="toast-container"></div>
 
   <!-- Application Logic -->
-  <script src="js/app.js?v=4.8"></script>
+  <script src="js/app.js?v=4.9"></script>
 </body>
+
 </html>

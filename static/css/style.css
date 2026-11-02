@@ -3357,6 +3357,7 @@ main {
 @media print {
   @page { size: landscape; margin: 0; }
   body * { visibility: hidden !important; }
+  #view-achievements { display: block !important; }
   .certificate-wrapper, .certificate-wrapper * { visibility: visible !important; }
   .certificate-wrapper { position: absolute; inset: 0; width: 100%; min-height: 100%; margin: 0; padding: 4.5vh 7vw; border: 0; border-radius: 0; box-shadow: none; }
   .cert-download { display: none !important; }
@@ -4171,10 +4172,8 @@ main {
 @media (max-width: 390px) {
   .brand-title { display: none; }
   .nav-btn { padding-inline: 0.6rem; }
-  .nav-tabs li:nth-child(n + 5) { display: none; }
   .lesson-badge-row { flex-wrap: wrap; }
   .editor-actions .btn { padding-inline: 0.45rem; }
-  .editor-actions #reset-code-btn { display: none; }
   .stats-grid, .badge-grid { grid-template-columns: 1fr; }
 }
 

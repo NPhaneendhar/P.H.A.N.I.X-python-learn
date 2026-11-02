@@ -434,8 +434,9 @@ async function initApp() {
   setupEditorHelpers(elements.codeEditor, elements.editorLineNumbers, elements.editorSyntaxLayer);
   setupEditorHelpers(elements.pgEditor, elements.pgLineNumbers, elements.pgSyntaxLayer);
 
-  // Load playground initial forensic template
-  elements.pgEditor.value = PLAYGROUND_TEMPLATES.forensic_hasher;
+  // Load playground initial forensic template or saved code
+  const savedPgCode = localStorage.getItem('pylearn_playground_code');
+  elements.pgEditor.value = savedPgCode || PLAYGROUND_TEMPLATES.forensic_hasher;
   updateLineNumbers(elements.pgEditor, elements.pgLineNumbers);
   updateSyntaxLayer(elements.pgEditor, elements.pgSyntaxLayer);
 
@@ -859,12 +860,16 @@ function setupEventListeners() {
 
   // Copy Project URLs in Projects tab
   document.querySelectorAll('.copy-project-url').forEach(btn => {
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', async () => {
       const url = btn.dataset.url || 'https://nittala-forensic-suite.vercel.app/';
-      navigator.clipboard.writeText(url);
-      btn.textContent = '✓ Copied!';
-      showToast('Website link copied: ' + url, 'success');
-      setTimeout(() => { btn.textContent = '🔗 Copy Link'; }, 2000);
+      try {
+        await navigator.clipboard.writeText(url);
+        btn.textContent = '✓ Copied!';
+        showToast('Website link copied: ' + url, 'success');
+        setTimeout(() => { btn.textContent = '🔗 Copy Link'; }, 2000);
+      } catch (err) {
+        showToast('Website link: ' + url, 'info');
+      }
     });
   });
 
@@ -878,6 +883,7 @@ function setupEventListeners() {
       const message = elements.reviewMessage.value.trim();
       const subject = `[Phanix] ${topic} from ${name}`;
       const body = `Name: ${name}\nEmail: ${email}\nTopic: ${topic}\n\nMessage:\n${message}`;
+      showToast('Opening your default email app to send feedback...', 'info');
       window.location.href = `mailto:nittalaphaneendhar@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     });
   }
@@ -1079,6 +1085,11 @@ function updateSyntaxLayer(textarea, syntaxLayer) {
 function setupEditorHelpers(textarea, lineNumbersEl, syntaxLayer) {
   const syncLines = () => updateLineNumbers(textarea, lineNumbersEl);
   const syncSyntax = () => updateSyntaxLayer(textarea, syntaxLayer);
+  const notifyChange = () => {
+    syncLines();
+    syncSyntax();
+    textarea.dispatchEvent(new Event('input'));
+  };
 
   textarea.addEventListener('input', () => {
     syncLines();
@@ -1086,6 +1097,8 @@ function setupEditorHelpers(textarea, lineNumbersEl, syntaxLayer) {
     if (textarea === elements.codeEditor && state.currentLessonId) {
       state.userCodes[state.currentLessonId] = textarea.value;
       localStorage.setItem('pylearn_user_codes', JSON.stringify(state.userCodes));
+    } else if (textarea === elements.pgEditor) {
+      localStorage.setItem('pylearn_playground_code', textarea.value);
     }
   });
 
@@ -1139,8 +1152,7 @@ function setupEditorHelpers(textarea, lineNumbersEl, syntaxLayer) {
         textarea.value = val.substring(0, start) + e.key + selected + closer + val.substring(end);
         textarea.selectionStart = start + 1;
         textarea.selectionEnd = end + 1;
-        syncLines();
-        syncSyntax();
+        notifyChange();
         return;
       } else {
         // Avoid auto-closing quote if right before alphanumeric word char
@@ -1150,8 +1162,7 @@ function setupEditorHelpers(textarea, lineNumbersEl, syntaxLayer) {
           e.preventDefault();
           textarea.value = val.substring(0, start) + e.key + closer + val.substring(end);
           textarea.selectionStart = textarea.selectionEnd = start + 1;
-          syncLines();
-          syncSyntax();
+          notifyChange();
           return;
         }
       }
@@ -1165,8 +1176,7 @@ function setupEditorHelpers(textarea, lineNumbersEl, syntaxLayer) {
         e.preventDefault();
         textarea.value = val.substring(0, start - 1) + val.substring(start + 1);
         textarea.selectionStart = textarea.selectionEnd = start - 1;
-        syncLines();
-        syncSyntax();
+        notifyChange();
         return;
       }
     }
@@ -1176,8 +1186,7 @@ function setupEditorHelpers(textarea, lineNumbersEl, syntaxLayer) {
       e.preventDefault();
       textarea.value = val.substring(0, start) + '    ' + val.substring(end);
       textarea.selectionStart = textarea.selectionEnd = start + 4;
-      syncLines();
-      syncSyntax();
+      notifyChange();
       return;
     }
 
@@ -1202,8 +1211,7 @@ function setupEditorHelpers(textarea, lineNumbersEl, syntaxLayer) {
         const insertText = '\n' + indent + '    \n' + indent;
         textarea.value = val.substring(0, pos) + insertText + val.substring(textarea.selectionEnd);
         textarea.selectionStart = textarea.selectionEnd = pos + indent.length + 5;
-        syncLines();
-        syncSyntax();
+        notifyChange();
         return;
       }
 
@@ -1212,8 +1220,7 @@ function setupEditorHelpers(textarea, lineNumbersEl, syntaxLayer) {
         const insertText = '\n' + indent;
         textarea.value = val.substring(0, pos) + insertText + val.substring(textarea.selectionEnd);
         textarea.selectionStart = textarea.selectionEnd = pos + insertText.length;
-        syncLines();
-        syncSyntax();
+        notifyChange();
         return;
       }
     }
@@ -1383,9 +1390,11 @@ function selectLesson(lessonId) {
   elements.stdoutContent.textContent = "Press 'Run' or hit Ctrl+Enter to execute your Python code...";
   elements.stderrContent.textContent = '';
   elements.stderrContent.style.display = 'none';
+  if (elements.inputNeededBanner) elements.inputNeededBanner.style.display = 'none';
+  if (elements.termInteractiveInput) elements.termInteractiveInput.value = '';
   elements.testResultsContainer.innerHTML = '<p style="color: var(--text-muted);">Click "Check Solution" to run automated tests against your code.</p>';
   elements.testSummaryPill.textContent = '0/0';
-  elements.termStatus.textContent = 'Ready';
+  setTerminalStatus('ready', 'Ready');
 
   // Scroll to top of lesson content
   document.getElementById('lesson-content-area').scrollTop = 0;
@@ -1401,8 +1410,9 @@ window.insertCodeIntoEditor = function(btn) {
   elements.codeEditor.value = rawCode;
   updateLineNumbers(elements.codeEditor, elements.editorLineNumbers);
   updateSyntaxLayer(elements.codeEditor, elements.editorSyntaxLayer);
+  if (elements.codeEditor) elements.codeEditor.dispatchEvent(new Event('input'));
   showToast('🚀 Example loaded into editor! Hit "Run" (Ctrl+Enter) to test.', 'success');
-  elements.termStatus.textContent = 'Example Loaded';
+  setTerminalStatus('ready', 'Example Loaded');
 };
 
 // Markdown to HTML Parser with Interactive Try in Editor Code Blocks
@@ -1547,9 +1557,12 @@ function recordCodeCompletion() {
 function setTerminalStatus(type, label) {
   if (!elements.termStatus) return;
   elements.termStatus.className = `term-status-pill ${type}`;
-  const labelEl = elements.termStatus.querySelector('.status-label');
-  if (labelEl) labelEl.textContent = label;
-  else elements.termStatus.textContent = label;
+  let labelEl = elements.termStatus.querySelector('.status-label');
+  if (!labelEl) {
+    elements.termStatus.innerHTML = `<span class="status-dot"></span><span class="status-label">${escapeHTML(label)}</span>`;
+  } else {
+    labelEl.textContent = label;
+  }
 }
 
 function setPgTerminalStatus(type, label) {
@@ -1607,7 +1620,15 @@ function switchPgTab(tabName) {
   if (elements.pgStdinView) elements.pgStdinView.style.display = tabName === 'stdin' ? 'flex' : 'none';
 }
 
+// Execution concurrency guards
+let isExecutingLearn = false;
+let isExecutingPg = false;
+let isExecutingTest = false;
+
 async function handleRunCode(customInput = null) {
+  if (isExecutingLearn) return;
+  isExecutingLearn = true;
+
   const code = elements.codeEditor.value;
   setTerminalStatus('running', 'Running...');
   elements.runCodeBtn.disabled = true;
@@ -1636,15 +1657,9 @@ async function handleRunCode(customInput = null) {
     const data = await res.json();
     elements.stdoutContent.textContent = data.stdout || (data.exit_code === 0 ? '[Script finished with no output]' : '');
     
-    if (data.stderr) {
-      elements.stderrContent.textContent = data.stderr;
-      elements.stderrContent.style.display = 'block';
-    } else {
+    if (data.needs_input) {
       elements.stderrContent.textContent = '';
       elements.stderrContent.style.display = 'none';
-    }
-
-    if (data.needs_input) {
       if (elements.inputNeededBanner) elements.inputNeededBanner.style.display = 'flex';
       setTerminalStatus('needs-input', 'Input Needed');
       if (elements.termInteractiveInput) {
@@ -1653,6 +1668,14 @@ async function handleRunCode(customInput = null) {
       }
     } else {
       if (elements.inputNeededBanner) elements.inputNeededBanner.style.display = 'none';
+      if (data.stderr) {
+        elements.stderrContent.textContent = data.stderr;
+        elements.stderrContent.style.display = 'block';
+      } else {
+        elements.stderrContent.textContent = '';
+        elements.stderrContent.style.display = 'none';
+      }
+
       if (data.exit_code === 0) {
         setTerminalStatus('ready', `✓ ${data.duration_ms}ms`);
       } else {
@@ -1673,12 +1696,16 @@ async function handleRunCode(customInput = null) {
     elements.stderrContent.style.display = 'block';
     setTerminalStatus('error', 'Failed');
   } finally {
+    isExecutingLearn = false;
     elements.runCodeBtn.disabled = false;
   }
 }
 
 // Handle Challenge Solution Testing (Check Solution Button)
 async function handleTestCode() {
+  if (isExecutingTest) return;
+  isExecutingTest = true;
+
   const code = elements.codeEditor.value;
   setTerminalStatus('running', 'Testing Solution...');
   elements.testCodeBtn.disabled = true;
@@ -1721,6 +1748,7 @@ async function handleTestCode() {
     elements.testResultsContainer.innerHTML = `<p style="color: var(--accent-red);">Testing Error: ${err.message}</p>`;
     setTerminalStatus('error', 'Test Error');
   } finally {
+    isExecutingTest = false;
     elements.testCodeBtn.disabled = false;
   }
 }
@@ -1775,6 +1803,9 @@ function handleResetCode() {
 
 // Handle Playground Code Execution
 async function handlePlaygroundRun(customInput = null) {
+  if (isExecutingPg) return;
+  isExecutingPg = true;
+
   const code = elements.pgEditor.value;
   elements.pgRunBtn.disabled = true;
   setPgTerminalStatus('running', 'Running...');
@@ -1798,15 +1829,9 @@ async function handlePlaygroundRun(customInput = null) {
     const data = await res.json();
     elements.pgStdout.textContent = data.stdout || (data.exit_code === 0 ? '[Script finished with no output]' : '');
     
-    if (data.stderr) {
-      elements.pgStderr.textContent = data.stderr;
-      elements.pgStderr.style.display = 'block';
-    } else {
+    if (data.needs_input) {
       elements.pgStderr.textContent = '';
       elements.pgStderr.style.display = 'none';
-    }
-
-    if (data.needs_input) {
       if (elements.pgInputNeededBanner) elements.pgInputNeededBanner.style.display = 'flex';
       setPgTerminalStatus('needs-input', 'Input Needed');
       if (elements.pgInteractiveInput) {
@@ -1815,6 +1840,14 @@ async function handlePlaygroundRun(customInput = null) {
       }
     } else {
       if (elements.pgInputNeededBanner) elements.pgInputNeededBanner.style.display = 'none';
+      if (data.stderr) {
+        elements.pgStderr.textContent = data.stderr;
+        elements.pgStderr.style.display = 'block';
+      } else {
+        elements.pgStderr.textContent = '';
+        elements.pgStderr.style.display = 'none';
+      }
+
       if (data.exit_code === 0) {
         setPgTerminalStatus('ready', `✓ ${data.duration_ms}ms`);
       } else {
@@ -1832,6 +1865,7 @@ async function handlePlaygroundRun(customInput = null) {
     elements.pgStderr.style.display = 'block';
     setPgTerminalStatus('error', 'Error');
   } finally {
+    isExecutingPg = false;
     elements.pgRunBtn.disabled = false;
   }
 }
@@ -2150,11 +2184,16 @@ function renderCheatsheet(filter = '') {
 
     // Copy buttons
     catSection.querySelectorAll('.copy-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', async () => {
         const snippet = decodeURIComponent(btn.dataset.code || '');
-        navigator.clipboard.writeText(snippet);
-        btn.textContent = 'Copied!';
-        setTimeout(() => { btn.textContent = btn.classList.contains('mini') ? 'Copy' : '📋 Copy'; }, 1500);
+        try {
+          await navigator.clipboard.writeText(snippet);
+          btn.textContent = 'Copied!';
+          setTimeout(() => { btn.textContent = btn.classList.contains('mini') ? 'Copy' : '📋 Copy'; }, 1500);
+          showToast('Code copied to clipboard!', 'success');
+        } catch (err) {
+          showToast('Code copied', 'info');
+        }
       });
     });
 

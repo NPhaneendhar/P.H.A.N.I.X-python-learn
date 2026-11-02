@@ -36,11 +36,15 @@ class handler(BaseHTTPRequestHandler):
                 [sys.executable, "-u", temp_path], input=str(stdin_input), text=True,
                 capture_output=True, timeout=3.5, check=False
             )
+            needs_input = "EOFError: EOF when reading a line" in (completed.stderr or "")
+            clean_stderr = "" if needs_input else completed.stderr
+            exit_code = 0 if needs_input else completed.returncode
             return {
                 "stdout": completed.stdout,
-                "stderr": completed.stderr,
-                "exit_code": completed.returncode,
+                "stderr": clean_stderr,
+                "exit_code": exit_code,
                 "duration_ms": round((time.perf_counter() - started) * 1000, 2),
+                "needs_input": needs_input
             }
         except subprocess.TimeoutExpired:
             return {"stdout": "", "stderr": "Execution timed out (3.5 seconds). Avoid infinite loops!", "exit_code": -1, "duration_ms": round((time.perf_counter() - started) * 1000, 2)}
