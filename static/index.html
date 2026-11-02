@@ -23,12 +23,25 @@
   <link rel="shortcut icon" type="image/png" href="/img/phanix-favicon-192.png">
   <link rel="apple-touch-icon" sizes="192x192" href="/img/phanix-favicon-192.png">
   <link rel="manifest" href="site.webmanifest">
-  <link rel="stylesheet" href="css/style.css?v=5.3">
+  <link rel="stylesheet" href="css/style.css?v=6.1">
+  <!-- Preload critical assets so browser fetches them immediately -->
+  <link rel="preload" href="img/logo.webp" as="image" type="image/webp">
+  <link rel="preload" href="js/app.js?v=6.2" as="script">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
   <link
     href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
-    rel="stylesheet">
+    rel="stylesheet" media="print" onload="this.media='all'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
+  <!-- Immediate auth state pre-check: completely prevents login screen blinking/flashing on refresh -->
+  <script>
+    try {
+      if (sessionStorage.getItem('pylearn_session_authenticated') === '1') {
+        document.documentElement.classList.add('pylearn-has-session');
+      }
+    } catch (e) { }
+  </script>
 </head>
 
 <body>
@@ -39,30 +52,11 @@
   <header>
     <div class="brand-project-group">
       <a href="#" class="brand" id="brand-link">
-        <img src="img/logo.png" alt="Phanix Logo" class="brand-logo-img">
+        <picture>
+          <source srcset="img/logo.webp" type="image/webp">
+          <img src="img/logo.png" alt="Phanix Logo" class="brand-logo-img" width="36" height="36">
+        </picture>
         <span class="brand-title">Phanix</span>
-      </a>
-      <a class="project-icon-nav suite-header-nav" href="https://nittala-forensic-suite.vercel.app/" target="_blank"
-        rel="noopener noreferrer" title="Launch Nittala Forensic Suite (Original Platform)"
-        aria-label="Launch Nittala Forensic Suite in a new tab">
-        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
-          stroke-linecap="round" stroke-linejoin="round">
-          <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
-          <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
-        </svg>
-        <span>Forensic Suite</span><i aria-hidden="true"></i>
-      </a>
-      <a class="project-icon-nav" href="https://p-h-a-n-i-x-phaneendhar-s-investigation-expert.vercel.app/"
-        target="_blank" rel="noopener noreferrer" title="Explore the Investigation Expert case file"
-        aria-label="Explore the Investigation Expert project in a new tab">
-        <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
-          stroke-linecap="round" stroke-linejoin="round">
-          <path d="M5 4.5h8l4 4V19.5H5z"></path>
-          <path d="M13 4.5v4h4"></path>
-          <circle cx="10" cy="14" r="2.75"></circle>
-          <path d="m12 16 2.25 2.25"></path>
-        </svg>
-        <span>Case file</span><i aria-hidden="true"></i>
       </a>
     </div>
 
@@ -73,9 +67,10 @@
         <li><button class="nav-btn" data-target="view-playground">⚡ Playground</button></li>
         <li><button class="nav-btn" data-target="view-challenges">🏆 Challenges</button></li>
         <li><button class="nav-btn" data-target="view-cheatsheet">📑 Cheat Sheet</button></li>
-        <li><button class="nav-btn" data-target="view-projects">🚀 Projects</button></li>
         <li><button class="nav-btn" data-target="view-achievements">👤 Profile</button></li>
         <li><button class="nav-btn" data-target="view-reviews">💬 Reviews</button></li>
+        <li id="nav-item-admin" style="display: none;"><button class="nav-btn admin-nav-btn" id="nav-btn-admin"
+            data-target="view-admin">🛡️ Admin</button></li>
       </ul>
     </nav>
 
@@ -100,17 +95,72 @@
 
       <!-- About Navigation Button -->
       <button class="about-nav-btn" id="about-nav-btn" onclick="openProfileModal()" title="Meet the creator of Phanix">
-        <span class="about-nav-avatar" aria-hidden="true"><img src="img/phani.png" alt=""></span>
+        <span class="about-nav-avatar" aria-hidden="true"><picture><source srcset="img/phani.webp" type="image/webp"><img src="img/phani.png" alt=""></picture></span>
         <span>Creator</span>
       </button>
 
-      <div class="stat-pill xp" title="Experience Points">
-        <span>⚡</span>
-        <span id="header-xp">0 XP</span>
-      </div>
-      <div class="stat-pill streak" title="Daily Learning Streak">
-        <span>🔥</span>
-        <span id="header-streak">1 Day Streak</span>
+      <!-- User Auth Pill / Login Trigger & Dropdown Menu -->
+      <div class="user-auth-wrapper" id="user-auth-wrapper">
+        <button type="button" class="auth-btn-login" id="auth-btn-login" title="Sign In or Create Account">
+          <span class="auth-btn-icon">👤</span>
+          <span class="auth-btn-text">Sign In</span>
+        </button>
+
+        <button type="button" class="user-pill" id="user-pill" style="display: none;" title="Open Account Menu"
+          aria-expanded="false" aria-haspopup="true">
+          <span class="user-avatar" id="user-avatar">👤</span>
+          <span class="user-name" id="user-name">Learner</span>
+          <span class="admin-badge-tag" id="admin-badge-tag" style="display: none;">ADMIN</span>
+          <span class="user-pill-caret" aria-hidden="true">▾</span>
+        </button>
+
+        <!-- User Account Dropdown Popover -->
+        <div class="user-dropdown-menu" id="user-dropdown-menu" style="display: none;">
+          <div class="user-dropdown-header">
+            <div class="user-dropdown-avatar-wrap">
+              <span class="user-dropdown-avatar" id="user-dropdown-avatar">👤</span>
+            </div>
+            <div class="user-dropdown-info">
+              <div class="user-dropdown-name-row">
+                <strong class="user-dropdown-name" id="user-dropdown-name">Learner</strong>
+                <span class="user-dropdown-role-tag" id="user-dropdown-role-tag">LEARNER</span>
+              </div>
+              <span class="user-dropdown-email" id="user-dropdown-email">learner@example.com</span>
+            </div>
+          </div>
+
+          <div class="user-dropdown-stats">
+            <div class="user-dropdown-stat">
+              <span class="user-dropdown-stat-val" id="user-dropdown-xp">0 XP</span>
+              <span class="user-dropdown-stat-lbl">⚡ XP</span>
+            </div>
+            <div class="user-dropdown-stat">
+              <span class="user-dropdown-stat-val" id="user-dropdown-streak">1 Day</span>
+              <span class="user-dropdown-stat-lbl">🔥 Streak</span>
+            </div>
+            <div class="user-dropdown-stat">
+              <span class="user-dropdown-stat-val" id="user-dropdown-lessons">0</span>
+              <span class="user-dropdown-stat-lbl">📖 Lessons</span>
+            </div>
+          </div>
+
+          <div class="user-dropdown-actions">
+            <button type="button" class="user-dropdown-btn" id="user-dropdown-profile-btn">
+              <span>👤</span> View Profile &amp; Badges
+            </button>
+            <button type="button" class="user-dropdown-btn" id="user-dropdown-cert-btn">
+              <span>🎓</span> View Official Certificate
+            </button>
+            <button type="button" class="user-dropdown-btn admin-only" id="user-dropdown-admin-btn"
+              style="display: none;">
+              <span>🛡️</span> Open Admin Console
+            </button>
+            <div class="user-dropdown-divider"></div>
+            <button type="button" class="user-dropdown-btn logout" id="auth-btn-logout">
+              <span>🚪</span> Sign Out
+            </button>
+          </div>
+        </div>
       </div>
       <button class="theme-toggle-btn" id="theme-toggle" title="Toggle Dark/Light Mode">
         🌙
@@ -617,147 +667,7 @@
       </div>
     </div>
 
-    <!-- VIEW 5: FEATURED PROJECTS & WEBSITES -->
-    <div id="view-projects" class="view-panel">
-      <div class="projects-page-header">
-        <div>
-          <h2 style="font-size: 1.6rem; font-weight: 800; margin-bottom: 0.3rem; letter-spacing: -0.02em;">Featured
-            Projects &amp; Security Suites</h2>
-          <p style="color: var(--text-secondary);">Production-ready digital forensics systems, incident investigation
-            platforms, and cryptographic tools created by Phaneendhar Nittala.</p>
-        </div>
-        <button class="btn btn-secondary" onclick="openProfileModal()" title="View Developer Details">
-          <span>ℹ️</span> About Creator
-        </button>
-      </div>
-
-      <div class="projects-showcase-grid">
-        <!-- Project 1: PHANIX Investigation Expert -->
-        <div class="project-showcase-card">
-          <div class="project-card-banner banner-expert">
-            <div class="project-badge-tag">Digital Forensics &amp; OSINT</div>
-            <div class="project-icon-circle">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                <circle cx="12" cy="11" r="3"></circle>
-              </svg>
-            </div>
-          </div>
-          <div class="project-card-body">
-            <h3 class="project-title">PHANIX Investigation Expert</h3>
-            <p class="project-description">
-              An intelligent forensic investigation framework designed for digital investigators. Automates artifact
-              extraction, metadata parsing, threat intelligence correlation, and evidentiary integrity tracking.
-            </p>
-            <div class="project-tags-row">
-              <span class="ptag">Evidence Parsing</span>
-              <span class="ptag">Chain of Custody</span>
-              <span class="ptag">OSINT</span>
-              <span class="ptag">Vercel</span>
-            </div>
-            <div class="project-card-footer">
-              <span class="project-domain-url">p-h-a-n-i-x-investigation-e-xpert.vercel.app</span>
-              <a href="https://p-h-a-n-i-x-investigation-e-xpert.vercel.app/" class="btn btn-run project-launch-btn"
-                target="_blank" rel="noopener">
-                <span>Launch App</span>
-                <span style="font-size: 1rem;">↗</span>
-              </a>
-            </div>
-          </div>
-        </div>
-
-        <!-- Project 2: Nittala Forensic Suite (Original Platform) -->
-        <div class="project-showcase-card project-card-flagship">
-          <div class="project-card-banner banner-suite">
-            <div class="project-badge-tag-wrap">
-              <span class="project-badge-subtag">My first project ⭐</span>
-            </div>
-            <div class="project-icon-circle">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
-                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
-              </svg>
-            </div>
-          </div>
-          <div class="project-card-body">
-            <div class="project-title-row">
-              <h3 class="project-title">Nittala Forensic Suite</h3>
-              <span class="project-status-dot" title="Live Platform">🟢 Live</span>
-            </div>
-            <p class="project-description">
-              Phaneendhar Nittala's classic cyber forensic platform. Built for real-time security incident response,
-              forensic memory extraction, malicious IP/IOC triage, and log integrity auditing for security analysts.
-            </p>
-            <div class="project-features-list">
-              <div class="pfeature"><span>✓</span> Real-Time Log Forensics &amp; Event Parser</div>
-              <div class="pfeature"><span>✓</span> Malicious IP, IOC &amp; Threat Intelligence</div>
-              <div class="pfeature"><span>✓</span> Memory Artifact &amp; Hex Analysis</div>
-            </div>
-            <div class="project-tags-row">
-              <span class="ptag">Incident Response</span>
-              <span class="ptag">Log Forensics</span>
-              <span class="ptag">Threat Analysis</span>
-              <span class="ptag">Memory Forensics</span>
-              <span class="ptag">Vercel</span>
-            </div>
-            <div class="project-card-footer">
-              <span class="project-domain-url">nittala-forensic-suite.vercel.app</span>
-              <div class="project-action-btns">
-                <button type="button" class="btn btn-secondary copy-project-url"
-                  data-url="https://nittala-forensic-suite.vercel.app/" title="Copy Website Link">🔗 Copy Link</button>
-                <a href="https://nittala-forensic-suite.vercel.app/" class="btn btn-run project-launch-btn"
-                  target="_blank" rel="noopener">
-                  <span>Launch Live App</span>
-                  <span style="font-size: 1rem;">↗</span>
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Project 3: PHANIX Forensic QR Architect -->
-        <div class="project-showcase-card">
-          <div class="project-card-banner banner-qr">
-
-            <div class="project-badge-tag">⭐ Creator Flagship</div>
-            <div class="project-icon-circle">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="3" width="7" height="7"></rect>
-                <rect x="14" y="3" width="7" height="7"></rect>
-                <rect x="14" y="14" width="7" height="7"></rect>
-                <rect x="3" y="14" width="7" height="7"></rect>
-              </svg>
-            </div>
-          </div>
-          <div class="project-card-body">
-            <h3 class="project-title">PHANIX Forensic QR Architect</h3>
-            <p class="project-description">
-              A high-precision forensic QR architecture tool supporting cryptographic payload generation, tamper
-              verification, Reed-Solomon error correction customization, and payload structural integrity analysis.
-            </p>
-            <div class="project-tags-row">
-              <span class="ptag">QR Architecture</span>
-              <span class="ptag">Cryptographic Hash</span>
-              <span class="ptag">Error Correction</span>
-              <span class="ptag">GitHub Pages</span>
-            </div>
-            <div class="project-card-footer">
-              <span class="project-domain-url">nphaneendhar.github.io/P.H.A.N.I.X-FORENSIC-QR-ARCHITECT</span>
-              <a href="https://nphaneendhar.github.io/P.H.A.N.I.X-FORENSIC-QR-ARCHITECT/"
-                class="btn btn-run project-launch-btn" target="_blank" rel="noopener">
-                <span>Launch App</span>
-                <span style="font-size: 1rem;">↗</span>
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- VIEW 7: REVIEWS & QUESTIONS -->
+    <!-- VIEW: REVIEWS & QUESTIONS -->
     <div id="view-reviews" class="view-panel">
       <div class="reviews-card">
         <div class="reviews-icon" aria-hidden="true">💬</div>
@@ -799,16 +709,29 @@
           <p style="color: var(--text-secondary);">Track your Python milestones, badges, and completion certification.
           </p>
         </div>
-        <button class="btn btn-secondary ach-about-trigger" onclick="openProfileModal()" title="View Developer Details">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round"
-            style="display:inline-block; vertical-align:middle; margin-right:4px;">
-            <circle cx="12" cy="12" r="10"></circle>
-            <line x1="12" y1="16" x2="12" y2="12"></line>
-            <line x1="12" y1="8" x2="12.01" y2="8"></line>
-          </svg>
-          <span>About Developer</span>
-        </button>
+        <div class="ach-header-buttons" style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap;">
+          <button class="btn btn-secondary ach-reset-trigger" id="ach-reset-btn" type="button"
+            title="Reset all progress and XP to zero">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round"
+              style="display:inline-block; vertical-align:middle; margin-right:4px;">
+              <polyline points="1 4 1 10 7 10"></polyline>
+              <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+            </svg>
+            <span>Reset Progress</span>
+          </button>
+          <button class="btn btn-secondary ach-about-trigger" onclick="openProfileModal()"
+            title="View Developer Details">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round"
+              style="display:inline-block; vertical-align:middle; margin-right:4px;">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="16" x2="12" y2="12"></line>
+              <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+            <span>About Developer</span>
+          </button>
+        </div>
       </div>
 
       <!-- Stats Grid -->
@@ -862,7 +785,7 @@
         <div class="cert-orbit cert-orbit-two" aria-hidden="true"></div>
         <div class="cert-topline">
           <div class="cert-brand"><img class="cert-brand-mark" src="img/logo.png" alt="Phanix logo"> PHANIX</div>
-          <span class="cert-recognition">PERSONAL RECOGNITION</span>
+          <span class="cert-recognition" id="cert-recognition-badge">VERIFIED CLOUD RECORD</span>
         </div>
         <div class="cert-achievement-mark" aria-hidden="true"><span>✦</span><i></i><span>✦</span></div>
         <p class="cert-kicker">Certificate of Completion</p>
@@ -874,15 +797,252 @@
           practical programming skills.</p>
         <div class="cert-footer">
           <div class="cert-meta"><span>COMPLETION DATE</span><strong id="cert-date">Pending completion</strong></div>
-          <div class="cert-footer-brand"><span class="cert-footer-line"></span><strong>PHANIX</strong><small>KEEP
-              BUILDING</small></div>
-          <div class="cert-meta"><span>RECOGNITION</span><strong>Personal achievement</strong></div>
+          <div class="cert-footer-brand"><span class="cert-footer-line"></span><strong>PHANIX</strong><small
+              id="cert-serial-tag">CERT ID: <span id="cert-serial-id">PHANIX-PENDING</span></small></div>
+          <div class="cert-meta"><span>ISSUED ACCOUNT</span><strong id="cert-account-email">Offline / Local</strong>
+          </div>
         </div>
         <p class="cert-disclaimer" id="cert-status">Complete every lesson and hands-on challenge to unlock your
           certificate.</p>
-        <button class="btn cert-download" id="cert-download-btn" type="button" disabled>🔒 Complete the course to
-          unlock</button>
+        <div class="cert-actions-row">
+          <button class="btn cert-download" id="cert-download-btn" type="button" disabled>🔒 Complete the course to
+            unlock</button>
+          <button class="btn cert-share-btn" id="cert-share-btn" type="button" style="display: none;">🔗 Share / Copy
+            Link</button>
+        </div>
       </section>
+
+      <!-- Featured Ecosystem Projects by Phaneendhar Nittala -->
+      <section class="profile-projects-section" style="margin-top: 3.5rem;">
+        <div
+          style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.8rem;">
+          <div>
+            <div
+              style="display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.12em; color: var(--apple-blue); text-transform: uppercase; margin-bottom: 0.25rem;">
+              <span>🚀</span> ECOSYSTEM PORTFOLIO
+            </div>
+            <h3 style="font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em; margin: 0 0 0.35rem;">Featured
+              Projects &amp; Security Suites</h3>
+            <p style="color: var(--text-secondary); margin: 0; font-size: 0.92rem;">Live production digital forensics
+              systems, incident investigation platforms, and cryptographic tools created by Phaneendhar Nittala.</p>
+          </div>
+        </div>
+
+        <div class="projects-showcase-grid">
+          <!-- Project 1: PHANIX Investigation Expert -->
+          <div class="project-showcase-card">
+            <div class="project-card-banner banner-expert">
+              <div class="project-badge-tag">Digital Forensics &amp; OSINT</div>
+              <div class="project-icon-circle">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                  <circle cx="12" cy="11" r="3"></circle>
+                </svg>
+              </div>
+            </div>
+            <div class="project-card-body">
+              <h3 class="project-title">PHANIX Investigation Expert</h3>
+              <p class="project-description">
+                An intelligent forensic investigation framework designed for digital investigators. Automates artifact
+                extraction, metadata parsing, threat intelligence correlation, and evidentiary integrity tracking.
+              </p>
+              <div class="project-tags-row">
+                <span class="ptag">Evidence Parsing</span>
+                <span class="ptag">Chain of Custody</span>
+                <span class="ptag">OSINT</span>
+                <span class="ptag">Vercel</span>
+              </div>
+              <div class="project-card-footer">
+                <span class="project-domain-url">p-h-a-n-i-x-investigation-e-xpert.vercel.app</span>
+                <a href="https://p-h-a-n-i-x-investigation-e-xpert.vercel.app/" class="btn btn-run project-launch-btn"
+                  target="_blank" rel="noopener">
+                  <span>Launch App</span>
+                  <span style="font-size: 1rem;">↗</span>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Project 2: Nittala Forensic Suite (Original Platform) -->
+          <div class="project-showcase-card project-card-flagship">
+            <div class="project-card-banner banner-suite">
+              <div class="project-badge-tag-wrap">
+                <span class="project-badge-subtag">My first project ⭐</span>
+              </div>
+              <div class="project-icon-circle">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                  <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                </svg>
+              </div>
+            </div>
+            <div class="project-card-body">
+              <div class="project-title-row">
+                <h3 class="project-title">Nittala Forensic Suite</h3>
+                <span class="project-status-dot" title="Live Platform">🟢 Live</span>
+              </div>
+              <p class="project-description">
+                Phaneendhar Nittala's classic cyber forensic platform. Built for real-time security incident response,
+                forensic memory extraction, malicious IP/IOC triage, and log integrity auditing for security analysts.
+              </p>
+              <div class="project-features-list">
+                <div class="pfeature"><span>✓</span> Real-Time Log Forensics &amp; Event Parser</div>
+                <div class="pfeature"><span>✓</span> Malicious IP, IOC &amp; Threat Intelligence</div>
+                <div class="pfeature"><span>✓</span> Memory Artifact &amp; Hex Analysis</div>
+              </div>
+              <div class="project-tags-row">
+                <span class="ptag">Incident Response</span>
+                <span class="ptag">Log Forensics</span>
+                <span class="ptag">Threat Analysis</span>
+                <span class="ptag">Memory Forensics</span>
+                <span class="ptag">Vercel</span>
+              </div>
+              <div class="project-card-footer">
+                <span class="project-domain-url">nittala-forensic-suite.vercel.app</span>
+                <div class="project-action-btns">
+                  <button type="button" class="btn btn-secondary copy-project-url"
+                    data-url="https://nittala-forensic-suite.vercel.app/" title="Copy Website Link">🔗 Copy
+                    Link</button>
+                  <a href="https://nittala-forensic-suite.vercel.app/" class="btn btn-run project-launch-btn"
+                    target="_blank" rel="noopener">
+                    <span>Launch Live App</span>
+                    <span style="font-size: 1rem;">↗</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Project 3: PHANIX Forensic QR Architect -->
+          <div class="project-showcase-card">
+            <div class="project-card-banner banner-qr">
+              <div class="project-badge-tag">⭐ Creator Flagship</div>
+              <div class="project-icon-circle">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="7" height="7"></rect>
+                  <rect x="14" y="3" width="7" height="7"></rect>
+                  <rect x="14" y="14" width="7" height="7"></rect>
+                  <rect x="3" y="14" width="7" height="7"></rect>
+                </svg>
+              </div>
+            </div>
+            <div class="project-card-body">
+              <h3 class="project-title">PHANIX Forensic QR Architect</h3>
+              <p class="project-description">
+                A high-precision forensic QR architecture tool supporting cryptographic payload generation, tamper
+                verification, Reed-Solomon error correction customization, and payload structural integrity analysis.
+              </p>
+              <div class="project-tags-row">
+                <span class="ptag">QR Architecture</span>
+                <span class="ptag">Cryptographic Hash</span>
+                <span class="ptag">Error Correction</span>
+                <span class="ptag">GitHub Pages</span>
+              </div>
+              <div class="project-card-footer">
+                <span class="project-domain-url">nphaneendhar.github.io/P.H.A.N.I.X-FORENSIC-QR-ARCHITECT</span>
+                <a href="https://nphaneendhar.github.io/P.H.A.N.I.X-FORENSIC-QR-ARCHITECT/"
+                  class="btn btn-run project-launch-btn" target="_blank" rel="noopener">
+                  <span>Launch App</span>
+                  <span style="font-size: 1rem;">↗</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- VIEW 7: ADMIN DASHBOARD (Protected, shown only to admins) -->
+    <div id="view-admin" class="view-panel" style="display: none;">
+      <div class="admin-dashboard-container">
+        <div class="admin-header">
+          <div>
+            <div class="admin-eyebrow">
+              <span class="admin-shield">🛡️</span>
+              <span>ADMIN CONSOLE</span>
+              <span class="admin-live-tag">LIVE FIRESTORE</span>
+            </div>
+            <h2 class="admin-title">Learner Management &amp; Platform Metrics</h2>
+            <p class="admin-subtitle">Monitoring learners, curriculum activity, and progress from your Firebase
+              database.</p>
+          </div>
+          <div class="admin-header-actions">
+            <button type="button" class="btn btn-secondary admin-refresh-btn" id="admin-refresh-btn"
+              title="Refresh learner list">
+              <span>↻ Refresh Data</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Metric Stat Cards -->
+        <div class="admin-metrics-grid">
+          <div class="admin-metric-card">
+            <div class="admin-metric-icon">👥</div>
+            <div class="admin-metric-data">
+              <span class="admin-metric-value" id="admin-stat-users">0</span>
+              <span class="admin-metric-label">Registered Learners</span>
+            </div>
+          </div>
+          <div class="admin-metric-card">
+            <div class="admin-metric-icon">⚡</div>
+            <div class="admin-metric-data">
+              <span class="admin-metric-value" id="admin-stat-xp">0</span>
+              <span class="admin-metric-label">Total Platform XP</span>
+            </div>
+          </div>
+          <div class="admin-metric-card">
+            <div class="admin-metric-icon">🏆</div>
+            <div class="admin-metric-data">
+              <span class="admin-metric-value" id="admin-stat-lessons">0</span>
+              <span class="admin-metric-label">Completed Lessons</span>
+            </div>
+          </div>
+          <div class="admin-metric-card">
+            <div class="admin-metric-icon">🔥</div>
+            <div class="admin-metric-data">
+              <span class="admin-metric-value" id="admin-stat-streak">0</span>
+              <span class="admin-metric-label">Highest Streak</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Learners Table Area -->
+        <div class="admin-table-card">
+          <div class="admin-table-toolbar">
+            <div class="admin-search-wrap">
+              <span class="admin-search-icon">🔍</span>
+              <input type="text" class="admin-search-input" id="admin-user-search"
+                placeholder="Search by name, email, or UID...">
+            </div>
+            <div class="admin-count-pill" id="admin-table-count">Showing 0 learners</div>
+          </div>
+
+          <div class="admin-table-responsive">
+            <table class="admin-table" id="admin-learners-table">
+              <thead>
+                <tr>
+                  <th>Learner</th>
+                  <th>Email</th>
+                  <th>XP</th>
+                  <th>Streak</th>
+                  <th>Completed Lessons</th>
+                  <th>Certificate</th>
+                  <th>Last Active</th>
+                  <th>UID</th>
+                </tr>
+              </thead>
+              <tbody id="admin-learners-tbody">
+                <tr>
+                  <td colspan="8" class="admin-loading-row">Loading learners from Firestore...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
   </main>
 
@@ -894,51 +1054,24 @@
       <button class="profile-modal-close" id="profile-modal-close" onclick="closeProfileModal()" title="Close"
         aria-label="Close">✕</button>
 
-      <!-- Profile Header -->
+      <!-- Profile Header with Clear Photo -->
       <div class="about-modal-header">
-        <button class="about-profile-mark" id="about-photo-trigger" type="button" title="View Phaneendhar's photo"
-          aria-label="View a larger photo of Phaneendhar Nittala">
-          <img src="img/phani.png" alt="Phaneendhar Nittala" class="about-logo-img">
-          <span class="about-online-dot" aria-label="Available to connect"></span>
-          <span class="about-photo-cta"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M15 3h6v6M21 3l-7 7M9 21H3v-6M3 21l7-7"></path>
-            </svg><span>View photo</span></span>
-        </button>
-        <span class="about-eyebrow">Creator of Phanix</span>
-        <h2 class="about-name">Phaneendhar Nittala</h2>
-        <div class="about-role-row">
-          <span>Python education</span><i aria-hidden="true"></i><span>Digital forensics</span>
+        <div class="about-avatar-container">
+          <picture>
+            <source srcset="img/phani.webp" type="image/webp">
+            <img src="img/phani.png" alt="Phaneendhar Nittala" class="about-avatar-img">
+          </picture>
         </div>
+        <span class="about-eyebrow">Creator of PHANIX &amp; Lead Developer</span>
+        <h2 class="about-name">Phaneendhar Nittala</h2>
+        <h3>M.Sc Digital Forensic&Cybersecurity</h3>
         <p class="about-mission">
-          Dedicated to building hands-on educational platforms in Python programming, digital forensics, and cyber
-          security architecture.
+          Rooted in science, driven by curiosity, and self-taught in technology—turning a passion for discovery into
+          creations that make a difference.
         </p>
+
       </div>
 
-      <!-- Educational Pillars / Domains -->
-      <div class="about-section-heading">Core Focus Areas</div>
-      <div class="about-domains-row">
-        <span class="about-domain-pill">Digital Forensics</span>
-        <span class="about-domain-pill">Python Scripting</span>
-        <span class="about-domain-pill">Cryptography</span>
-        <span class="about-domain-pill">Threat Analysis</span>
-      </div>
-
-      <!-- Featured Platforms -->
-      <div class="about-section-heading">Featured Security Platforms</div>
-      <div class="about-platforms-row">
-        <a href="https://nittala-forensic-suite.vercel.app/" target="_blank" rel="noopener"
-          class="about-platform-btn suite">
-          <span class="about-platform-title">🛡️ Nittala Forensic Suite (Original)</span>
-          <span class="about-platform-arrow">↗</span>
-        </a>
-        <a href="https://p-h-a-n-i-x-phaneendhar-s-investigation-expert.vercel.app/" target="_blank" rel="noopener"
-          class="about-platform-btn expert">
-          <span class="about-platform-title">🔍 Investigation Expert</span>
-          <span class="about-platform-arrow">↗</span>
-        </a>
-      </div>
 
       <!-- Social Media Accounts with SVG Icons -->
       <div class="about-section-heading">Social &amp; Connect</div>
@@ -972,22 +1105,6 @@
           </div>
         </a>
 
-        <a href="https://www.instagram.com/phani.49" class="about-social-card instagram" target="_blank" rel="noopener"
-          title="Instagram Profile">
-          <div class="about-social-icon-box">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round">
-              <rect width="20" height="20" x="2" y="2" rx="5" ry="5"></rect>
-              <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-              <line x1="17.5" x2="17.51" y1="6.5" y2="6.5"></line>
-            </svg>
-          </div>
-          <div class="about-social-text">
-            <span class="about-social-name">Instagram</span>
-            <span class="about-social-handle">@phani.49</span>
-          </div>
-        </a>
-
         <a href="https://github.com/nphaneendhar" class="about-social-card github" target="_blank" rel="noopener"
           title="GitHub Profile">
           <div class="about-social-icon-box">
@@ -1003,24 +1120,207 @@
         </a>
       </div>
 
+      <!-- Creator's Production Projects -->
+      <div class="about-section-heading" style="margin-top: 1.6rem;">Featured Security Suites</div>
+      <div class="about-projects-list" style="display: flex; flex-direction: column; gap: 0.65rem; margin-top: 0.6rem;">
+        <a href="https://p-h-a-n-i-x-investigation-e-xpert.vercel.app/" target="_blank" rel="noopener"
+          style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); text-decoration: none; color: inherit; transition: all 0.2s ease;">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <span style="font-size: 1.25rem;">🛡️</span>
+            <div>
+              <strong style="display: block; font-size: 0.88rem; color: var(--text-primary);">PHANIX Investigation
+                Expert</strong>
+              <small style="color: var(--text-muted); font-size: 0.76rem;">OSINT &amp; Forensics Framework</small>
+            </div>
+          </div>
+          <span style="color: var(--apple-blue); font-weight: 700; font-size: 0.85rem;">Launch ↗</span>
+        </a>
+
+        <a href="https://nittala-forensic-suite.vercel.app/" target="_blank" rel="noopener"
+          style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); text-decoration: none; color: inherit; transition: all 0.2s ease;">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <span style="font-size: 1.25rem;">⭐</span>
+            <div>
+              <strong style="display: block; font-size: 0.88rem; color: var(--text-primary);">Nittala Forensic
+                Suite</strong>
+              <small style="color: var(--text-muted); font-size: 0.76rem;">Original Platform • Incident Response</small>
+            </div>
+          </div>
+          <span style="color: var(--apple-blue); font-weight: 700; font-size: 0.85rem;">Launch ↗</span>
+        </a>
+
+        <a href="https://nphaneendhar.github.io/P.H.A.N.I.X-FORENSIC-QR-ARCHITECT/" target="_blank" rel="noopener"
+          style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1rem; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); text-decoration: none; color: inherit; transition: all 0.2s ease;">
+          <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <span style="font-size: 1.25rem;">📐</span>
+            <div>
+              <strong style="display: block; font-size: 0.88rem; color: var(--text-primary);">PHANIX Forensic QR
+                Architect</strong>
+              <small style="color: var(--text-muted); font-size: 0.76rem;">Cryptographic QR &amp; Steganography</small>
+            </div>
+          </div>
+          <span style="color: var(--apple-blue); font-weight: 700; font-size: 0.85rem;">Launch ↗</span>
+        </a>
+      </div>
     </div>
   </div>
 
-  <!-- Full-size creator photo viewer -->
-  <div class="photo-viewer-overlay" id="photo-viewer-overlay" role="dialog" aria-modal="true"
-    aria-label="Photo of Phaneendhar Nittala" aria-hidden="true">
-    <div class="photo-viewer-card">
-      <button class="photo-viewer-close" id="photo-viewer-close" type="button" aria-label="Close photo">✕</button>
-      <img src="img/phani.png" alt="Phaneendhar Nittala">
-      <p>Phaneendhar Nittala <span>Creator of Phanix</span></p>
+  <!-- Full-Screen Starting Portal & Authentication Screen -->
+  <div class="auth-screen" id="auth-screen" role="dialog" aria-modal="true" aria-label="Welcome to Phanix Portal">
+    <!-- Ambient glowing backdrop lighting -->
+    <div class="auth-ambient-glow auth-glow-1"></div>
+    <div class="auth-ambient-glow auth-glow-2"></div>
+    <div class="auth-grid-overlay"></div>
+
+    <!-- Dismiss Button (Only displayed when opened manually by an active/guest session) -->
+    <button class="auth-screen-close" id="auth-modal-close" type="button" aria-label="Dismiss and return to lab"
+      style="display: none;" title="Return to lab">✕</button>
+
+    <div class="auth-screen-wrapper">
+      <div class="auth-screen-container">
+        <!-- Left Hero Column: Brand, Vision, Highlights -->
+        <div class="auth-hero-column">
+          <div class="auth-hero-badge">
+            <span class="auth-hero-dot"></span>
+            <span>PHANIX PYTHON LAB</span>
+          </div>
+
+          <div class="auth-hero-brand">
+            <img src="img/logo.png" alt="Phanix Logo" class="auth-hero-logo">
+            <div class="auth-hero-brand-text">
+              <h1 class="auth-hero-title">PHANIX</h1>
+              <span class="auth-hero-subtitle">Interactive Python &amp; Forensics</span>
+            </div>
+          </div>
+
+          <h2 class="auth-hero-tagline">Master Python Programming &amp; Digital Forensics from Scratch.</h2>
+          <p class="auth-hero-desc">
+            Step into a live forensic lab. Execute real Python code directly in your browser, solve dynamic
+            investigative
+            challenges, and track your daily streak.
+          </p>
+
+          <!-- Feature Highlight Cards -->
+          <div class="auth-highlights-list">
+            <div class="auth-highlight-card">
+              <div class="auth-highlight-icon">⚡</div>
+              <div class="auth-highlight-info">
+                <span class="auth-highlight-title">Zero-Lag In-Browser IDE</span>
+                <span class="auth-highlight-desc">High-speed Python runner with instant stdout and automated test
+                  evaluation</span>
+              </div>
+            </div>
+
+            <div class="auth-highlight-card">
+              <div class="auth-highlight-icon">🛡️</div>
+              <div class="auth-highlight-info">
+                <span class="auth-highlight-title">50+ Digital Forensics Labs</span>
+                <span class="auth-highlight-desc">Packet analyzers, hash verifiers, hex parsers, and cipher
+                  decoders</span>
+              </div>
+            </div>
+
+            <div class="auth-highlight-card">
+              <div class="auth-highlight-icon">🔥</div>
+              <div class="auth-highlight-info">
+                <span class="auth-highlight-title">Cloud XP &amp; Day Streaks</span>
+                <span class="auth-highlight-desc">Daily streak tracking, milestone badges, and verified graduation
+                  certificate</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Authentication Card (Wider & Cool UI) -->
+        <div class="auth-card-column">
+          <div class="auth-screen-card">
+            <div class="auth-card-header">
+              <div class="auth-card-pill">SECURE PORTAL ACCESS</div>
+              <h3 class="auth-card-title" id="auth-modal-title">Sign in to Phanix</h3>
+              <p class="auth-card-subtitle" id="auth-modal-subtitle">Save your XP, track your daily streak, and unlock
+                the interactive forensic lab</p>
+            </div>
+
+            <!-- Tab Toggle (Sign In / Sign Up) -->
+            <div class="auth-tabs">
+              <button type="button" class="auth-tab-btn active" id="tab-login-btn">Sign In</button>
+              <button type="button" class="auth-tab-btn" id="tab-signup-btn">Create Account</button>
+            </div>
+
+            <!-- Auth Error / Success Alert -->
+            <div class="auth-alert" id="auth-alert" style="display: none;"></div>
+
+            <!-- Auth Form -->
+            <form class="auth-form" id="auth-form">
+              <div class="auth-field-group" id="auth-name-group" style="display: none;">
+                <label for="auth-name-input">Your Full Name</label>
+                <input type="text" id="auth-name-input" placeholder="e.g. Phani Nittala" autocomplete="name">
+              </div>
+
+              <div class="auth-field-group">
+                <label for="auth-email-input">Email Address</label>
+                <input type="email" id="auth-email-input" placeholder="you@example.com" required autocomplete="email">
+              </div>
+
+              <div class="auth-field-group">
+                <div class="auth-field-header">
+                  <label for="auth-password-input">Password</label>
+                  <a href="#" class="auth-forgot-link" id="auth-forgot-link">Forgot?</a>
+                </div>
+                <input type="password" id="auth-password-input" placeholder="••••••••" required
+                  autocomplete="current-password" minlength="6">
+              </div>
+
+              <button type="submit" class="auth-submit-btn" id="auth-submit-btn">
+                <span id="auth-submit-text">Sign In to Lab</span>
+                <span class="auth-spinner" id="auth-spinner" style="display: none;"></span>
+              </button>
+            </form>
+
+            <div class="auth-divider">
+              <span>or continue with</span>
+            </div>
+
+            <!-- Google Sign In Button -->
+            <button type="button" class="google-auth-btn" id="google-auth-btn">
+              <svg class="google-icon" viewBox="0 0 24 24" width="18" height="18">
+                <path fill="#4285F4"
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                <path fill="#34A853"
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                <path fill="#FBBC05"
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                <path fill="#EA4335"
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+              </svg>
+              <span>Continue with Google</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Down: Centered Footer Credit with Engineered by Phaneendhar Nittala • Powered by PHANIX -->
+      <div class="auth-screen-footer">
+        <div class="auth-footer-credit-badge">
+          <span class="auth-creator-dot"></span>
+          <span class="auth-credit-text">Engineered by <strong>Phaneendhar Nittala</strong></span>
+          <span class="auth-credit-divider">•</span>
+          <span class="auth-credit-powered">Powered by <strong>PHANIX</strong></span>
+        </div>
+      </div>
     </div>
   </div>
 
   <!-- Toast Notification Container -->
   <div class="toast-container" id="toast-container"></div>
 
+  <!-- Firebase SDK — defer so they don't block page render -->
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
   <!-- Application Logic -->
-  <script src="js/app.js?v=4.9"></script>
+  <script defer src="js/app.js?v=6.2"></script>
 </body>
 
 </html>

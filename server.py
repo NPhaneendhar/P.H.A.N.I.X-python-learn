@@ -12,6 +12,8 @@ import sys
 import subprocess
 import time
 import tempfile
+import gzip
+import io
 from urllib.parse import urlparse
 
 PORT = int(os.environ.get("PORT", 8000))
@@ -19,15 +21,68 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 STATIC_DIR = os.path.join(BASE_DIR, "static")
 DATA_DIR = os.path.join(BASE_DIR, "data")
 
+# Max payload size for code execution (50 KB)
+MAX_CODE_SIZE = 50 * 1024
+
+# Allowed origins for CORS (localhost variants for dev + your production domain)
+ALLOWED_ORIGINS = {
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+    "http://localhost",
+    "http://127.0.0.1",
+}
+
+# In-memory cache for instant responses (loaded once, zero disk wait)
+_CACHE = {}
+
+def get_cached_json(filepath):
+    if filepath not in _CACHE:
+        with open(filepath, "r", encoding="utf-8") as f:
+            _CACHE[filepath] = json.load(f)
+    return _CACHE[filepath]
+
 class PyLearnRequestHandler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=STATIC_DIR, **kwargs)
 
     def end_headers(self):
-        self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
-        self.send_header("Pragma", "no-cache")
-        self.send_header("Expires", "0")
+        # Cache-Control: images/fonts cached 7 days, JS/CSS revalidated, HTML never cached
+        path = getattr(self, "path", "").split("?")[0]  # strip query params
+        if any(path.endswith(ext) for ext in [".png", ".jpg", ".jpeg", ".ico", ".svg",
+                                               ".woff2", ".woff", ".webp"]):
+            self.send_header("Cache-Control", "public, max-age=604800")  # 7 days
+        elif any(path.endswith(ext) for ext in [".css", ".js"]):
+            self.send_header("Cache-Control", "no-cache, max-age=0, must-revalidate")
+        else:
+            self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
+            self.send_header("Pragma", "no-cache")
+            self.send_header("Expires", "0")
         super().end_headers()
+
+    # ── Gzip Compression ─────────────────────────────────────────────────────
+    _GZIP_TYPES = (".html", ".js", ".css", ".json", ".svg", ".txt", ".webmanifest")
+
+    def _accepts_gzip(self):
+        return "gzip" in self.headers.get("Accept-Encoding", "")
+
+    def _serve_gzipped(self, file_path, content_type):
+        """Read a file, gzip it, and send with correct headers."""
+        try:
+            with open(file_path, "rb") as f:
+                raw = f.read()
+            buf = io.BytesIO()
+            with gzip.GzipFile(fileobj=buf, mode="wb", compresslevel=6) as gz:
+                gz.write(raw)
+            compressed = buf.getvalue()
+            self.send_response(200)
+            self.send_header("Content-Type", content_type)
+            self.send_header("Content-Encoding", "gzip")
+            self.send_header("Content-Length", str(len(compressed)))
+            self.send_header("Vary", "Accept-Encoding")
+            self.end_headers()
+            self.wfile.write(compressed)
+        except FileNotFoundError:
+            self.send_error(404, "File not found")
 
     def do_GET(self):
         parsed_path = urlparse(self.path)
@@ -35,7 +90,7 @@ class PyLearnRequestHandler(http.server.SimpleHTTPRequestHandler):
 
         if path == "/" or path == "":
             self.path = "/index.html"
-            return super().do_GET()
+            path = "/index.html"
 
         if path == "/api/curriculum":
             self.handle_api_curriculum()
@@ -45,7 +100,26 @@ class PyLearnRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_api_cheatsheet()
             return
 
-        # Serve static files from static directory
+        # Gzip-compress text assets if browser supports it
+        if self._accepts_gzip() and any(path.endswith(ext) for ext in self._GZIP_TYPES):
+            # Map URL path to filesystem path (strip leading /)
+            rel = path.lstrip("/")
+            fs_path = os.path.join(STATIC_DIR, rel)
+            if os.path.isfile(fs_path):
+                ext = os.path.splitext(path)[1]
+                ctype_map = {
+                    ".html": "text/html; charset=utf-8",
+                    ".js":   "application/javascript; charset=utf-8",
+                    ".css":  "text/css; charset=utf-8",
+                    ".json": "application/json; charset=utf-8",
+                    ".svg":  "image/svg+xml; charset=utf-8",
+                    ".txt":  "text/plain; charset=utf-8",
+                    ".webmanifest": "application/manifest+json; charset=utf-8",
+                }
+                self._serve_gzipped(fs_path, ctype_map.get(ext, "text/plain"))
+                return
+
+        # Fallback: serve static files normally
         return super().do_GET()
 
     def do_POST(self):
@@ -65,8 +139,7 @@ class PyLearnRequestHandler(http.server.SimpleHTTPRequestHandler):
     def handle_api_curriculum(self):
         try:
             curr_file = os.path.join(DATA_DIR, "curriculum.json")
-            with open(curr_file, "r", encoding="utf-8") as f:
-                data = json.load(f)
+            data = get_cached_json(curr_file)
             self.send_json_response(200, data)
         except Exception as e:
             self.send_json_response(500, {"error": str(e)})
@@ -74,8 +147,7 @@ class PyLearnRequestHandler(http.server.SimpleHTTPRequestHandler):
     def handle_api_cheatsheet(self):
         try:
             sheet_file = os.path.join(DATA_DIR, "cheatsheet.json")
-            with open(sheet_file, "r", encoding="utf-8") as f:
-                data = json.load(f)
+            data = get_cached_json(sheet_file)
             self.send_json_response(200, data)
         except Exception as e:
             self.send_json_response(500, {"error": str(e)})
@@ -83,6 +155,9 @@ class PyLearnRequestHandler(http.server.SimpleHTTPRequestHandler):
     def handle_api_run(self):
         try:
             content_length = int(self.headers.get("Content-Length", 0))
+            if content_length > MAX_CODE_SIZE:
+                self.send_json_response(413, {"error": "Payload too large. Max code size is 50 KB."})
+                return
             post_data = self.rfile.read(content_length).decode("utf-8")
             body = json.loads(post_data) if post_data else {}
             code = body.get("code", "")
@@ -96,6 +171,9 @@ class PyLearnRequestHandler(http.server.SimpleHTTPRequestHandler):
     def handle_api_test(self):
         try:
             content_length = int(self.headers.get("Content-Length", 0))
+            if content_length > MAX_CODE_SIZE:
+                self.send_json_response(413, {"error": "Payload too large. Max code size is 50 KB."})
+                return
             post_data = self.rfile.read(content_length).decode("utf-8")
             body = json.loads(post_data) if post_data else {}
             code = body.get("code", "")
@@ -103,8 +181,7 @@ class PyLearnRequestHandler(http.server.SimpleHTTPRequestHandler):
             stdin_input = body.get("input") if body.get("input") is not None else body.get("stdin", "")
 
             curr_file = os.path.join(DATA_DIR, "curriculum.json")
-            with open(curr_file, "r", encoding="utf-8") as f:
-                modules = json.load(f)
+            modules = get_cached_json(curr_file)
 
             target_lesson = None
             for mod in modules:
@@ -204,12 +281,23 @@ class PyLearnRequestHandler(http.server.SimpleHTTPRequestHandler):
             except OSError:
                 pass
 
+    def _get_allowed_origin(self):
+        """Return the request's Origin if it's in the allowed list, else the first localhost."""
+        origin = self.headers.get("Origin", "")
+        if origin in ALLOWED_ORIGINS:
+            return origin
+        # Allow any port on localhost for convenience during development
+        if origin.startswith("http://localhost:") or origin.startswith("http://127.0.0.1:"):
+            return origin
+        # Fallback: allow only localhost default for unknown origins
+        return "http://localhost:8000"
+
     def send_json_response(self, status_code: int, data: dict):
         response_bytes = json.dumps(data, indent=2).encode("utf-8")
         self.send_response(status_code)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(response_bytes)))
-        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Origin", self._get_allowed_origin())
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
         self.end_headers()
@@ -217,7 +305,7 @@ class PyLearnRequestHandler(http.server.SimpleHTTPRequestHandler):
 
     def do_OPTIONS(self):
         self.send_response(204)
-        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Origin", self._get_allowed_origin())
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
         self.end_headers()

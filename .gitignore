@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Environment / Secrets — NEVER commit these
+.env
+.env.*
+*.env
+serviceAccount*.json
+firebase-adminsdk*.json
+*credentials*.json
+*secret*.json
+
+# LibreOffice / MS Office lock files
+.~lock.*
+~$*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Docker
+.dockerignore
+
+# Scratch / generated files
+scratch/

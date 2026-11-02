@@ -3,6 +3,23 @@
  * Client Application Logic
  */
 
+// URL-based Reset Check (e.g. visit /?reset=true to start fresh)
+if (new URLSearchParams(window.location.search).has('reset')) {
+  [
+    'pylearn_xp',
+    'pylearn_streak',
+    'pylearn_last_streak_date',
+    'pylearn_completed_lessons',
+    'pylearn_completed_quizzes',
+    'pylearn_completed_challenges',
+    'pylearn_badges',
+    'pylearn_user_codes',
+    'pylearn_playground_code',
+    'pylearn_current_lesson'
+  ].forEach(k => localStorage.removeItem(k));
+  window.history.replaceState({}, document.title, window.location.pathname);
+}
+
 // Application State
 const state = {
   modules: [],
@@ -18,7 +35,10 @@ const state = {
   theme: localStorage.getItem('pylearn_theme') || 'dark',
   learnerName: localStorage.getItem('pylearn_name') || 'Your Name',
   layoutMode: localStorage.getItem('pylearn_layout_mode') || 'split',
-  fontSize: parseInt(localStorage.getItem('pylearn_font_size') || '15', 10)
+  fontSize: parseInt(localStorage.getItem('pylearn_font_size') || '15', 10),
+  certificateUnlocked: localStorage.getItem('pylearn_cert_unlocked') === 'true',
+  certificateId: localStorage.getItem('pylearn_cert_id') || null,
+  certificateCompletedOn: localStorage.getItem('pylearn_cert_completed_on') || null
 };
 
 // Playground Preset Templates
@@ -413,19 +433,76 @@ const elements = {
   achChallenges: document.getElementById('ach-challenges'),
   achQuizzes: document.getElementById('ach-quizzes'),
   badgesGrid: document.getElementById('badges-grid'),
+  certBox: document.getElementById('certificate-box'),
+  certRecognitionBadge: document.getElementById('cert-recognition-badge'),
   certLearnerName: document.getElementById('cert-learner-name'),
   certDate: document.getElementById('cert-date'),
+  certSerialId: document.getElementById('cert-serial-id'),
+  certAccountEmail: document.getElementById('cert-account-email'),
   certDownloadBtn: document.getElementById('cert-download-btn'),
+  certShareBtn: document.getElementById('cert-share-btn'),
   certStatus: document.getElementById('cert-status'),
 
   // Toast & Confetti
   toastContainer: document.getElementById('toast-container'),
-  confettiCanvas: document.getElementById('confetti-canvas')
+  confettiCanvas: document.getElementById('confetti-canvas'),
+
+  // Auth Elements
+  userAuthWrapper: document.getElementById('user-auth-wrapper'),
+  authBtnLogin: document.getElementById('auth-btn-login'),
+  userPill: document.getElementById('user-pill'),
+  userAvatar: document.getElementById('user-avatar'),
+  userName: document.getElementById('user-name'),
+  adminBadgeTag: document.getElementById('admin-badge-tag'),
+  userDropdownMenu: document.getElementById('user-dropdown-menu'),
+  userDropdownAvatar: document.getElementById('user-dropdown-avatar'),
+  userDropdownName: document.getElementById('user-dropdown-name'),
+  userDropdownEmail: document.getElementById('user-dropdown-email'),
+  userDropdownRoleTag: document.getElementById('user-dropdown-role-tag'),
+  userDropdownXp: document.getElementById('user-dropdown-xp'),
+  userDropdownStreak: document.getElementById('user-dropdown-streak'),
+  userDropdownLessons: document.getElementById('user-dropdown-lessons'),
+  userDropdownProfileBtn: document.getElementById('user-dropdown-profile-btn'),
+  userDropdownCertBtn: document.getElementById('user-dropdown-cert-btn'),
+  userDropdownAdminBtn: document.getElementById('user-dropdown-admin-btn'),
+  authBtnLogout: document.getElementById('auth-btn-logout'),
+  authScreen: document.getElementById('auth-screen'),
+  authModalOverlay: document.getElementById('auth-screen') || document.getElementById('auth-modal-overlay'),
+  authModalClose: document.getElementById('auth-modal-close'),
+  authModalTitle: document.getElementById('auth-modal-title'),
+  authModalSubtitle: document.getElementById('auth-modal-subtitle'),
+  tabLoginBtn: document.getElementById('tab-login-btn'),
+  tabSignupBtn: document.getElementById('tab-signup-btn'),
+  authAlert: document.getElementById('auth-alert'),
+  authForm: document.getElementById('auth-form'),
+  authNameGroup: document.getElementById('auth-name-group'),
+  authNameInput: document.getElementById('auth-name-input'),
+  authEmailInput: document.getElementById('auth-email-input'),
+  authPasswordInput: document.getElementById('auth-password-input'),
+  authForgotLink: document.getElementById('auth-forgot-link'),
+  authSubmitBtn: document.getElementById('auth-submit-btn'),
+  authSubmitText: document.getElementById('auth-submit-text'),
+  authSpinner: document.getElementById('auth-spinner'),
+  googleAuthBtn: document.getElementById('google-auth-btn'),
+  authGuestBtn: document.getElementById('auth-guest-btn'),
+
+  // Admin Elements
+  navItemAdmin: document.getElementById('nav-item-admin'),
+  navBtnAdmin: document.getElementById('nav-btn-admin'),
+  adminRefreshBtn: document.getElementById('admin-refresh-btn'),
+  adminStatUsers: document.getElementById('admin-stat-users'),
+  adminStatXp: document.getElementById('admin-stat-xp'),
+  adminStatLessons: document.getElementById('admin-stat-lessons'),
+  adminStatStreak: document.getElementById('admin-stat-streak'),
+  adminUserSearch: document.getElementById('admin-user-search'),
+  adminTableCount: document.getElementById('admin-table-count'),
+  adminLearnersTbody: document.getElementById('admin-learners-tbody')
 };
 
 // Initialize Application
 async function initApp() {
   applyTheme(state.theme);
+  updateDailyStreak();
   updateHeaderStats();
   applyFontSize(state.fontSize || 15);
   setupEventListeners();
@@ -458,6 +535,9 @@ async function initApp() {
     const savedLesson = localStorage.getItem('pylearn_current_lesson');
     const firstLesson = state.modules[0]?.lessons[0]?.id;
     selectLesson(savedLesson || firstLesson || 'lesson-1-1');
+
+    // Initialize Firebase Auth & Admin Check
+    initFirebase();
   } catch (err) {
     console.error('Initialization error:', err);
     showToast('Failed to load curriculum data. Please refresh.', 'error');
@@ -902,6 +982,12 @@ function setupEventListeners() {
     elements.certDownloadBtn.addEventListener('click', () => window.print());
   }
 
+  // Reset Progress Button in Profile
+  const achResetBtn = document.getElementById('ach-reset-btn');
+  if (achResetBtn) {
+    achResetBtn.addEventListener('click', () => window.resetAllProgress());
+  }
+
   // Social Links Persistence
   const socialFields = ['gmail', 'linkedin', 'insta', 'github'];
   socialFields.forEach(field => {
@@ -978,6 +1064,14 @@ function switchView(targetId) {
 
   if (elements.layoutPresetSwitcher) {
     elements.layoutPresetSwitcher.classList.toggle('hidden', targetId !== 'view-learn');
+  }
+
+  if (targetId === 'view-admin') {
+    if (!currentUserIsAdmin) {
+      showToast('🔒 Admin access required.', 'error');
+      return;
+    }
+    loadAdminDashboard();
   }
 
   if (targetId === 'view-learn') {
@@ -1429,7 +1523,7 @@ function parseMarkdownToHtml(md) {
           <span class="code-lang-label">🐍 Python Example</span>
           <button class="try-code-btn" onclick="insertCodeIntoEditor(this)">▶ Try in Editor</button>
         </div>
-        <pre><code class="python-code">${cleanCode}</code></pre>
+        <pre><code class="python-code">${escapeHTML(cleanCode)}</code></pre>
         <div class="example-explainer">
           <strong>Understand this example:</strong>
           <span>1. Python starts at the first line, then runs each line below it.</span>
@@ -1445,7 +1539,7 @@ function parseMarkdownToHtml(md) {
           <span class="code-lang-label">Code</span>
           <button class="try-code-btn" onclick="insertCodeIntoEditor(this)">▶ Try in Editor</button>
         </div>
-        <pre><code>${cleanCode}</code></pre>
+        <pre><code>${escapeHTML(cleanCode)}</code></pre>
         <div class="example-explainer">
           <strong>Understand this example:</strong>
           <span>1. Read the code from the first line to the last line.</span>
@@ -1542,15 +1636,20 @@ function recordCodeCompletion() {
     newlyCompletedChallenge = true;
   }
 
-  if (!newlyCompleted) return;
+  if (!newlyCompleted) {
+    syncCurrentUserProgress();
+    return;
+  }
 
   addXP(lesson.xp || 60);
+  updateDailyStreak();
   if (newlyCompletedChallenge) checkBadgeUnlock('first_challenge');
   renderCurriculumTree();
   renderChallengesCatalog();
   renderAchievements();
   elements.lessonCompletedTag.style.display = 'inline';
   checkAllProgress();
+  syncCurrentUserProgress();
   showToast(`✓ Lesson completed! +${lesson.xp || 60} XP earned.`, 'success');
 }
 
@@ -2283,6 +2382,7 @@ function checkBadgeUnlock(badgeId) {
   localStorage.setItem('pylearn_badges', JSON.stringify(state.unlockedBadges));
   showToast(`🎖️ Achievement Unlocked: ${badge.title}!`, 'badge-unlock');
   renderAchievements();
+  syncCurrentUserProgress();
 }
 
 function checkAllProgress() {
@@ -2317,27 +2417,69 @@ function updateCertificateStatus(lessonTotal, challengeTotal) {
   }, { lessons: 0, challenges: 0 });
   const requiredLessons = lessonTotal ?? totals.lessons;
   const requiredChallenges = challengeTotal ?? totals.challenges;
-  const isComplete = requiredLessons > 0
+  const isComplete = (requiredLessons > 0
     && state.completedLessons.length >= requiredLessons
-    && state.completedChallenges.length >= requiredChallenges;
+    && state.completedChallenges.length >= requiredChallenges)
+    || Boolean(state.certificateUnlocked);
 
   if (isComplete) {
-    let completedOn = localStorage.getItem('pylearn_certificate_completed_on');
+    let completedOn = state.certificateCompletedOn || localStorage.getItem('pylearn_certificate_completed_on');
     if (!completedOn) {
       completedOn = new Date().toISOString();
+      state.certificateCompletedOn = completedOn;
       localStorage.setItem('pylearn_certificate_completed_on', completedOn);
+      localStorage.setItem('pylearn_cert_completed_on', completedOn);
     }
+
+    // Determine or generate unique Certificate Serial ID (e.g., PHANIX-PY-A1B2C3D4-2026)
+    let serialId = state.certificateId || localStorage.getItem('pylearn_cert_id');
+    if (!serialId) {
+      const userSeed = currentUser ? currentUser.uid.substring(0, 8).toUpperCase() : Math.random().toString(36).substring(2, 8).toUpperCase();
+      const year = new Date(completedOn).getFullYear() || 2026;
+      serialId = `PHANIX-PY-${userSeed}-${year}`;
+      state.certificateId = serialId;
+      localStorage.setItem('pylearn_cert_id', serialId);
+    }
+
+    state.certificateUnlocked = true;
+    localStorage.setItem('pylearn_cert_unlocked', 'true');
+
     elements.certDate.textContent = new Intl.DateTimeFormat(undefined, {
       day: 'numeric', month: 'long', year: 'numeric'
     }).format(new Date(completedOn));
-    elements.certStatus.textContent = 'Unlocked — a personal recognition from Phanix for completing the full learning journey.';
+
+    if (elements.certSerialId) {
+      elements.certSerialId.textContent = serialId;
+    }
+    if (elements.certAccountEmail) {
+      elements.certAccountEmail.textContent = currentUser ? currentUser.email : (state.learnerName || 'Personal Local Profile');
+    }
+    if (elements.certRecognitionBadge) {
+      elements.certRecognitionBadge.textContent = currentUser ? 'VERIFIED CLOUD RECORD' : 'LOCAL COMPLETION RECORD';
+    }
+
+    elements.certStatus.textContent = 'Unlocked — official recognition from Phanix Cloud permanently linked to your account.';
     elements.certDownloadBtn.disabled = false;
     elements.certDownloadBtn.textContent = '↓ Download certificate';
+
+    if (elements.certShareBtn) {
+      elements.certShareBtn.style.display = 'inline-flex';
+    }
   } else {
     elements.certDate.textContent = 'Pending completion';
     elements.certStatus.textContent = `Complete all ${requiredLessons} lessons and ${requiredChallenges} hands-on challenges to unlock your certificate.`;
     elements.certDownloadBtn.disabled = true;
     elements.certDownloadBtn.textContent = '🔒 Complete the course to unlock';
+
+    if (elements.certSerialId) {
+      elements.certSerialId.textContent = 'PHANIX-PENDING';
+    }
+    if (elements.certAccountEmail) {
+      elements.certAccountEmail.textContent = currentUser ? currentUser.email : 'Local Account';
+    }
+    if (elements.certShareBtn) {
+      elements.certShareBtn.style.display = 'none';
+    }
   }
 }
 
@@ -2346,11 +2488,82 @@ function addXP(points) {
   state.xp += points;
   localStorage.setItem('pylearn_xp', state.xp.toString());
   updateHeaderStats();
+  syncCurrentUserProgress();
+}
+
+function syncCurrentUserProgress() {
+  if (!currentUser || !db) return;
+  db.collection('users').doc(currentUser.uid).set({
+    uid: currentUser.uid,
+    email: currentUser.email,
+    displayName: currentUser.displayName || state.learnerName,
+    xp: state.xp || 0,
+    streak: state.streak || 1,
+    completedLessons: state.completedLessons || [],
+    completedLessonsCount: (state.completedLessons || []).length,
+    completedChallenges: state.completedChallenges || [],
+    completedChallengesCount: (state.completedChallenges || []).length,
+    completedQuizzes: state.completedQuizzes || [],
+    completedQuizzesCount: (state.completedQuizzes || []).length,
+    unlockedBadges: state.unlockedBadges || [],
+    unlockedBadgesCount: (state.unlockedBadges || []).length,
+    certificateUnlocked: Boolean(state.certificateUnlocked),
+    certificateId: state.certificateId || null,
+    certificateCompletedOn: state.certificateCompletedOn || null,
+    lastActive: firebase.firestore.FieldValue.serverTimestamp()
+  }, { merge: true }).catch(err => {
+    console.warn('Firestore progress sync warning:', err);
+  });
+}
+
+function getLocalDateString(d = new Date()) {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function updateDailyStreak() {
+  const today = getLocalDateString();
+  const yesterdayDate = new Date();
+  yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+  const yesterday = getLocalDateString(yesterdayDate);
+
+  const lastDate = localStorage.getItem('pylearn_last_streak_date');
+  let currentStreak = parseInt(localStorage.getItem('pylearn_streak') || '1', 10);
+
+  if (!lastDate) {
+    currentStreak = 1;
+    localStorage.setItem('pylearn_last_streak_date', today);
+    localStorage.setItem('pylearn_streak', '1');
+  } else if (lastDate === today) {
+    // Already recorded activity for today, keep current streak
+  } else if (lastDate === yesterday) {
+    // Visited on consecutive day!
+    currentStreak += 1;
+    localStorage.setItem('pylearn_streak', currentStreak.toString());
+    localStorage.setItem('pylearn_last_streak_date', today);
+    showToast(`🔥 Streak extended! You are on a ${currentStreak}-day learning streak!`, 'success');
+  } else {
+    // More than 1 day missed, streak restarts at 1
+    currentStreak = 1;
+    localStorage.setItem('pylearn_streak', '1');
+    localStorage.setItem('pylearn_last_streak_date', today);
+  }
+
+  state.streak = currentStreak;
+  updateHeaderStats();
+  syncCurrentUserProgress();
 }
 
 function updateHeaderStats() {
-  elements.headerXp.textContent = `${state.xp} XP`;
-  elements.headerStreak.textContent = `${state.streak} Day Streak`;
+  if (elements.headerXp) {
+    elements.headerXp.textContent = `${state.xp} XP`;
+  }
+  if (elements.headerStreak) {
+    elements.headerStreak.textContent = `${state.streak} Day Streak`;
+  }
+  updateUserDropdownDetails();
 }
 
 // Helper: Get Current Lesson Object
@@ -2472,24 +2685,6 @@ window.closeProfileModal = function() {
   document.removeEventListener('keydown', _escClose);
 };
 
-window.openPhotoViewer = function() {
-  const viewer = document.getElementById('photo-viewer-overlay');
-  if (!viewer) return;
-  viewer.classList.add('open');
-  viewer.setAttribute('aria-hidden', 'false');
-  document.body.style.overflow = 'hidden';
-  document.getElementById('photo-viewer-close')?.focus();
-};
-
-window.closePhotoViewer = function() {
-  const viewer = document.getElementById('photo-viewer-overlay');
-  if (!viewer) return;
-  viewer.classList.remove('open');
-  viewer.setAttribute('aria-hidden', 'true');
-  document.body.style.overflow = document.getElementById('profile-modal-overlay')?.classList.contains('open') ? 'hidden' : '';
-  document.getElementById('about-photo-trigger')?.focus();
-};
-
 function _overlayClickClose(e) {
   const modal = document.getElementById('profile-modal');
   if (modal && !modal.contains(e.target)) {
@@ -2499,8 +2694,7 @@ function _overlayClickClose(e) {
 
 function _escClose(e) {
   if (e.key === 'Escape') {
-    if (document.getElementById('photo-viewer-overlay')?.classList.contains('open')) window.closePhotoViewer();
-    else window.closeProfileModal();
+    window.closeProfileModal();
   }
 }
 
@@ -2515,12 +2709,768 @@ function initProfileModal() {
   document.querySelectorAll('.ach-about-trigger').forEach(btn => {
     btn.addEventListener('click', window.openProfileModal);
   });
+}
 
-  document.getElementById('about-photo-trigger')?.addEventListener('click', window.openPhotoViewer);
-  document.getElementById('photo-viewer-close')?.addEventListener('click', window.closePhotoViewer);
-  document.getElementById('photo-viewer-overlay')?.addEventListener('click', (event) => {
-    if (event.target.id === 'photo-viewer-overlay') window.closePhotoViewer();
+window.resetAllProgress = function(confirmPrompt = true) {
+  if (!confirmPrompt || confirm('Are you sure you want to reset all your progress, XP, and badges back to zero? This will start you with a clean slate.')) {
+    [
+      'pylearn_xp',
+      'pylearn_streak',
+      'pylearn_last_streak_date',
+      'pylearn_completed_lessons',
+      'pylearn_completed_quizzes',
+      'pylearn_completed_challenges',
+      'pylearn_badges',
+      'pylearn_user_codes',
+      'pylearn_playground_code',
+      'pylearn_current_lesson'
+    ].forEach(k => localStorage.removeItem(k));
+    location.reload();
+  }
+};
+
+/* ==========================================================================
+   FIREBASE AUTHENTICATION & ADMIN CONSOLE LOGIC
+   ========================================================================== */
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCM3G86IDCfuAv_WNxagsYzhn4D_AiWM8o",
+  authDomain: "my-learning-app-541bc.firebaseapp.com",
+  projectId: "my-learning-app-541bc",
+  storageBucket: "my-learning-app-541bc.firebasestorage.app",
+  messagingSenderId: "865822136545",
+  appId: "1:865822136545:web:471d3243b3b380930a7fa0"
+};
+
+let auth = null;
+let db = null;
+let currentUser = null;
+let currentUserIsAdmin = false;
+let authMode = 'login'; // 'login' or 'signup'
+let adminLearnersData = [];
+let guestModeDismissed = false;
+let activeUserUnsubscribe = null;
+
+function initFirebase() {
+  if (typeof firebase === 'undefined') {
+    console.info('Firebase SDK not loaded, operating in offline/local mode.');
+    return;
+  }
+  try {
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    auth = firebase.auth();
+    db = firebase.firestore();
+
+    // Enforce non-persistent session: auth state is cleared when browser/tab is closed
+    if (auth.setPersistence && firebase.auth.Auth && firebase.auth.Auth.Persistence) {
+      auth.setPersistence(firebase.auth.Auth.Persistence.SESSION).catch((err) => {
+        console.warn('Firebase setPersistence SESSION error:', err);
+      });
+    }
+
+    // Listen to Firebase Auth state changes
+    auth.onAuthStateChanged(handleAuthStateChanged);
+    setupAuthEventListeners();
+  } catch (err) {
+    console.warn('Firebase initialization error:', err);
+  }
+}
+
+function setupAuthEventListeners() {
+  if (elements.authBtnLogin) {
+    elements.authBtnLogin.addEventListener('click', () => openAuthModal('login'));
+  }
+  if (elements.authModalClose) {
+    elements.authModalClose.addEventListener('click', closeAuthModal);
+  }
+  if (elements.authModalOverlay) {
+    elements.authModalOverlay.addEventListener('click', (e) => {
+      // Only dismiss on backdrop click if already authenticated or browsing as guest
+      if (e.target === elements.authModalOverlay && (currentUser || guestModeDismissed)) {
+        closeAuthModal();
+      }
+    });
+  }
+  if (elements.authGuestBtn) {
+    elements.authGuestBtn.addEventListener('click', () => {
+      guestModeDismissed = true;
+      closeAuthModal();
+      showToast('Continuing as guest. Sign in anytime to sync your progress!', 'info');
+    });
+  }
+  if (elements.tabLoginBtn) {
+    elements.tabLoginBtn.addEventListener('click', () => setAuthMode('login'));
+  }
+  if (elements.tabSignupBtn) {
+    elements.tabSignupBtn.addEventListener('click', () => setAuthMode('signup'));
+  }
+  if (elements.authForm) {
+    elements.authForm.addEventListener('submit', handleAuthFormSubmit);
+  }
+  if (elements.googleAuthBtn) {
+    elements.googleAuthBtn.addEventListener('click', handleGoogleSignIn);
+  }
+  if (elements.authForgotLink) {
+    elements.authForgotLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      handlePasswordReset();
+    });
+  }
+  if (elements.userPill) {
+    elements.userPill.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleUserDropdown();
+    });
+  }
+  if (elements.userDropdownProfileBtn) {
+    elements.userDropdownProfileBtn.addEventListener('click', () => {
+      toggleUserDropdown(false);
+      switchView('view-achievements');
+    });
+  }
+  if (elements.userDropdownCertBtn) {
+    elements.userDropdownCertBtn.addEventListener('click', () => {
+      toggleUserDropdown(false);
+      switchView('view-achievements');
+      setTimeout(() => {
+        if (elements.certBox) {
+          elements.certBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          elements.certBox.classList.add('highlight-pulse');
+          setTimeout(() => elements.certBox.classList.remove('highlight-pulse'), 2500);
+        }
+      }, 120);
+    });
+  }
+  if (elements.certShareBtn) {
+    elements.certShareBtn.addEventListener('click', async () => {
+      const certId = state.certificateId || (elements.certSerialId ? elements.certSerialId.textContent : 'PHANIX-VERIFIED');
+      const shareUrl = `${window.location.origin}${window.location.pathname}#certificate?id=${encodeURIComponent(certId)}&learner=${encodeURIComponent(state.learnerName)}`;
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(shareUrl);
+          showToast('🎓 Verified Certificate link copied! Share to showcase your credentials.', 'success');
+        } else {
+          prompt('Copy your verified certificate verification link:', shareUrl);
+        }
+      } catch (err) {
+        prompt('Copy your verified certificate verification link:', shareUrl);
+      }
+    });
+  }
+  if (elements.userDropdownAdminBtn) {
+    elements.userDropdownAdminBtn.addEventListener('click', () => {
+      toggleUserDropdown(false);
+      switchView('view-admin');
+    });
+  }
+  document.addEventListener('click', (e) => {
+    if (elements.userAuthWrapper && !elements.userAuthWrapper.contains(e.target)) {
+      toggleUserDropdown(false);
+    }
   });
+  if (elements.authBtnLogout) {
+    elements.authBtnLogout.addEventListener('click', handleSignOut);
+  }
+  if (elements.adminRefreshBtn) {
+    elements.adminRefreshBtn.addEventListener('click', loadAdminDashboard);
+  }
+  if (elements.adminUserSearch) {
+    elements.adminUserSearch.addEventListener('input', (e) => {
+      const q = (e.target.value || '').toLowerCase().trim();
+      if (!adminLearnersData.length) return;
+      if (!q) {
+        renderAdminLearnersTable(adminLearnersData);
+      } else {
+        const filtered = adminLearnersData.filter(u => {
+          const name = (u.displayName || '').toLowerCase();
+          const email = (u.email || '').toLowerCase();
+          const uid = (u.uid || u._id || '').toLowerCase();
+          return name.includes(q) || email.includes(q) || uid.includes(q);
+        });
+        renderAdminLearnersTable(filtered);
+      }
+    });
+  }
+}
+
+function toggleUserDropdown(open) {
+  if (!elements.userDropdownMenu) return;
+  const isCurrentlyOpen = elements.userDropdownMenu.style.display === 'flex';
+  const shouldOpen = typeof open === 'boolean' ? open : !isCurrentlyOpen;
+
+  elements.userDropdownMenu.style.display = shouldOpen ? 'flex' : 'none';
+  if (elements.userPill) {
+    elements.userPill.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
+    if (shouldOpen) {
+      elements.userPill.classList.add('active');
+      updateUserDropdownDetails();
+    } else {
+      elements.userPill.classList.remove('active');
+    }
+  }
+}
+
+function updateUserDropdownDetails() {
+  if (!currentUser) return;
+  const displayName = currentUser.displayName || (currentUser.email ? currentUser.email.split('@')[0] : 'Learner');
+  const email = currentUser.email || 'No email associated';
+  const initial = (displayName[0] || '👤').toUpperCase();
+
+  if (elements.userDropdownAvatar) elements.userDropdownAvatar.textContent = initial;
+  if (elements.userDropdownName) elements.userDropdownName.textContent = displayName;
+  if (elements.userDropdownEmail) elements.userDropdownEmail.textContent = email;
+  if (elements.userDropdownRoleTag) {
+    elements.userDropdownRoleTag.textContent = currentUserIsAdmin ? 'ADMIN' : 'LEARNER';
+    elements.userDropdownRoleTag.className = 'user-dropdown-role-tag ' + (currentUserIsAdmin ? 'admin' : 'learner');
+  }
+  if (elements.userDropdownXp) elements.userDropdownXp.textContent = `${state.xp || 0} XP`;
+  if (elements.userDropdownStreak) elements.userDropdownStreak.textContent = `${state.streak || 1} Day`;
+  if (elements.userDropdownLessons) {
+    elements.userDropdownLessons.textContent = (state.completedLessons ? state.completedLessons.length : 0).toString();
+  }
+  if (elements.userDropdownAdminBtn) {
+    elements.userDropdownAdminBtn.style.display = currentUserIsAdmin ? 'flex' : 'none';
+  }
+}
+
+async function handleAuthStateChanged(user) {
+  currentUser = user;
+  if (user) {
+    // 1. User authenticated -> mark active session & close auth gate
+    guestModeDismissed = false;
+    try {
+      sessionStorage.setItem('pylearn_session_authenticated', '1');
+      document.documentElement.classList.add('pylearn-has-session');
+    } catch (e) {}
+    closeAuthModal();
+
+    if (elements.authBtnLogin) elements.authBtnLogin.style.display = 'none';
+    if (elements.userPill) elements.userPill.style.display = 'inline-flex';
+
+    const displayName = user.displayName || (user.email ? user.email.split('@')[0] : 'Learner');
+    if (elements.userName) elements.userName.textContent = displayName;
+    if (elements.userAvatar) elements.userAvatar.textContent = (displayName[0] || '👤').toUpperCase();
+
+    // Auto-update certificate learner name
+    state.learnerName = displayName;
+    localStorage.setItem('pylearn_name', displayName);
+    if (elements.certLearnerName) elements.certLearnerName.value = displayName;
+
+    // 2. Load and unify this specific user's progress from Firestore
+    try {
+      if (db) {
+        const userRef = db.collection('users').doc(user.uid);
+        const docSnap = await userRef.get();
+
+        if (docSnap.exists) {
+          const docData = docSnap.data() || {};
+          // Restore & Unify XP
+          const cloudXp = typeof docData.xp === 'number' ? docData.xp : (parseInt(docData.xp, 10) || 0);
+          state.xp = Math.max(state.xp || 0, cloudXp);
+
+          // Restore & Unify Streak
+          const cloudStreak = typeof docData.streak === 'number' ? docData.streak : (parseInt(docData.streak, 10) || 1);
+          state.streak = Math.max(state.streak || 1, cloudStreak);
+
+          // Restore & Unify Completed Lessons
+          const cloudLessons = Array.isArray(docData.completedLessons) ? docData.completedLessons : [];
+          state.completedLessons = Array.from(new Set([...(state.completedLessons || []), ...cloudLessons]));
+
+          // Restore & Unify Completed Challenges
+          const cloudChallenges = Array.isArray(docData.completedChallenges) ? docData.completedChallenges : [];
+          state.completedChallenges = Array.from(new Set([...(state.completedChallenges || []), ...cloudChallenges]));
+
+          // Restore & Unify Completed Quizzes
+          const cloudQuizzes = Array.isArray(docData.completedQuizzes) ? docData.completedQuizzes : [];
+          state.completedQuizzes = Array.from(new Set([...(state.completedQuizzes || []), ...cloudQuizzes]));
+
+          // Restore & Unify Unlocked Badges
+          const cloudBadges = Array.isArray(docData.unlockedBadges) ? docData.unlockedBadges : [];
+          state.unlockedBadges = Array.from(new Set([...(state.unlockedBadges || []), ...cloudBadges]));
+
+          // Restore & Unify Certificate
+          if (docData.certificateUnlocked) {
+            state.certificateUnlocked = true;
+            if (docData.certificateId) state.certificateId = docData.certificateId;
+            if (docData.certificateCompletedOn) state.certificateCompletedOn = docData.certificateCompletedOn;
+            localStorage.setItem('pylearn_cert_unlocked', 'true');
+            if (state.certificateId) localStorage.setItem('pylearn_cert_id', state.certificateId);
+            if (state.certificateCompletedOn) {
+              localStorage.setItem('pylearn_cert_completed_on', state.certificateCompletedOn);
+              localStorage.setItem('pylearn_certificate_completed_on', state.certificateCompletedOn);
+            }
+          }
+        }
+
+        // Cache active user's stats locally on this device
+        localStorage.setItem('pylearn_xp', state.xp.toString());
+        localStorage.setItem('pylearn_streak', state.streak.toString());
+        localStorage.setItem('pylearn_completed_lessons', JSON.stringify(state.completedLessons));
+        localStorage.setItem('pylearn_completed_challenges', JSON.stringify(state.completedChallenges));
+        localStorage.setItem('pylearn_completed_quizzes', JSON.stringify(state.completedQuizzes));
+        localStorage.setItem('pylearn_badges', JSON.stringify(state.unlockedBadges));
+
+        // Sync back unified cloud record to Firestore
+        await userRef.set({
+          uid: user.uid,
+          email: user.email,
+          displayName: displayName,
+          xp: state.xp,
+          streak: state.streak,
+          completedLessons: state.completedLessons,
+          completedLessonsCount: state.completedLessons.length,
+          completedChallenges: state.completedChallenges,
+          completedChallengesCount: state.completedChallenges.length,
+          completedQuizzes: state.completedQuizzes,
+          completedQuizzesCount: state.completedQuizzes.length,
+          unlockedBadges: state.unlockedBadges,
+          unlockedBadgesCount: state.unlockedBadges.length,
+          certificateUnlocked: Boolean(state.certificateUnlocked),
+          certificateId: state.certificateId || null,
+          certificateCompletedOn: state.certificateCompletedOn || null,
+          lastActive: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+
+        // Update ALL UI views across the platform on this device
+        updateHeaderStats();
+        renderCurriculumTree();
+        renderChallengesCatalog();
+        renderAchievements();
+        checkAllProgress();
+        updateCertificateStatus();
+        updateUserDropdownDetails();
+
+        // Refresh currently viewed lesson completed tag
+        if (state.currentLessonId && elements.lessonCompletedTag) {
+          elements.lessonCompletedTag.style.display = state.completedLessons.includes(state.currentLessonId) ? 'inline' : 'none';
+        }
+
+        // Real-time listener: if user completes progress on another device, update this device instantly!
+        if (activeUserUnsubscribe) {
+          activeUserUnsubscribe();
+          activeUserUnsubscribe = null;
+        }
+        activeUserUnsubscribe = userRef.onSnapshot((snap) => {
+          if (!snap || !snap.exists) return;
+          const remote = snap.data() || {};
+          let changed = false;
+
+          if (Array.isArray(remote.completedLessons)) {
+            const merged = Array.from(new Set([...state.completedLessons, ...remote.completedLessons]));
+            if (merged.length !== state.completedLessons.length) {
+              state.completedLessons = merged;
+              localStorage.setItem('pylearn_completed_lessons', JSON.stringify(state.completedLessons));
+              changed = true;
+            }
+          }
+          if (Array.isArray(remote.completedChallenges)) {
+            const merged = Array.from(new Set([...state.completedChallenges, ...remote.completedChallenges]));
+            if (merged.length !== state.completedChallenges.length) {
+              state.completedChallenges = merged;
+              localStorage.setItem('pylearn_completed_challenges', JSON.stringify(state.completedChallenges));
+              changed = true;
+            }
+          }
+          if (Array.isArray(remote.completedQuizzes)) {
+            const merged = Array.from(new Set([...state.completedQuizzes, ...remote.completedQuizzes]));
+            if (merged.length !== state.completedQuizzes.length) {
+              state.completedQuizzes = merged;
+              localStorage.setItem('pylearn_completed_quizzes', JSON.stringify(state.completedQuizzes));
+              changed = true;
+            }
+          }
+          if (Array.isArray(remote.unlockedBadges)) {
+            const merged = Array.from(new Set([...state.unlockedBadges, ...remote.unlockedBadges]));
+            if (merged.length !== state.unlockedBadges.length) {
+              state.unlockedBadges = merged;
+              localStorage.setItem('pylearn_badges', JSON.stringify(state.unlockedBadges));
+              changed = true;
+            }
+          }
+          if (typeof remote.xp === 'number' && remote.xp > state.xp) {
+            state.xp = remote.xp;
+            localStorage.setItem('pylearn_xp', state.xp.toString());
+            changed = true;
+          }
+          if (typeof remote.streak === 'number' && remote.streak > state.streak) {
+            state.streak = remote.streak;
+            localStorage.setItem('pylearn_streak', state.streak.toString());
+            changed = true;
+          }
+          if (remote.certificateUnlocked && !state.certificateUnlocked) {
+            state.certificateUnlocked = true;
+            state.certificateId = remote.certificateId || state.certificateId;
+            state.certificateCompletedOn = remote.certificateCompletedOn || state.certificateCompletedOn;
+            localStorage.setItem('pylearn_cert_unlocked', 'true');
+            if (state.certificateId) localStorage.setItem('pylearn_cert_id', state.certificateId);
+            if (state.certificateCompletedOn) {
+              localStorage.setItem('pylearn_cert_completed_on', state.certificateCompletedOn);
+              localStorage.setItem('pylearn_certificate_completed_on', state.certificateCompletedOn);
+            }
+            changed = true;
+          }
+
+          if (changed) {
+            updateHeaderStats();
+            renderCurriculumTree();
+            renderChallengesCatalog();
+            renderAchievements();
+            checkAllProgress();
+            updateCertificateStatus();
+            updateUserDropdownDetails();
+            if (state.currentLessonId && elements.lessonCompletedTag) {
+              elements.lessonCompletedTag.style.display = state.completedLessons.includes(state.currentLessonId) ? 'inline' : 'none';
+            }
+          }
+        }, err => {
+          console.warn('Real-time sync listener notice:', err);
+        });
+      }
+    } catch (err) {
+      console.warn('Could not sync user profile with Firestore:', err);
+    }
+
+    // 3. Check if current user is admin (/admins/{uid})
+    try {
+      if (db) {
+        const adminDoc = await db.collection('admins').doc(user.uid).get();
+        if (adminDoc.exists) {
+          currentUserIsAdmin = true;
+          if (elements.navItemAdmin) elements.navItemAdmin.style.display = 'inline-block';
+          if (elements.adminBadgeTag) elements.adminBadgeTag.style.display = 'inline-block';
+          showToast(`🛡️ Welcome Admin, ${displayName}!`, 'success');
+        } else {
+          currentUserIsAdmin = false;
+          if (elements.navItemAdmin) elements.navItemAdmin.style.display = 'none';
+          if (elements.adminBadgeTag) elements.adminBadgeTag.style.display = 'none';
+          showToast(`Welcome back, ${displayName}!`, 'success');
+        }
+      }
+    } catch (err) {
+      currentUserIsAdmin = false;
+      if (elements.navItemAdmin) elements.navItemAdmin.style.display = 'none';
+      if (elements.adminBadgeTag) elements.adminBadgeTag.style.display = 'none';
+    }
+  } else {
+    // User is NOT logged in -> lock/prompt sign in right on open!
+    currentUser = null;
+    currentUserIsAdmin = false;
+    if (activeUserUnsubscribe) {
+      activeUserUnsubscribe();
+      activeUserUnsubscribe = null;
+    }
+    try {
+      sessionStorage.removeItem('pylearn_session_authenticated');
+      document.documentElement.classList.remove('pylearn-has-session');
+    } catch (e) {}
+    toggleUserDropdown(false);
+    if (elements.authBtnLogin) elements.authBtnLogin.style.display = 'inline-flex';
+    if (elements.userPill) elements.userPill.style.display = 'none';
+    if (elements.navItemAdmin) elements.navItemAdmin.style.display = 'none';
+    if (elements.adminBadgeTag) elements.adminBadgeTag.style.display = 'none';
+
+    // If currently viewing admin console, return to learn view
+    const adminPanel = document.getElementById('view-admin');
+    if (adminPanel && adminPanel.classList.contains('active')) {
+      switchView('view-learn');
+    }
+
+    // Prompt sign in on opening the web
+    if (!guestModeDismissed) {
+      openAuthModal('login');
+    }
+  }
+}
+
+function openAuthModal(mode = 'login') {
+  setAuthMode(mode);
+  clearAuthAlert();
+  try {
+    document.documentElement.classList.remove('pylearn-has-session');
+  } catch (e) {}
+  const screen = elements.authScreen || elements.authModalOverlay;
+  if (screen) {
+    screen.style.display = 'flex';
+    // Force DOM reflow for hardware-accelerated 60fps smooth animation
+    void screen.offsetWidth;
+    screen.classList.remove('auth-screen-hidden');
+  }
+  // If user is logged in or already in guest mode, allow closing
+  if (elements.authModalClose) {
+    elements.authModalClose.style.display = (currentUser || guestModeDismissed) ? 'flex' : 'none';
+  }
+}
+
+function closeAuthModal() {
+  const screen = elements.authScreen || elements.authModalOverlay;
+  if (screen) {
+    screen.classList.add('auth-screen-hidden');
+    setTimeout(() => {
+      if (screen && screen.classList.contains('auth-screen-hidden')) {
+        screen.style.display = 'none';
+        if (currentUser) {
+          try {
+            document.documentElement.classList.add('pylearn-has-session');
+          } catch (e) {}
+        }
+      }
+    }, 380);
+  }
+  clearAuthAlert();
+}
+
+function setAuthMode(mode) {
+  authMode = mode;
+  if (mode === 'signup') {
+    if (elements.tabLoginBtn) elements.tabLoginBtn.classList.remove('active');
+    if (elements.tabSignupBtn) elements.tabSignupBtn.classList.add('active');
+    if (elements.authModalTitle) elements.authModalTitle.textContent = 'Create your account';
+    if (elements.authModalSubtitle) elements.authModalSubtitle.textContent = 'Track your learning, earn certificates, and build projects';
+    if (elements.authNameGroup) elements.authNameGroup.style.display = 'flex';
+    if (elements.authSubmitText) elements.authSubmitText.textContent = 'Create Account';
+    if (elements.authForgotLink) elements.authForgotLink.style.display = 'none';
+  } else {
+    if (elements.tabLoginBtn) elements.tabLoginBtn.classList.add('active');
+    if (elements.tabSignupBtn) elements.tabSignupBtn.classList.remove('active');
+    if (elements.authModalTitle) elements.authModalTitle.textContent = 'Sign in to Phanix';
+    if (elements.authModalSubtitle) elements.authModalSubtitle.textContent = 'Save your XP, track your streak, and sync progress';
+    if (elements.authNameGroup) elements.authNameGroup.style.display = 'none';
+    if (elements.authSubmitText) elements.authSubmitText.textContent = 'Sign In';
+    if (elements.authForgotLink) elements.authForgotLink.style.display = 'inline';
+  }
+}
+
+function setAuthAlert(msg, type = 'error') {
+  if (!elements.authAlert) return;
+  elements.authAlert.className = `auth-alert ${type}`;
+  elements.authAlert.textContent = msg;
+  elements.authAlert.style.display = 'block';
+}
+
+function clearAuthAlert() {
+  if (!elements.authAlert) return;
+  elements.authAlert.textContent = '';
+  elements.authAlert.style.display = 'none';
+}
+
+async function handleAuthFormSubmit(e) {
+  e.preventDefault();
+  if (!auth) {
+    setAuthAlert('Firebase Auth is not available. Please check network connection.', 'error');
+    return;
+  }
+
+  const email = elements.authEmailInput ? elements.authEmailInput.value.trim() : '';
+  const password = elements.authPasswordInput ? elements.authPasswordInput.value : '';
+  const name = elements.authNameInput ? elements.authNameInput.value.trim() : '';
+
+  if (!email || !password) {
+    setAuthAlert('Please enter both email and password.', 'error');
+    return;
+  }
+
+  if (elements.authSpinner) elements.authSpinner.style.display = 'inline-block';
+  if (elements.authSubmitBtn) elements.authSubmitBtn.disabled = true;
+  clearAuthAlert();
+
+  try {
+    if (authMode === 'signup') {
+      const cred = await auth.createUserWithEmailAndPassword(email, password);
+      if (name && cred.user) {
+        await cred.user.updateProfile({ displayName: name });
+      }
+      closeAuthModal();
+      showToast('Account created successfully! Welcome to Phanix.', 'success');
+    } else {
+      await auth.signInWithEmailAndPassword(email, password);
+      closeAuthModal();
+    }
+  } catch (err) {
+    let message = err.message || 'Authentication failed.';
+    if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
+      message = 'Incorrect email or password.';
+    } else if (err.code === 'auth/email-already-in-use') {
+      message = 'An account already exists with this email address.';
+    } else if (err.code === 'auth/weak-password') {
+      message = 'Password must be at least 6 characters.';
+    } else if (err.code === 'auth/invalid-email') {
+      message = 'Please enter a valid email address.';
+    }
+    setAuthAlert(message, 'error');
+  } finally {
+    if (elements.authSpinner) elements.authSpinner.style.display = 'none';
+    if (elements.authSubmitBtn) elements.authSubmitBtn.disabled = false;
+  }
+}
+
+async function handleGoogleSignIn() {
+  if (!auth) {
+    showToast('Firebase Auth unavailable', 'error');
+    return;
+  }
+  try {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    await auth.signInWithPopup(provider);
+    closeAuthModal();
+    showToast('Signed in with Google successfully!', 'success');
+  } catch (err) {
+    if (err.code !== 'auth/popup-closed-by-user') {
+      setAuthAlert(err.message || 'Could not sign in with Google.', 'error');
+    }
+  }
+}
+
+async function handlePasswordReset() {
+  const email = elements.authEmailInput ? elements.authEmailInput.value.trim() : '';
+  if (!email) {
+    setAuthAlert('Please enter your email above to receive password reset link.', 'error');
+    return;
+  }
+  try {
+    await auth.sendPasswordResetEmail(email);
+    setAuthAlert(`Password reset link sent to ${email}! Check your inbox.`, 'success');
+  } catch (err) {
+    setAuthAlert(err.message || 'Could not send reset email.', 'error');
+  }
+}
+
+async function handleSignOut() {
+  if (!confirm('Are you sure you want to sign out?')) {
+    return;
+  }
+  if (!auth) return;
+  try {
+    toggleUserDropdown(false);
+    guestModeDismissed = false;
+    if (activeUserUnsubscribe) {
+      activeUserUnsubscribe();
+      activeUserUnsubscribe = null;
+    }
+    await auth.signOut();
+    // Clear local storage and reset state so no XP leaks to another user on this machine
+    state.xp = 0;
+    state.streak = 1;
+    state.completedLessons = [];
+    state.completedChallenges = [];
+    state.completedQuizzes = [];
+    state.unlockedBadges = [];
+    state.learnerName = 'Your Name';
+    state.certificateUnlocked = false;
+    state.certificateId = null;
+    state.certificateCompletedOn = null;
+    [
+      'pylearn_xp',
+      'pylearn_streak',
+      'pylearn_last_streak_date',
+      'pylearn_completed_lessons',
+      'pylearn_completed_quizzes',
+      'pylearn_completed_challenges',
+      'pylearn_badges',
+      'pylearn_name',
+      'pylearn_cert_unlocked',
+      'pylearn_cert_id',
+      'pylearn_cert_completed_on',
+      'pylearn_certificate_completed_on'
+    ].forEach(k => localStorage.removeItem(k));
+    try {
+      sessionStorage.removeItem('pylearn_session_authenticated');
+      document.documentElement.classList.remove('pylearn-has-session');
+    } catch (e) {}
+    updateHeaderStats();
+    renderCurriculumTree();
+    renderAchievements();
+    updateCertificateStatus();
+    showToast('Signed out successfully.', 'info');
+  } catch (err) {
+    showToast('Sign out error: ' + err.message, 'error');
+  }
+}
+
+async function loadAdminDashboard() {
+  if (!db || !currentUserIsAdmin) return;
+  if (elements.adminLearnersTbody) {
+    elements.adminLearnersTbody.innerHTML = `<tr><td colspan="8" class="admin-loading-row">Fetching learners from Firestore...</td></tr>`;
+  }
+
+  try {
+    const snap = await db.collection('users').get();
+    adminLearnersData = [];
+    let totalXp = 0;
+    let totalLessons = 0;
+    let maxStreak = 0;
+
+    snap.forEach(doc => {
+      const data = doc.data() || {};
+      data._id = doc.id;
+      adminLearnersData.push(data);
+      totalXp += (Number(data.xp) || 0);
+      totalLessons += (Number(data.completedLessonsCount) || 0);
+      if (Number(data.streak) > maxStreak) maxStreak = Number(data.streak);
+    });
+
+    if (elements.adminStatUsers) elements.adminStatUsers.textContent = adminLearnersData.length;
+    if (elements.adminStatXp) elements.adminStatXp.textContent = totalXp.toLocaleString();
+    if (elements.adminStatLessons) elements.adminStatLessons.textContent = totalLessons.toLocaleString();
+    if (elements.adminStatStreak) elements.adminStatStreak.textContent = `${maxStreak} Days`;
+
+    renderAdminLearnersTable(adminLearnersData);
+  } catch (err) {
+    if (elements.adminLearnersTbody) {
+      elements.adminLearnersTbody.innerHTML = `<tr><td colspan="8" class="admin-loading-row" style="color: var(--apple-red);">Could not load learners: ${escapeHTML(err.message)}</td></tr>`;
+    }
+  }
+}
+
+function renderAdminLearnersTable(learners) {
+  if (!elements.adminLearnersTbody) return;
+  if (!learners.length) {
+    elements.adminLearnersTbody.innerHTML = `<tr><td colspan="8" class="admin-loading-row">No learners found in /users collection yet.</td></tr>`;
+    if (elements.adminTableCount) elements.adminTableCount.textContent = '0 learners';
+    return;
+  }
+
+  if (elements.adminTableCount) {
+    elements.adminTableCount.textContent = `Showing ${learners.length} learner${learners.length === 1 ? '' : 's'}`;
+  }
+
+  elements.adminLearnersTbody.innerHTML = learners.map(u => {
+    const name = u.displayName || (u.email ? u.email.split('@')[0] : 'Learner');
+    const email = u.email || 'No email';
+    const xp = u.xp || 0;
+    const streak = u.streak || 1;
+    const lessonsCount = u.completedLessonsCount || 0;
+    const initial = (name[0] || 'U').toUpperCase();
+
+    let lastActiveStr = 'Recent';
+    if (u.lastActive && u.lastActive.toDate) {
+      lastActiveStr = u.lastActive.toDate().toLocaleDateString(undefined, {
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    }
+
+    return `
+      <tr>
+        <td>
+          <div class="admin-learner-cell">
+            <span class="admin-learner-avatar">${escapeHTML(initial)}</span>
+            <span>${escapeHTML(name)}</span>
+          </div>
+        </td>
+        <td>${escapeHTML(email)}</td>
+        <td><strong style="color: var(--apple-blue);">${xp} XP</strong></td>
+        <td>🔥 ${streak}</td>
+        <td>📘 ${lessonsCount} lessons</td>
+        <td>${u.certificateUnlocked ? '<span class="admin-cert-pill unlocked" title="' + escapeHTML(u.certificateId || 'PHANIX-VERIFIED') + '">🎓 Verified</span>' : '<span class="admin-cert-pill locked">🔒 In Progress</span>'}</td>
+        <td style="font-size: 0.78rem;">${escapeHTML(lastActiveStr)}</td>
+        <td><span class="admin-uid-code" title="${escapeHTML(u.uid || u._id || '')}">${escapeHTML((u.uid || u._id || '').slice(0, 10))}…</span></td>
+      </tr>
+    `;
+  }).join('');
 }
 
 // Kickoff application
@@ -2528,3 +3478,4 @@ window.addEventListener('DOMContentLoaded', () => {
   initApp();
   initProfileModal();
 });
+
