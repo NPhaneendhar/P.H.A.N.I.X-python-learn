@@ -23,10 +23,10 @@
   <link rel="shortcut icon" type="image/png" href="/img/phanix-favicon-192.png">
   <link rel="apple-touch-icon" sizes="192x192" href="/img/phanix-favicon-192.png">
   <link rel="manifest" href="site.webmanifest">
-  <link rel="stylesheet" href="css/style.css?v=6.8">
+  <link rel="stylesheet" href="css/style.css?v=7.6">
   <!-- Preload critical assets so browser fetches them immediately -->
   <link rel="preload" href="img/logo.webp" as="image" type="image/webp">
-  <link rel="preload" href="js/app.js?v=6.4" as="script">
+  <link rel="preload" href="js/app.js?v=7.5" as="script">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
@@ -787,37 +787,61 @@
         ✦ Note: This certificate is for motivating your skills, not for accredited qualifications.
       </p>
 
-      <section class="certificate-wrapper" id="certificate-box" aria-label="Phanix certificate of completion">
-        <div class="cert-orbit cert-orbit-one" aria-hidden="true"></div>
-        <div class="cert-orbit cert-orbit-two" aria-hidden="true"></div>
-        <div class="cert-topline">
-          <div class="cert-brand"><picture><source srcset="img/logo.webp" type="image/webp"><img class="cert-brand-mark" src="img/logo.png" alt="Phanix logo"></picture> PHANIX</div>
-          <span class="cert-recognition" id="cert-recognition-badge">VERIFIED CLOUD RECORD</span>
+      <!-- Verified Credential Public Verification Banner (Shown when visiting verification URL) -->
+      <div class="cert-verified-banner" id="cert-verified-banner" style="display: none;" role="status">
+        <span class="cert-verified-icon">🛡️✅</span>
+        <div class="cert-verified-text">
+          <strong>Officially Verified PHANIX Credential</strong>
+          <span>Credential ID: <code id="cert-verified-id-label">PHANIX-PENDING</code> • Verified Recipient: <strong id="cert-verified-learner-label">Learner</strong></span>
         </div>
-        <div class="cert-achievement-mark" aria-hidden="true"><span>✦</span><i></i><span>✦</span></div>
-        <p class="cert-kicker">Certificate of Completion</p>
-        <h3 class="cert-title">Python Learning Journey</h3>
-        <p class="cert-intro">This acknowledges that</p>
-        <div class="cert-name-wrap"><input class="cert-user-name" id="cert-learner-name" type="text" maxlength="80"
-            autocomplete="name" aria-label="Learner name for certificate" placeholder="Enter your name"></div>
-        <p class="cert-copy">has completed the Phanix Python learning journey and demonstrated commitment to building
-          practical programming skills.</p>
-        <div class="cert-footer">
-          <div class="cert-meta"><span>COMPLETION DATE</span><strong id="cert-date">Pending completion</strong></div>
-          <div class="cert-footer-brand"><span class="cert-footer-line"></span><strong>PHANIX</strong><small
-              id="cert-serial-tag">CERT ID: <span id="cert-serial-id">PHANIX-PENDING</span></small></div>
-          <div class="cert-meta"><span>ISSUED ACCOUNT</span><strong id="cert-account-email">Offline / Local</strong>
+      </div>
+
+      <!-- Top Right Spider-Sense Seal (Positioned outside at top-right of certificate) -->
+        <div class="cert-top-controls">
+          <div class="cert-spider-seal" id="cert-spider-seal" role="button" tabindex="0" onclick="triggerSpiderSenseEasterEgg(event)" title="Secret Easter Egg: Click to activate Spider-Sense!" aria-label="Spider-Sense Verified Stamp">
+            <span class="cert-spider-icon">🕷️</span>
+            <span class="cert-spider-text">SPIDER-SENSE VERIFIED</span>
           </div>
         </div>
-        <p class="cert-disclaimer" id="cert-status">Complete every lesson and hands-on challenge to unlock your
-          certificate.</p>
-        <div class="cert-actions-row">
-          <button class="btn cert-download" id="cert-download-btn" type="button" disabled>🔒 Complete the course to
-            unlock</button>
-          <button class="btn cert-share-btn" id="cert-share-btn" type="button" style="display: none;">🔗 Share / Copy
-            Link</button>
-        </div>
-      </section>
+
+        <section class="certificate-wrapper" id="certificate-box" aria-label="Phanix certificate of completion">
+          <div class="cert-orbit cert-orbit-one" aria-hidden="true"></div>
+          <div class="cert-orbit cert-orbit-two" aria-hidden="true"></div>
+          <div class="cert-topline">
+            <div class="cert-brand"><picture><source srcset="img/logo.webp" type="image/webp"><img class="cert-brand-mark" src="img/logo.png" alt="Phanix logo"></picture> PHANIX</div>
+            <span class="cert-recognition" id="cert-recognition-badge">VERIFIED CLOUD RECORD</span>
+          </div>
+          <div class="cert-achievement-mark" aria-hidden="true"><span>✦</span><i></i><span>✦</span></div>
+          <p class="cert-kicker">Certificate of Completion</p>
+          <h3 class="cert-title">Python Learning Journey</h3>
+          <p class="cert-intro">This acknowledges that</p>
+          <div class="cert-name-wrap"><input class="cert-user-name" id="cert-learner-name" type="text" maxlength="80"
+              autocomplete="name" aria-label="Learner name for certificate" placeholder="Enter your name"></div>
+          <p class="cert-copy">has completed the Phanix Python learning journey and demonstrated commitment to building
+            practical programming skills.</p>
+          <div class="cert-footer">
+            <div class="cert-meta"><span>COMPLETION DATE</span><strong id="cert-date">Pending completion</strong></div>
+            <div class="cert-footer-brand"><span class="cert-footer-line"></span><strong>PHANIX</strong><small
+                id="cert-serial-tag">CERT ID: <span id="cert-serial-id">PHANIX-PENDING</span></small></div>
+            <div class="cert-meta"><span>ISSUED ACCOUNT</span><strong id="cert-account-email">Offline / Local</strong>
+            </div>
+          </div>
+
+          <p class="cert-disclaimer" id="cert-status">Complete every lesson and hands-on challenge to unlock your
+            certificate.</p>
+          <div class="cert-actions-row">
+            <button class="btn cert-download" id="cert-download-btn" type="button" disabled>🔒 Complete the course to
+              unlock</button>
+            <a class="btn cert-linkedin-add-btn" id="cert-linkedin-add-btn" href="#" target="_blank" rel="noopener noreferrer" style="display: none;" title="Add certificate to your LinkedIn profile Licenses &amp; Certifications">
+              <svg class="linkedin-svg-icon" viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 8.76a1.6 1.6 0 0 0 1.6-1.6 1.6 1.6 0 0 0-1.6-1.6 1.6 1.6 0 0 0-1.6 1.6c0 .88.72 1.6 1.6 1.6m1.4 9.74v-8.37H5.06v8.37h2.8z"/>
+              </svg>
+              <span>Add to LinkedIn</span>
+            </a>
+            <button class="btn cert-share-btn" id="cert-share-btn" type="button" style="display: none;">🔗 Copy Verification
+              Link</button>
+          </div>
+        </section>
 
     </div>
 
@@ -918,298 +942,22 @@
     <div class="profile-modal" id="profile-modal">
 
       <!-- ============================================================
-           SPIDER-MAN — Creator Section (right side)
-           Super cool hanging figure, clean swing animation
+           SPIDER-MAN — Creator Section (hanging upside down)
+           Real transparent Spider-Man figure, clean swing animation
       ============================================================ -->
       <div class="sm-scene" aria-hidden="true">
 
-        <!-- Atmospheric glow behind Spidey -->
-        <div class="sm-glow"></div>
+        <!-- Web line from top of modal -->
+        <div class="sm-web-line"></div>
 
-        <!-- Web anchor point at top-right of modal -->
-        <svg class="sm-web-thread" xmlns="http://www.w3.org/2000/svg"
-             width="6" height="28" viewBox="0 0 6 28" preserveAspectRatio="none">
-          <defs>
-            <linearGradient id="smWebG" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%"   stop-color="#ffffff" stop-opacity="0.05"/>
-              <stop offset="40%"  stop-color="#c8d6e5" stop-opacity="0.6"/>
-              <stop offset="100%" stop-color="#aab8c2" stop-opacity="1"/>
-            </linearGradient>
-          </defs>
-          <path d="M3,0 C3.4,10 2.6,18 3,28"
-                stroke="url(#smWebG)" stroke-width="1.4" fill="none"/>
-          <path d="M3,0 C2.2,12 3.8,20 3,28"
-                stroke="rgba(255,255,255,0.18)" stroke-width="0.6" fill="none"/>
-        </svg>
-
-        <!-- Wind-streak trails (motion blur effect) -->
-        <div class="sm-wind-trails">
-          <span class="sm-trail t1"></span>
-          <span class="sm-trail t2"></span>
-          <span class="sm-trail t3"></span>
-          <span class="sm-trail t4"></span>
-          <span class="sm-trail t5"></span>
-        </div>
-
-        <!-- ═══════ SPIDER-MAN FIGURE ═══════ -->
+        <!-- ═══════ REAL SPIDER-MAN FIGURE ═══════ -->
         <div class="sm-drop-wrapper">
           <div class="sm-body-physics">
-            <svg class="sm-svg" xmlns="http://www.w3.org/2000/svg"
-                 viewBox="0 0 90 136" width="78" height="118">
-              <defs>
-                <!-- Rich red suit — 3-stop cinematic -->
-                <radialGradient id="smRed" cx="38%" cy="28%" r="68%" gradientUnits="objectBoundingBox">
-                  <stop offset="0%"   stop-color="#ff6b5b"/>
-                  <stop offset="45%"  stop-color="#c0392b"/>
-                  <stop offset="85%"  stop-color="#7b241c"/>
-                  <stop offset="100%" stop-color="#5a0d08"/>
-                </radialGradient>
-                <!-- Rich blue suit -->
-                <radialGradient id="smBlue" cx="38%" cy="25%" r="70%" gradientUnits="objectBoundingBox">
-                  <stop offset="0%"   stop-color="#5dade2"/>
-                  <stop offset="50%"  stop-color="#2471a3"/>
-                  <stop offset="85%"  stop-color="#154360"/>
-                  <stop offset="100%" stop-color="#0a2342"/>
-                </radialGradient>
-                <!-- Head -->
-                <radialGradient id="smHead" cx="36%" cy="28%" r="68%">
-                  <stop offset="0%"   stop-color="#f1948a"/>
-                  <stop offset="40%"  stop-color="#e74c3c"/>
-                  <stop offset="75%"  stop-color="#b03a2e"/>
-                  <stop offset="100%" stop-color="#7b241c"/>
-                </radialGradient>
-                <!-- Cinematic eye lenses -->
-                <radialGradient id="smEye" cx="28%" cy="22%" r="75%">
-                  <stop offset="0%"   stop-color="#ffffff"/>
-                  <stop offset="35%"  stop-color="#d6eaf8"/>
-                  <stop offset="70%"  stop-color="#85c1e9"/>
-                  <stop offset="100%" stop-color="#2e86c1"/>
-                </radialGradient>
-                <!-- Rim light (cinematic side lighting) -->
-                <linearGradient id="smRimL" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%"   stop-color="#ff9999" stop-opacity="0.35"/>
-                  <stop offset="100%" stop-color="transparent"/>
-                </linearGradient>
-                <linearGradient id="smRimR" x1="1" y1="0" x2="0" y2="0">
-                  <stop offset="0%"   stop-color="#99ccff" stop-opacity="0.25"/>
-                  <stop offset="100%" stop-color="transparent"/>
-                </linearGradient>
-                <!-- Motion blur filter -->
-                <filter id="smBlur" x="-20%" y="-5%" width="140%" height="120%">
-                  <feGaussianBlur in="SourceGraphic" stdDeviation="0 1.8"/>
-                </filter>
-                <!-- Glow filter for eyes -->
-                <filter id="eyeGlow" x="-30%" y="-30%" width="160%" height="160%">
-                  <feGaussianBlur in="SourceGraphic" stdDeviation="1.5" result="blur"/>
-                  <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-                </filter>
-                <!-- Drop shadow filter -->
-                <filter id="spiderShadow" x="-15%" y="-5%" width="130%" height="130%">
-                  <feDropShadow dx="3" dy="8" stdDeviation="5" flood-color="#000000" flood-opacity="0.6"/>
-                </filter>
-                <!-- Clip paths -->
-                <clipPath id="smHeadClip"><ellipse cx="45" cy="19" rx="17" ry="18"/></clipPath>
-                <clipPath id="smBodyClip"><ellipse cx="45" cy="52" rx="17" ry="21"/></clipPath>
-              </defs>
-
-              <!-- ── AMBIENT SHADOW under figure ── -->
-              <ellipse cx="45" cy="130" rx="20" ry="4"
-                       fill="rgba(0,0,0,0.25)" filter="url(#smBlur)"/>
-
-              <!-- ═══════ HEAD ═══════ -->
-              <ellipse cx="45" cy="19" rx="17" ry="18" fill="url(#smHead)" filter="url(#spiderShadow)"/>
-
-              <!-- Rim light left -->
-              <ellipse cx="45" cy="19" rx="17" ry="18" fill="url(#smRimL)" opacity="0.8"/>
-
-              <!-- Web lines on head — precise radial pattern -->
-              <g clip-path="url(#smHeadClip)" stroke="#6e1209" stroke-width="0.55" fill="none" opacity="0.75">
-                <!-- center spine -->
-                <line x1="45" y1="1"  x2="45" y2="37"/>
-                <!-- horizontal arcs (5 bands) -->
-                <path d="M28,8  Q45,5  62,8"/>
-                <path d="M27,13 Q45,10 63,13"/>
-                <path d="M27,19 Q45,15 63,19"/>
-                <path d="M27,25 Q45,22 63,25"/>
-                <path d="M28,31 Q45,28 62,31"/>
-                <!-- diagonal radials left -->
-                <line x1="45" y1="1" x2="28" y2="8"/>
-                <line x1="45" y1="1" x2="27" y2="13"/>
-                <line x1="45" y1="1" x2="27" y2="19"/>
-                <line x1="45" y1="1" x2="27" y2="25"/>
-                <line x1="45" y1="1" x2="28" y2="31"/>
-                <!-- diagonal radials right -->
-                <line x1="45" y1="1" x2="62" y2="8"/>
-                <line x1="45" y1="1" x2="63" y2="13"/>
-                <line x1="45" y1="1" x2="63" y2="19"/>
-                <line x1="45" y1="1" x2="63" y2="25"/>
-                <line x1="45" y1="1" x2="62" y2="31"/>
-              </g>
-
-              <!-- ══ EYES — large cinematic angled lenses ══ -->
-              <!-- Left eye shape -->
-              <ellipse cx="36" cy="17" rx="9" ry="6.5"
-                       fill="url(#smEye)" transform="rotate(-15,36,17)" filter="url(#eyeGlow)"/>
-              <ellipse cx="36" cy="17" rx="9" ry="6.5"
-                       fill="none" stroke="#6e1209" stroke-width="0.9" transform="rotate(-15,36,17)"/>
-              <!-- Right eye shape -->
-              <ellipse cx="54" cy="17" rx="9" ry="6.5"
-                       fill="url(#smEye)" transform="rotate(15,54,17)" filter="url(#eyeGlow)"/>
-              <ellipse cx="54" cy="17" rx="9" ry="6.5"
-                       fill="none" stroke="#6e1209" stroke-width="0.9" transform="rotate(15,54,17)"/>
-              <!-- Eye highlight specular dots -->
-              <ellipse cx="33" cy="14.5" rx="3" ry="1.8"
-                       fill="white" opacity="0.75" transform="rotate(-15,33,14.5)"/>
-              <ellipse cx="51" cy="14.5" rx="3" ry="1.8"
-                       fill="white" opacity="0.75" transform="rotate(15,51,14.5)"/>
-              <!-- Tiny specular point -->
-              <circle cx="31.5" cy="14" r="1" fill="white" opacity="0.9"/>
-              <circle cx="49.5" cy="14" r="1" fill="white" opacity="0.9"/>
-              <!-- Bridge divider -->
-              <line x1="43" y1="16.5" x2="47" y2="16.5" stroke="#6e1209" stroke-width="1.5"/>
-
-              <!-- ═══════ NECK ═══════ -->
-              <path d="M41,36 Q42,41 43,42 L47,42 Q48,41 49,36 Z" fill="#c0392b"/>
-
-              <!-- ═══════ TORSO ═══════ -->
-              <ellipse cx="45" cy="52" rx="17" ry="21" fill="url(#smRed)" filter="url(#spiderShadow)"/>
-              <!-- torso rim left -->
-              <ellipse cx="45" cy="52" rx="17" ry="21" fill="url(#smRimL)" opacity="0.6"/>
-
-              <!-- Web lines on torso -->
-              <g clip-path="url(#smBodyClip)" stroke="#6e1209" stroke-width="0.5" fill="none" opacity="0.7">
-                <line x1="45" y1="31" x2="45" y2="73"/>
-                <path d="M28,38 Q45,34 62,38"/>
-                <path d="M27,44 Q45,40 63,44"/>
-                <path d="M27,51 Q45,47 63,51"/>
-                <path d="M27,58 Q45,54 63,58"/>
-                <path d="M28,65 Q45,61 62,65"/>
-                <path d="M29,71 Q45,68 61,71"/>
-                <line x1="45" y1="31" x2="28" y2="38"/>
-                <line x1="45" y1="31" x2="27" y2="44"/>
-                <line x1="45" y1="31" x2="27" y2="51"/>
-                <line x1="45" y1="31" x2="27" y2="58"/>
-                <line x1="45" y1="31" x2="62" y2="38"/>
-                <line x1="45" y1="31" x2="63" y2="44"/>
-                <line x1="45" y1="31" x2="63" y2="51"/>
-                <line x1="45" y1="31" x2="63" y2="58"/>
-              </g>
-
-              <!-- Spider emblem — detailed -->
-              <g transform="translate(45,50)" filter="url(#eyeGlow)">
-                <ellipse cx="0" cy="-2" rx="5" ry="3" fill="#0d0d1a" opacity="0.9"/>
-                <ellipse cx="0" cy="3"  rx="3.5" ry="2" fill="#0d0d1a" opacity="0.9"/>
-                <!-- 8 spider legs -->
-                <line x1="-5" y1="-2" x2="-10" y2="-7" stroke="#0d0d1a" stroke-width="1.2" stroke-linecap="round"/>
-                <line x1="-5" y1="-1" x2="-10" y2="0"  stroke="#0d0d1a" stroke-width="1.2" stroke-linecap="round"/>
-                <line x1="-4" y1="2"  x2="-9"  y2="5"  stroke="#0d0d1a" stroke-width="1.2" stroke-linecap="round"/>
-                <line x1="5"  y1="-2" x2="10"  y2="-7" stroke="#0d0d1a" stroke-width="1.2" stroke-linecap="round"/>
-                <line x1="5"  y1="-1" x2="10"  y2="0"  stroke="#0d0d1a" stroke-width="1.2" stroke-linecap="round"/>
-                <line x1="4"  y1="2"  x2="9"   y2="5"  stroke="#0d0d1a" stroke-width="1.2" stroke-linecap="round"/>
-                <!-- abdomen spines -->
-                <line x1="-2" y1="4"  x2="-4"  y2="8"  stroke="#0d0d1a" stroke-width="1" stroke-linecap="round"/>
-                <line x1="2"  y1="4"  x2="4"   y2="8"  stroke="#0d0d1a" stroke-width="1" stroke-linecap="round"/>
-              </g>
-
-              <!-- ═══════ WAISTBAND ═══════ -->
-              <path d="M29,71 Q45,68 61,71 L62,77 Q45,74 28,77 Z" fill="#1a4f72"/>
-              <path d="M29,71 Q45,68 61,71 L62,74 Q45,71 28,74 Z" fill="#2471a3" opacity="0.6"/>
-
-              <!-- ═══════ LEGS (blue) ═══════ -->
-              <!-- Left leg — thigh -->
-              <path d="M32,76 Q28,88 27,100 Q30,103 36,101 Q39,88 41,76 Z" fill="url(#smBlue)"/>
-              <!-- Right leg — thigh -->
-              <path d="M58,76 Q62,88 63,100 Q60,103 54,101 Q51,88 49,76 Z" fill="url(#smBlue)"/>
-              <!-- Left shin -->
-              <path d="M27,100 Q26,112 27,118 Q31,121 36,120 Q37,112 36,101 Z" fill="url(#smBlue)"/>
-              <!-- Right shin -->
-              <path d="M63,100 Q64,112 63,118 Q59,121 54,120 Q53,112 54,101 Z" fill="url(#smBlue)"/>
-              <!-- Leg rim highlight -->
-              <path d="M28,78 Q27,90 27,102" stroke="rgba(90,160,220,0.4)" stroke-width="2" fill="none"/>
-              <path d="M62,78 Q63,90 63,102" stroke="rgba(90,160,220,0.4)" stroke-width="2" fill="none"/>
-
-              <!-- Knee caps -->
-              <ellipse cx="31.5" cy="100" rx="6" ry="4" fill="#0d2d42" opacity="0.55"/>
-              <ellipse cx="58.5" cy="100" rx="6" ry="4" fill="#0d2d42" opacity="0.55"/>
-              <!-- knee highlight -->
-              <ellipse cx="30" cy="98.5" rx="2.5" ry="1.5" fill="rgba(90,170,220,0.4)"/>
-              <ellipse cx="57" cy="98.5" rx="2.5" ry="1.5" fill="rgba(90,170,220,0.4)"/>
-
-              <!-- ═══════ BOOTS (red) ═══════ -->
-              <path d="M26,118 Q24,126 27,130 Q32,133 37,131 Q38,126 36,120 Z" fill="url(#smRed)"/>
-              <path d="M64,118 Q66,126 63,130 Q58,133 53,131 Q52,126 54,120 Z" fill="url(#smRed)"/>
-              <!-- Boot ridge -->
-              <line x1="26" y1="120" x2="37" y2="120" stroke="#8e1a10" stroke-width="1"/>
-              <line x1="53" y1="120" x2="64" y2="120" stroke="#8e1a10" stroke-width="1"/>
-              <!-- Boot toe -->
-              <ellipse cx="30" cy="130" rx="6.5" ry="2.5" fill="#8e1a10" opacity="0.5"/>
-              <ellipse cx="60" cy="130" rx="6.5" ry="2.5" fill="#8e1a10" opacity="0.5"/>
-
-              <!-- ═══════ ARMS (hanging down) ═══════ -->
-              <!-- Left shoulder -->
-              <ellipse cx="29" cy="42" rx="5" ry="5" fill="url(#smRed)"/>
-              <!-- Left upper arm -->
-              <path d="M30,40 Q20,47 15,62 Q18,66 23,64 Q27,50 33,44 Z" fill="url(#smRed)"/>
-              <!-- Right shoulder -->
-              <ellipse cx="61" cy="42" rx="5" ry="5" fill="url(#smRed)"/>
-              <!-- Right upper arm -->
-              <path d="M60,40 Q70,47 75,62 Q72,66 67,64 Q63,50 57,44 Z" fill="url(#smRed)"/>
-              <!-- Left forearm -->
-              <path d="M15,62 Q11,74 12,83 Q16,86 21,84 Q23,74 23,64 Z" fill="url(#smRed)"/>
-              <!-- Right forearm -->
-              <path d="M75,62 Q79,74 78,83 Q74,86 69,84 Q67,74 67,64 Z" fill="url(#smRed)"/>
-              <!-- Arm rim highlights -->
-              <path d="M17,42 Q14,52 12,65" stroke="rgba(255,140,120,0.3)" stroke-width="2" fill="none"/>
-              <path d="M73,42 Q76,52 78,65" stroke="rgba(255,140,120,0.3)" stroke-width="2" fill="none"/>
-              <!-- Web lines on arms -->
-              <g stroke="#6e1209" stroke-width="0.5" fill="none" opacity="0.5">
-                <path d="M22,42 Q17,52 15,62"/>
-                <path d="M26,40 Q22,50 20,60"/>
-                <path d="M68,42 Q73,52 75,62"/>
-                <path d="M64,40 Q68,50 70,60"/>
-              </g>
-
-              <!-- ═══════ WRISTS + WEB SHOOTERS ═══════ -->
-              <!-- Left wrist -->
-              <ellipse cx="16" cy="86" rx="6" ry="4" fill="#c0392b"/>
-              <!-- Left web shooter -->
-              <rect x="11" y="82" width="10" height="5" rx="2.5" fill="#e6b800"/>
-              <rect x="12" y="83" width="8"  height="2" rx="1"   fill="#ffdf00" opacity="0.8"/>
-              <!-- Right wrist -->
-              <ellipse cx="74" cy="86" rx="6" ry="4" fill="#c0392b"/>
-              <!-- Right web shooter -->
-              <rect x="69" y="82" width="10" height="5" rx="2.5" fill="#e6b800"/>
-              <rect x="70" y="83" width="8"  height="2" rx="1"   fill="#ffdf00" opacity="0.8"/>
-
-              <!-- ═══════ HANDS ═══════ -->
-              <!-- Left -->
-              <ellipse cx="15" cy="90" rx="7" ry="5" fill="#c0392b"/>
-              <line x1="9"  y1="91" x2="7"  y2="96" stroke="#b03a2e" stroke-width="2.4" stroke-linecap="round"/>
-              <line x1="12" y1="93" x2="10" y2="98" stroke="#b03a2e" stroke-width="2.4" stroke-linecap="round"/>
-              <line x1="15" y1="94" x2="15" y2="99" stroke="#b03a2e" stroke-width="2.4" stroke-linecap="round"/>
-              <line x1="18" y1="93" x2="20" y2="98" stroke="#b03a2e" stroke-width="2.4" stroke-linecap="round"/>
-              <line x1="21" y1="91" x2="23" y2="96" stroke="#b03a2e" stroke-width="2.4" stroke-linecap="round"/>
-              <!-- Right -->
-              <ellipse cx="75" cy="90" rx="7" ry="5" fill="#c0392b"/>
-              <line x1="81" y1="91" x2="83" y2="96" stroke="#b03a2e" stroke-width="2.4" stroke-linecap="round"/>
-              <line x1="78" y1="93" x2="80" y2="98" stroke="#b03a2e" stroke-width="2.4" stroke-linecap="round"/>
-              <line x1="75" y1="94" x2="75" y2="99" stroke="#b03a2e" stroke-width="2.4" stroke-linecap="round"/>
-              <line x1="72" y1="93" x2="70" y2="98" stroke="#b03a2e" stroke-width="2.4" stroke-linecap="round"/>
-              <line x1="69" y1="91" x2="67" y2="96" stroke="#b03a2e" stroke-width="2.4" stroke-linecap="round"/>
-
-              <!-- ── CINEMATIC RIM LIGHT overlay (dramatic side) ── -->
-              <ellipse cx="45" cy="52" rx="17" ry="21" fill="url(#smRimR)" opacity="0.5"/>
-            </svg>
+            <picture>
+              <source srcset="img/spiderman_hanging.webp" type="image/webp">
+              <img src="img/spiderman_hanging.png" alt="Spider-Man" class="sm-real-img">
+            </picture>
           </div>
-        </div>
-
-        <!-- Impact shockwave ring (plays once on landing) -->
-        <div class="sm-impact-ring"></div>
-        <!-- Speed line particles -->
-        <div class="sm-speed-particles">
-          <span class="sm-particle p1"></span>
-          <span class="sm-particle p2"></span>
-          <span class="sm-particle p3"></span>
         </div>
 
       </div><!-- /.sm-scene -->
@@ -1225,8 +973,8 @@
         .sm-scene {
           position: absolute;
           top: 0;
-          right: 10px;
-          width: 88px;
+          right: 12px;
+          width: 82px;
           display: flex;
           flex-direction: column;
           align-items: center;
@@ -1234,17 +982,12 @@
           pointer-events: none;
         }
 
-        /* ── Hide all VFX elements ── */
-        .sm-glow,
-        .sm-wind-trails,
-        .sm-trail,
-        .sm-impact-ring,
-        .sm-speed-particles,
-        .sm-particle { display: none !important; }
-
         /* ── Web thread drop in ── */
-        .sm-web-thread {
-          display: block;
+        .sm-web-line {
+          width: 1.5px;
+          height: 22px;
+          background: linear-gradient(to bottom, rgba(255,255,255,0.1), #d8d8d8);
+          box-shadow: 0 0 3px rgba(255, 255, 255, 0.4);
           transform-origin: top center;
           animation: smWebIn 0.4s cubic-bezier(0.22,1,0.36,1) 0.1s both;
         }
@@ -1257,30 +1000,34 @@
         .sm-drop-wrapper {
           margin-top: -1px;
           transform-origin: top center;
-          animation: smDrop 0.9s cubic-bezier(0.34,1.4,0.64,1) 0.4s both;
+          animation: smDrop 0.9s cubic-bezier(0.34,1.4,0.64,1) 0.35s both;
         }
         @keyframes smDrop {
-          from { transform: translateY(-120px) rotate(-18deg); opacity: 0; }
+          from { transform: translateY(-120px) rotate(-16deg); opacity: 0; }
           to   { transform: translateY(0)       rotate(0deg);  opacity: 1; }
         }
 
         /* ── IDLE SWING — smooth natural pendulum ── */
         .sm-body-physics {
           transform-origin: top center;
-          animation: smSwing 3.6s cubic-bezier(0.37,0,0.63,1) 1.2s infinite;
+          animation: smSwing 3.8s cubic-bezier(0.37,0,0.63,1) 1.2s infinite;
         }
         @keyframes smSwing {
-          0%   { transform: rotate(-11deg); }
-          50%  { transform: rotate(11deg);  }
-          100% { transform: rotate(-11deg); }
+          0%   { transform: rotate(-9deg); }
+          50%  { transform: rotate(9deg);  }
+          100% { transform: rotate(-9deg); }
         }
 
-        /* ── SVG depth shadow ── */
-        .sm-svg {
+        /* ── Realistic Spider-Man Image ── */
+        .sm-real-img {
           display: block;
+          width: 74px;
+          height: auto;
           filter:
-            drop-shadow(0 10px 20px rgba(0,0,0,0.6))
-            drop-shadow(1px 3px 6px rgba(192,57,43,0.4));
+            drop-shadow(0 12px 20px rgba(0,0,0,0.75))
+            drop-shadow(0 0 12px rgba(192,57,43,0.3));
+          user-select: none;
+          -webkit-user-drag: none;
         }
 
         /* ══════════════════════════════════════════════
@@ -1307,6 +1054,16 @@
             0 0 60px rgba(192,57,43,0.12),
             0 30px 80px rgba(0,0,0,0.75) !important;
           overflow-x: visible !important;
+          padding-top: 1rem !important;
+        }
+
+        /* Move picture higher to the top */
+        .about-modal-header {
+          margin-top: -0.45rem !important;
+        }
+
+        .about-avatar-container {
+          margin-top: 0 !important;
         }
 
         /* Spider-web radial pattern in background of modal */
@@ -1705,13 +1462,72 @@
   <!-- Toast Notification Container -->
   <div class="toast-container" id="toast-container"></div>
 
+  <!-- Inline Easter Egg & Audio Safety Fallback -->
+  <script>
+    window.triggerSpiderSenseEasterEgg = window.triggerSpiderSenseEasterEgg || function(e) {
+      if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+      var seal = document.getElementById('cert-spider-seal');
+      var box = document.getElementById('certificate-box');
+      if (seal) {
+        seal.style.transform = 'scale(1.22) rotate(-6deg)';
+        setTimeout(function() { seal.style.transform = ''; }, 380);
+      }
+      if (box) {
+        box.classList.remove('spider-sense-active');
+        void box.offsetWidth;
+        box.classList.add('spider-sense-active');
+      }
+      try {
+        var AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (AudioCtx) {
+          var actx = new AudioCtx();
+          var osc = actx.createOscillator();
+          var gain = actx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(880, actx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(220, actx.currentTime + 0.35);
+          gain.gain.setValueAtTime(0.2, actx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, actx.currentTime + 0.35);
+          osc.connect(gain);
+          gain.connect(actx.destination);
+          osc.start();
+          osc.stop(actx.currentTime + 0.36);
+        }
+      } catch(err) {}
+      try {
+        var snd = new Audio('img/spiderman_theme.mp3');
+        snd.volume = 1.0;
+        snd.currentTime = 0;
+        var p = snd.play();
+        if (p !== undefined) {
+          p.catch(function() {
+            var fb = new Audio('img/Spider%20man%20black%20suit%20theme%20-%20gummy.mp3');
+            fb.volume = 1.0;
+            fb.play().catch(function() {});
+          });
+        }
+      } catch(err) {}
+      if (navigator.vibrate) {
+        try { navigator.vibrate([80, 40, 80, 40, 160]); } catch(err) {}
+      }
+      if (typeof fireConfetti === 'function') {
+        try { fireConfetti(); } catch(err) {}
+      }
+      if (typeof showToast === 'function') {
+        try {
+          showToast('🕷️ Spider-Sense Activated! Master of Python & Forensics. "With great power comes great responsibility."', 'success');
+        } catch(err) {}
+      }
+    };
+  </script>
+
   <!-- Firebase SDK — defer so they don't block page render -->
   <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
   <!-- Application Logic -->
-  <script defer src="js/app.js?v=6.4"></script>
+  <script defer src="js/app.js?v=7.6"></script>
 </body>
 
 </html>

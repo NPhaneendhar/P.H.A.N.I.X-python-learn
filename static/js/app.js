@@ -442,6 +442,7 @@ const elements = {
   certAccountEmail: document.getElementById('cert-account-email'),
   certDownloadBtn: document.getElementById('cert-download-btn'),
   certShareBtn: document.getElementById('cert-share-btn'),
+  certLinkedinAddBtn: document.getElementById('cert-linkedin-add-btn'),
   certStatus: document.getElementById('cert-status'),
 
   // Toast & Confetti
@@ -979,12 +980,19 @@ function setupEventListeners() {
       const name = elements.certLearnerName.value.trim() || 'Your Name';
       state.learnerName = name;
       localStorage.setItem('pylearn_name', name);
+      // Synchronize LinkedIn prefill URL in real time
+      if (elements.certLinkedinAddBtn && state.certificateUnlocked) {
+        const serialId = state.certificateId || (elements.certSerialId ? elements.certSerialId.textContent : 'PHANIX-PENDING');
+        elements.certLinkedinAddBtn.href = getLinkedInCertAddUrl(serialId, name, state.certificateCompletedOn);
+      }
     });
   }
 
   // The browser's print dialog lets learners save a crisp, landscape PDF.
   if (elements.certDownloadBtn) {
-    elements.certDownloadBtn.addEventListener('click', () => window.print());
+    elements.certDownloadBtn.addEventListener('click', () => {
+      printCertificate();
+    });
   }
 
   // Reset Progress Button in Profile
@@ -2503,6 +2511,28 @@ function checkAllProgress() {
   updateCertificateStatus();
 }
 
+function getLinkedInCertAddUrl(certId, learnerName, completionDate) {
+  const d = completionDate ? new Date(completionDate) : new Date();
+  const year = d.getFullYear() || 2026;
+  const month = (d.getMonth() + 1) || 11;
+  const certName = 'PHANIX Python & Digital Forensics Mastery';
+  const orgName = 'PHANIX';
+  const name = learnerName || (elements.certLearnerName ? elements.certLearnerName.value.trim() : '') || state.learnerName || 'Learner';
+  const verifyUrl = `${window.location.origin}${window.location.pathname}#certificate?id=${encodeURIComponent(certId)}&learner=${encodeURIComponent(name)}`;
+
+  const params = new URLSearchParams({
+    startTask: 'CERTIFICATION_NAME',
+    name: certName,
+    organizationName: orgName,
+    issueYear: year.toString(),
+    issueMonth: month.toString(),
+    certId: certId,
+    certUrl: verifyUrl
+  });
+
+  return `https://www.linkedin.com/profile/add?${params.toString()}`;
+}
+
 function updateCertificateStatus(lessonTotal, challengeTotal) {
   if (!elements.certDate || !elements.certDownloadBtn || !elements.certStatus) return;
 
@@ -2554,12 +2584,17 @@ function updateCertificateStatus(lessonTotal, challengeTotal) {
       elements.certRecognitionBadge.textContent = currentUser ? 'VERIFIED CLOUD RECORD' : 'LOCAL COMPLETION RECORD';
     }
 
-    elements.certStatus.textContent = 'Unlocked — official recognition from Phanix Cloud permanently linked to your account.';
+    
     elements.certDownloadBtn.disabled = false;
     elements.certDownloadBtn.textContent = '↓ Download certificate';
 
     if (elements.certShareBtn) {
       elements.certShareBtn.style.display = 'inline-flex';
+    }
+    if (elements.certLinkedinAddBtn) {
+      elements.certLinkedinAddBtn.style.display = 'inline-flex';
+      const learnerName = (elements.certLearnerName ? elements.certLearnerName.value.trim() : '') || state.learnerName || 'Learner';
+      elements.certLinkedinAddBtn.href = getLinkedInCertAddUrl(serialId, learnerName, completedOn);
     }
   } else {
     elements.certDate.textContent = 'Pending completion';
@@ -2576,6 +2611,364 @@ function updateCertificateStatus(lessonTotal, challengeTotal) {
     if (elements.certShareBtn) {
       elements.certShareBtn.style.display = 'none';
     }
+    if (elements.certLinkedinAddBtn) {
+      elements.certLinkedinAddBtn.style.display = 'none';
+    }
+  }
+}
+
+function printCertificate() {
+  const learnerName = (elements.certLearnerName ? elements.certLearnerName.value.trim() : '') || state.learnerName || 'Learner';
+  const serialId = state.certificateId || (elements.certSerialId ? elements.certSerialId.textContent : 'PHANIX-VERIFIED');
+  const completionDate = (elements.certDate ? elements.certDate.textContent : '') || new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  const accountEmail = (elements.certAccountEmail ? elements.certAccountEmail.textContent : '') || (currentUser ? (currentUser.email || currentUser.displayName) : 'Official Learner');
+  const badgeText = currentUser ? 'VERIFIED CLOUD RECORD' : 'LOCAL COMPLETION RECORD';
+  
+  const logoImgEl = document.querySelector('.cert-brand-mark');
+  const logoUrl = (logoImgEl && logoImgEl.currentSrc) ? logoImgEl.currentSrc : `${window.location.origin}/img/logo.png`;
+
+  if (typeof showToast === 'function') {
+    showToast('🖨️ Preparing certificate... Enable "Background graphics" in print options for full color gradients!', 'info');
+  }
+
+  let printIframe = document.getElementById('cert-print-iframe');
+  if (!printIframe) {
+    printIframe = document.createElement('iframe');
+    printIframe.id = 'cert-print-iframe';
+    printIframe.style.position = 'fixed';
+    printIframe.style.right = '0';
+    printIframe.style.bottom = '0';
+    printIframe.style.width = '0';
+    printIframe.style.height = '0';
+    printIframe.style.border = '0';
+    document.body.appendChild(printIframe);
+  }
+
+  const html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>PHANIX Certificate - ${escapeHTML(learnerName)}</title>
+  <style>
+    @page {
+      size: landscape;
+      margin: 8mm;
+    }
+    * {
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      color-adjust: exact !important;
+    }
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      background: #ffffff;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .cert-page-container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+    .certificate-wrapper {
+      --cert-ink: #10233f;
+      --cert-muted: #59708c;
+      position: relative;
+      isolation: isolate;
+      overflow: hidden;
+      box-sizing: border-box;
+      width: 100%;
+      height: 98%;
+      max-width: 1020px;
+      max-height: 640px;
+      margin: auto;
+      padding: 2.2rem 3.8rem 1.8rem;
+      color: var(--cert-ink);
+      text-align: center;
+      background:
+        linear-gradient(rgba(38, 111, 183, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(38, 111, 183, 0.035) 1px, transparent 1px),
+        linear-gradient(125deg, #f9fcff 0%, #edf6ff 50%, #fdfcff 100%);
+      background-size: 26px 26px, 26px 26px, auto;
+      border: 2px solid #204c7c;
+      border-radius: 24px;
+      box-shadow: inset 0 0 0 1px rgba(213, 154, 28, 0.45), inset 0 0 0 8px #ffffff;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .cert-bg-svg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .cert-content {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .cert-topline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 0.75rem;
+      border-bottom: 1.5px solid rgba(42, 102, 160, 0.28);
+      color: #1d5f9e;
+      letter-spacing: 0.16em;
+      font-size: 0.7rem;
+      font-weight: 800;
+    }
+    .cert-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 1rem;
+      letter-spacing: 0.24em;
+      font-weight: 800;
+      color: #0b1a30;
+    }
+    .cert-brand-mark {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      object-fit: cover;
+      border: 1.5px solid #204c7c;
+    }
+    .cert-recognition {
+      color: #1d5f9e;
+      background: rgba(30, 115, 190, 0.08);
+      border: 1.5px solid #1d5f9e;
+      border-radius: 99px;
+      padding: 4px 14px;
+      font-size: 0.66rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+    }
+    .cert-achievement-mark {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.75rem;
+      margin: 0.65rem auto 0.15rem;
+      color: #d59a1c;
+      font-size: 0.9rem;
+    }
+    .cert-achievement-mark svg {
+      vertical-align: middle;
+    }
+    .cert-kicker {
+      margin: 0;
+      color: #58708d;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+    }
+    .cert-title {
+      position: relative;
+      margin: 0.25rem 0 0;
+      color: #10233f;
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: 2.65rem;
+      font-weight: 500;
+      letter-spacing: -0.04em;
+      line-height: 1.1;
+    }
+    .cert-title-divider {
+      width: 56px;
+      border-bottom: 3px solid #d89e25;
+      border-radius: 99px;
+      margin: 0.55rem auto 0;
+    }
+    .cert-intro {
+      margin: 0.6rem 0 0.2rem;
+      color: #59708c;
+      font-size: 0.95rem;
+      font-style: italic;
+    }
+    .cert-name-wrap {
+      display: inline-block;
+      min-width: 480px;
+      max-width: 80%;
+      border-bottom: 2px solid #204c7c;
+      padding: 0 1.5rem 0.35rem;
+      margin: 0.15rem auto 0;
+    }
+    .cert-user-name-text {
+      color: #175b9e;
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: 2.35rem;
+      font-weight: 600;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+    }
+    .cert-copy {
+      max-width: 620px;
+      margin: 0.65rem auto 0;
+      color: #4f647c;
+      font-size: 0.92rem;
+      line-height: 1.55;
+    }
+    .cert-footer {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: end;
+      gap: 2rem;
+      margin-top: 1rem;
+      padding-top: 0.5rem;
+    }
+    .cert-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      color: #7890aa;
+      font-size: 0.58rem;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      text-align: left;
+    }
+    .cert-meta:last-child {
+      text-align: right;
+    }
+    .cert-meta strong {
+      color: #204c7c;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+      text-transform: none;
+    }
+    .cert-footer-brand {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.2rem;
+      color: #193e6f;
+      letter-spacing: 0.18em;
+      font-size: 0.74rem;
+      font-weight: 800;
+    }
+    .cert-footer-brand small {
+      color: #7990a9;
+      font-size: 0.52rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+    }
+    .cert-footer-line {
+      width: 44px;
+      border-top: 2.5px solid #d89e25;
+      margin-bottom: 0.25rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="cert-page-container">
+    <section class="certificate-wrapper">
+      <!-- Vector Grid & Orbital Rings (renders permanently regardless of print background settings) -->
+      <svg class="cert-bg-svg" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
+        <defs>
+          <pattern id="certGridPattern" width="28" height="28" patternUnits="userSpaceOnUse">
+            <path d="M 28 0 L 0 0 0 28" fill="none" stroke="#2b6eb1" stroke-width="0.75" stroke-opacity="0.14" />
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#certGridPattern)" />
+        <circle cx="20" cy="20" r="160" fill="none" stroke="#2575c0" stroke-width="1.5" stroke-opacity="0.22" />
+        <circle cx="20" cy="20" r="210" fill="none" stroke="#2575c0" stroke-width="1" stroke-opacity="0.16" />
+        <circle cx="100%" cy="100%" r="200" fill="none" stroke="#2575c0" stroke-width="1.5" stroke-opacity="0.22" />
+        <circle cx="100%" cy="100%" r="260" fill="none" stroke="#2575c0" stroke-width="1" stroke-opacity="0.16" />
+      </svg>
+
+      <div class="cert-content">
+        <div class="cert-topline">
+          <div class="cert-brand">
+            <img class="cert-brand-mark" src="${logoUrl}" alt="Phanix logo">
+            <span>PHANIX</span>
+          </div>
+          <span class="cert-recognition">${escapeHTML(badgeText)}</span>
+        </div>
+
+        <div class="cert-achievement-mark" aria-hidden="true">
+          <span>✦</span>
+          <svg width="70" height="2"><line x1="0" y1="1" x2="70" y2="1" stroke="#d59a1c" stroke-width="2"/></svg>
+          <span>✦</span>
+        </div>
+
+        <p class="cert-kicker">Certificate of Completion</p>
+        <h3 class="cert-title">Python Learning Journey</h3>
+        <div class="cert-title-divider"></div>
+
+        <p class="cert-intro">This acknowledges that</p>
+        <div class="cert-name-wrap">
+          <div class="cert-user-name-text">${escapeHTML(learnerName)}</div>
+        </div>
+
+        <p class="cert-copy">has completed the Phanix Python learning journey and demonstrated commitment to building practical programming skills.</p>
+
+        <div class="cert-footer">
+          <div class="cert-meta">
+            <span>COMPLETION DATE</span>
+            <strong>${escapeHTML(completionDate)}</strong>
+          </div>
+          <div class="cert-footer-brand">
+            <div class="cert-footer-line"></div>
+            <strong>PHANIX</strong>
+            <small>CERT ID: ${escapeHTML(serialId)}</small>
+          </div>
+          <div class="cert-meta">
+            <span>ISSUED ACCOUNT</span>
+            <strong>${escapeHTML(accountEmail)}</strong>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</body>
+</html>`;
+
+  const doc = printIframe.contentWindow.document;
+  doc.open();
+  doc.write(html);
+  doc.close();
+
+  const brandImg = doc.querySelector('.cert-brand-mark');
+  const triggerPrint = () => {
+    try {
+      printIframe.contentWindow.focus();
+      printIframe.contentWindow.print();
+    } catch (err) {
+      window.print();
+    }
+  };
+
+  if (brandImg) {
+    if (brandImg.complete) {
+      setTimeout(triggerPrint, 140);
+    } else {
+      brandImg.onload = () => setTimeout(triggerPrint, 140);
+      brandImg.onerror = () => setTimeout(triggerPrint, 140);
+    }
+  } else {
+    setTimeout(triggerPrint, 140);
   }
 }
 
@@ -2587,27 +2980,56 @@ function addXP(points) {
   syncCurrentUserProgress();
 }
 
+function getCertificateLink(certId, learnerName) {
+  if (!certId) return '';
+  const name = learnerName || state.learnerName || (currentUser ? currentUser.displayName : 'Learner') || 'Learner';
+  const origin = window.location.origin || '';
+  const pathname = window.location.pathname || '/';
+  return `${origin}${pathname}#certificate?id=${encodeURIComponent(certId)}&learner=${encodeURIComponent(name)}`;
+}
+
+function getCleanFirestoreUserData() {
+  if (!currentUser) return null;
+
+  const isCert = Boolean(state.certificateUnlocked);
+  let certId = state.certificateId || localStorage.getItem('pylearn_cert_id');
+  if (isCert && !certId) {
+    const userSeed = currentUser.uid.substring(0, 8).toUpperCase();
+    const year = new Date().getFullYear() || 2026;
+    certId = `PHANIX-PY-${userSeed}-${year}`;
+    state.certificateId = certId;
+    localStorage.setItem('pylearn_cert_id', certId);
+  }
+
+  const learnerName = state.learnerName || currentUser.displayName || (currentUser.email ? currentUser.email.split('@')[0] : 'Learner');
+  const certLink = isCert && certId ? getCertificateLink(certId, learnerName) : null;
+
+  // Clean deduplicated count of lessons
+  const uniqueLessons = Array.from(new Set(state.completedLessons || []));
+  const lessonsCount = Math.max(uniqueLessons.length, Number(state.cloudLessonsCount) || 0);
+
+  return {
+    uid: currentUser.uid,
+    name: learnerName,
+    email: currentUser.email || '',
+    mail: currentUser.email || '',
+    xp: Number(state.xp) || 0,
+    streak: Number(state.streak) || 1,
+    lessons: lessonsCount,
+    certificate: isCert,
+    certificateId: isCert ? (certId || null) : null,
+    certificateLink: isCert ? (certLink || null) : null,
+    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+  };
+}
+
 function syncCurrentUserProgress() {
   if (!currentUser || !db) return;
-  db.collection('users').doc(currentUser.uid).set({
-    uid: currentUser.uid,
-    email: currentUser.email,
-    displayName: currentUser.displayName || state.learnerName,
-    xp: state.xp || 0,
-    streak: state.streak || 1,
-    completedLessons: state.completedLessons || [],
-    completedLessonsCount: (state.completedLessons || []).length,
-    completedChallenges: state.completedChallenges || [],
-    completedChallengesCount: (state.completedChallenges || []).length,
-    completedQuizzes: state.completedQuizzes || [],
-    completedQuizzesCount: (state.completedQuizzes || []).length,
-    unlockedBadges: state.unlockedBadges || [],
-    unlockedBadgesCount: (state.unlockedBadges || []).length,
-    certificateUnlocked: Boolean(state.certificateUnlocked),
-    certificateId: state.certificateId || null,
-    certificateCompletedOn: state.certificateCompletedOn || null,
-    lastActive: firebase.firestore.FieldValue.serverTimestamp()
-  }, { merge: true }).catch(err => {
+  const payload = getCleanFirestoreUserData();
+  if (!payload) return;
+
+  // Overwrite document with clean payload (removes legacy duplicate arrays)
+  db.collection('users').doc(currentUser.uid).set(payload).catch(err => {
     console.warn('Firestore progress sync warning:', err);
   });
 }
@@ -2767,6 +3189,8 @@ function fireConfetti() {
 // ===================================================
 //  PROFILE / ABOUT MODAL (Strictly Isolated & Bulletproof)
 // ===================================================
+let _spidermanAudio = null;
+
 window.openProfileModal = function() {
   const overlay = document.getElementById('profile-modal-overlay');
   if (!overlay) return;
@@ -2775,6 +3199,34 @@ window.openProfileModal = function() {
   void overlay.offsetWidth;
   overlay.classList.add('open');
   document.body.style.overflow = 'hidden';
+
+  // Play Spider-Man audio theme once per login:
+  // Only for logged-in accounts, persists across page refreshes, and resets on logout
+  if (currentUser) {
+    const userAudioKey = 'pylearn_spiderman_audio_played_' + currentUser.uid;
+    const hasPlayed = localStorage.getItem(userAudioKey) || localStorage.getItem('pylearn_spiderman_audio_played');
+    if (!hasPlayed) {
+      localStorage.setItem(userAudioKey, 'true');
+      localStorage.setItem('pylearn_spiderman_audio_played', 'true');
+      try {
+        if (!_spidermanAudio) {
+          _spidermanAudio = new Audio('img/spiderman_theme.mp3');
+        }
+        _spidermanAudio.currentTime = 0;
+        _spidermanAudio.volume = 0.9;
+        const playPromise = _spidermanAudio.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(() => {
+            const fb = new Audio('img/Spider%20man%20black%20suit%20theme%20-%20gummy.mp3');
+            fb.volume = 0.9;
+            fb.play().catch(err => console.warn('Spider-Man audio playback prevented:', err));
+          });
+        }
+      } catch (e) {
+        console.warn('Spider-Man audio error:', e);
+      }
+    }
+  }
 
   overlay.addEventListener('click', _overlayClickClose);
   document.addEventListener('keydown', _escClose);
@@ -2792,6 +3244,11 @@ window.closeProfileModal = function() {
   document.body.style.overflow = '';
   overlay.removeEventListener('click', _overlayClickClose);
   document.removeEventListener('keydown', _escClose);
+
+  // Pause audio when modal is closed
+  if (_spidermanAudio && !_spidermanAudio.paused) {
+    _spidermanAudio.pause();
+  }
 };
 
 function _overlayClickClose(e) {
@@ -3003,10 +3460,11 @@ function setupAuthEventListeners() {
         renderAdminLearnersTable(adminLearnersData);
       } else {
         const filtered = adminLearnersData.filter(u => {
-          const name = (u.displayName || '').toLowerCase();
-          const email = (u.email || '').toLowerCase();
+          const name = (u.name || u.displayName || '').toLowerCase();
+          const email = (u.email || u.mail || '').toLowerCase();
           const uid = (u.uid || u._id || '').toLowerCase();
-          return name.includes(q) || email.includes(q) || uid.includes(q);
+          const certId = (u.certificateId || '').toLowerCase();
+          return name.includes(q) || email.includes(q) || uid.includes(q) || certId.includes(q);
         });
         renderAdminLearnersTable(filtered);
       }
@@ -3094,37 +3552,39 @@ async function handleAuthStateChanged(user) {
           const cloudStreak = typeof docData.streak === 'number' ? docData.streak : (parseInt(docData.streak, 10) || 1);
           state.streak = Math.max(state.streak || 1, cloudStreak);
 
-          // Restore & Unify Completed Lessons
-          const cloudLessons = Array.isArray(docData.completedLessons) ? docData.completedLessons : [];
-          state.completedLessons = Array.from(new Set([...(state.completedLessons || []), ...cloudLessons]));
-
-          // Restore & Unify Completed Challenges
-          const cloudChallenges = Array.isArray(docData.completedChallenges) ? docData.completedChallenges : [];
-          state.completedChallenges = Array.from(new Set([...(state.completedChallenges || []), ...cloudChallenges]));
-
-          // Restore & Unify Completed Quizzes
-          const cloudQuizzes = Array.isArray(docData.completedQuizzes) ? docData.completedQuizzes : [];
-          state.completedQuizzes = Array.from(new Set([...(state.completedQuizzes || []), ...cloudQuizzes]));
-
-          // Restore & Unify Unlocked Badges
-          const cloudBadges = Array.isArray(docData.unlockedBadges) ? docData.unlockedBadges : [];
-          state.unlockedBadges = Array.from(new Set([...(state.unlockedBadges || []), ...cloudBadges]));
-
           // Restore & Unify Certificate
-          if (docData.certificateUnlocked) {
+          if (docData.certificate === true || docData.certificateUnlocked === true) {
             state.certificateUnlocked = true;
             if (docData.certificateId) state.certificateId = docData.certificateId;
-            if (docData.certificateCompletedOn) state.certificateCompletedOn = docData.certificateCompletedOn;
             localStorage.setItem('pylearn_cert_unlocked', 'true');
             if (state.certificateId) localStorage.setItem('pylearn_cert_id', state.certificateId);
-            if (state.certificateCompletedOn) {
-              localStorage.setItem('pylearn_cert_completed_on', state.certificateCompletedOn);
-              localStorage.setItem('pylearn_certificate_completed_on', state.certificateCompletedOn);
-            }
+          }
+
+          // Restore cloud lessons count & any legacy arrays
+          if (typeof docData.lessons === 'number') {
+            state.cloudLessonsCount = docData.lessons;
+          }
+          if (Array.isArray(docData.completedLessons)) {
+            state.completedLessons = Array.from(new Set([...(state.completedLessons || []), ...docData.completedLessons]));
+          }
+          if (Array.isArray(docData.completedChallenges)) {
+            state.completedChallenges = Array.from(new Set([...(state.completedChallenges || []), ...docData.completedChallenges]));
+          }
+          if (Array.isArray(docData.completedQuizzes)) {
+            state.completedQuizzes = Array.from(new Set([...(state.completedQuizzes || []), ...docData.completedQuizzes]));
+          }
+          if (Array.isArray(docData.unlockedBadges)) {
+            state.unlockedBadges = Array.from(new Set([...(state.unlockedBadges || []), ...docData.unlockedBadges]));
           }
         }
 
         // Cache active user's stats locally on this device
+        // Deduplicate local arrays so no duplicates exist
+        state.completedLessons = Array.from(new Set(state.completedLessons || []));
+        state.completedChallenges = Array.from(new Set(state.completedChallenges || []));
+        state.completedQuizzes = Array.from(new Set(state.completedQuizzes || []));
+        state.unlockedBadges = Array.from(new Set(state.unlockedBadges || []));
+
         localStorage.setItem('pylearn_xp', state.xp.toString());
         localStorage.setItem('pylearn_streak', state.streak.toString());
         localStorage.setItem('pylearn_completed_lessons', JSON.stringify(state.completedLessons));
@@ -3132,26 +3592,11 @@ async function handleAuthStateChanged(user) {
         localStorage.setItem('pylearn_completed_quizzes', JSON.stringify(state.completedQuizzes));
         localStorage.setItem('pylearn_badges', JSON.stringify(state.unlockedBadges));
 
-        // Sync back unified cloud record to Firestore
-        await userRef.set({
-          uid: user.uid,
-          email: user.email,
-          displayName: displayName,
-          xp: state.xp,
-          streak: state.streak,
-          completedLessons: state.completedLessons,
-          completedLessonsCount: state.completedLessons.length,
-          completedChallenges: state.completedChallenges,
-          completedChallengesCount: state.completedChallenges.length,
-          completedQuizzes: state.completedQuizzes,
-          completedQuizzesCount: state.completedQuizzes.length,
-          unlockedBadges: state.unlockedBadges,
-          unlockedBadgesCount: state.unlockedBadges.length,
-          certificateUnlocked: Boolean(state.certificateUnlocked),
-          certificateId: state.certificateId || null,
-          certificateCompletedOn: state.certificateCompletedOn || null,
-          lastActive: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
+        // Sync clean record to Firestore (overwriting legacy duplicate arrays)
+        const cleanPayload = getCleanFirestoreUserData();
+        if (cleanPayload) {
+          await userRef.set(cleanPayload);
+        }
 
         // Update ALL UI views across the platform on this device
         updateHeaderStats();
@@ -3177,38 +3622,6 @@ async function handleAuthStateChanged(user) {
           const remote = snap.data() || {};
           let changed = false;
 
-          if (Array.isArray(remote.completedLessons)) {
-            const merged = Array.from(new Set([...state.completedLessons, ...remote.completedLessons]));
-            if (merged.length !== state.completedLessons.length) {
-              state.completedLessons = merged;
-              localStorage.setItem('pylearn_completed_lessons', JSON.stringify(state.completedLessons));
-              changed = true;
-            }
-          }
-          if (Array.isArray(remote.completedChallenges)) {
-            const merged = Array.from(new Set([...state.completedChallenges, ...remote.completedChallenges]));
-            if (merged.length !== state.completedChallenges.length) {
-              state.completedChallenges = merged;
-              localStorage.setItem('pylearn_completed_challenges', JSON.stringify(state.completedChallenges));
-              changed = true;
-            }
-          }
-          if (Array.isArray(remote.completedQuizzes)) {
-            const merged = Array.from(new Set([...state.completedQuizzes, ...remote.completedQuizzes]));
-            if (merged.length !== state.completedQuizzes.length) {
-              state.completedQuizzes = merged;
-              localStorage.setItem('pylearn_completed_quizzes', JSON.stringify(state.completedQuizzes));
-              changed = true;
-            }
-          }
-          if (Array.isArray(remote.unlockedBadges)) {
-            const merged = Array.from(new Set([...state.unlockedBadges, ...remote.unlockedBadges]));
-            if (merged.length !== state.unlockedBadges.length) {
-              state.unlockedBadges = merged;
-              localStorage.setItem('pylearn_badges', JSON.stringify(state.unlockedBadges));
-              changed = true;
-            }
-          }
           if (typeof remote.xp === 'number' && remote.xp > state.xp) {
             state.xp = remote.xp;
             localStorage.setItem('pylearn_xp', state.xp.toString());
@@ -3219,16 +3632,11 @@ async function handleAuthStateChanged(user) {
             localStorage.setItem('pylearn_streak', state.streak.toString());
             changed = true;
           }
-          if (remote.certificateUnlocked && !state.certificateUnlocked) {
+          if ((remote.certificate === true || remote.certificateUnlocked === true) && !state.certificateUnlocked) {
             state.certificateUnlocked = true;
             state.certificateId = remote.certificateId || state.certificateId;
-            state.certificateCompletedOn = remote.certificateCompletedOn || state.certificateCompletedOn;
             localStorage.setItem('pylearn_cert_unlocked', 'true');
             if (state.certificateId) localStorage.setItem('pylearn_cert_id', state.certificateId);
-            if (state.certificateCompletedOn) {
-              localStorage.setItem('pylearn_cert_completed_on', state.certificateCompletedOn);
-              localStorage.setItem('pylearn_certificate_completed_on', state.certificateCompletedOn);
-            }
             changed = true;
           }
 
@@ -3286,6 +3694,11 @@ async function handleAuthStateChanged(user) {
     try {
       sessionStorage.removeItem('pylearn_session_authenticated');
       document.documentElement.classList.remove('pylearn-has-session');
+      Object.keys(localStorage).forEach(k => {
+        if (k.startsWith('pylearn_spiderman_audio_played')) {
+          localStorage.removeItem(k);
+        }
+      });
     } catch (e) {}
     toggleUserDropdown(false);
     if (elements.authBtnLogin) elements.authBtnLogin.style.display = 'inline-flex';
@@ -3470,6 +3883,10 @@ async function handleSignOut() {
       activeUserUnsubscribe();
       activeUserUnsubscribe = null;
     }
+    if (_spidermanAudio && !_spidermanAudio.paused) {
+      _spidermanAudio.pause();
+      _spidermanAudio.currentTime = 0;
+    }
     await auth.signOut();
     // Clear local storage and reset state so no XP leaks to another user on this machine
     state.xp = 0;
@@ -3494,11 +3911,24 @@ async function handleSignOut() {
       'pylearn_cert_unlocked',
       'pylearn_cert_id',
       'pylearn_cert_completed_on',
-      'pylearn_certificate_completed_on'
+      'pylearn_certificate_completed_on',
+      'pylearn_spiderman_audio_played'
     ].forEach(k => localStorage.removeItem(k));
+    try {
+      Object.keys(localStorage).forEach(k => {
+        if (k.startsWith('pylearn_spiderman_audio_played')) {
+          localStorage.removeItem(k);
+        }
+      });
+    } catch (e) {}
     try {
       sessionStorage.removeItem('pylearn_session_authenticated');
       document.documentElement.classList.remove('pylearn-has-session');
+      Object.keys(localStorage).forEach(k => {
+        if (k.startsWith('pylearn_spiderman_audio_played')) {
+          localStorage.removeItem(k);
+        }
+      });
     } catch (e) {}
     updateHeaderStats();
     renderCurriculumTree();
@@ -3528,7 +3958,8 @@ async function loadAdminDashboard() {
       data._id = doc.id;
       adminLearnersData.push(data);
       totalXp += (Number(data.xp) || 0);
-      totalLessons += (Number(data.completedLessonsCount) || 0);
+      const lCount = typeof data.lessons === 'number' ? data.lessons : (Array.isArray(data.completedLessons) ? data.completedLessons.length : (Number(data.completedLessonsCount) || 0));
+      totalLessons += lCount;
       if (Number(data.streak) > maxStreak) maxStreak = Number(data.streak);
     });
 
@@ -3558,15 +3989,34 @@ function renderAdminLearnersTable(learners) {
   }
 
   elements.adminLearnersTbody.innerHTML = learners.map(u => {
-    const name = u.displayName || (u.email ? u.email.split('@')[0] : 'Learner');
-    const email = u.email || 'No email';
+    const name = u.name || u.displayName || (u.email ? u.email.split('@')[0] : (u.mail ? u.mail.split('@')[0] : 'Learner'));
+    const email = u.email || u.mail || 'No email';
     const xp = u.xp || 0;
     const streak = u.streak || 1;
-    const lessonsCount = u.completedLessonsCount || 0;
+    const lessonsCount = typeof u.lessons === 'number' ? u.lessons : (Array.isArray(u.completedLessons) ? u.completedLessons.length : (Number(u.completedLessonsCount) || 0));
     const initial = (name[0] || 'U').toUpperCase();
+    const isCert = Boolean(u.certificate === true || u.certificateUnlocked === true);
+    const certId = u.certificateId || (isCert ? 'PHANIX-VERIFIED' : '');
+    const certLink = u.certificateLink || (isCert && certId ? `${window.location.origin}${window.location.pathname}#certificate?id=${encodeURIComponent(certId)}&learner=${encodeURIComponent(name)}` : '');
+
+    let certBadge = '<span class="admin-cert-pill locked">🔒 In Progress</span>';
+    if (isCert) {
+      if (certLink) {
+        certBadge = `<a href="${escapeHTML(certLink)}" target="_blank" class="admin-cert-pill unlocked" title="Open and download certificate (${escapeHTML(certId)})">🎓 View / Download ↗</a>`;
+      } else {
+        certBadge = `<span class="admin-cert-pill unlocked" title="${escapeHTML(certId)}">🎓 Verified</span>`;
+      }
+    }
 
     let lastActiveStr = 'Recent';
-    if (u.lastActive && u.lastActive.toDate) {
+    if (u.updatedAt && u.updatedAt.toDate) {
+      lastActiveStr = u.updatedAt.toDate().toLocaleDateString(undefined, {
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } else if (u.lastActive && u.lastActive.toDate) {
       lastActiveStr = u.lastActive.toDate().toLocaleDateString(undefined, {
         month: 'short',
         day: 'numeric',
@@ -3587,7 +4037,7 @@ function renderAdminLearnersTable(learners) {
         <td><strong style="color: var(--apple-blue);">${xp} XP</strong></td>
         <td>🔥 ${streak}</td>
         <td>📘 ${lessonsCount} lessons</td>
-        <td>${u.certificateUnlocked ? '<span class="admin-cert-pill unlocked" title="' + escapeHTML(u.certificateId || 'PHANIX-VERIFIED') + '">🎓 Verified</span>' : '<span class="admin-cert-pill locked">🔒 In Progress</span>'}</td>
+        <td>${certBadge}</td>
         <td style="font-size: 0.78rem;">${escapeHTML(lastActiveStr)}</td>
         <td><span class="admin-uid-code" title="${escapeHTML(u.uid || u._id || '')}">${escapeHTML((u.uid || u._id || '').slice(0, 10))}…</span></td>
       </tr>
@@ -3595,9 +4045,181 @@ function renderAdminLearnersTable(learners) {
   }).join('');
 }
 
-// Kickoff application
-window.addEventListener('DOMContentLoaded', () => {
+// ===================================================
+//  PUBLIC CERTIFICATE VERIFICATION ROUTER
+//  (Handles #certificate?id=...&learner=... links from LinkedIn)
+// ===================================================
+function handleCertificateHashRoute() {
+  const hash = window.location.hash;
+  if (!hash || !hash.startsWith('#certificate')) return;
+
+  const queryString = hash.includes('?') ? hash.split('?')[1] : '';
+  const params = new URLSearchParams(queryString);
+  const certId = params.get('id');
+  const learnerName = params.get('learner');
+
+  if (certId || learnerName) {
+    // Switch to Achievements view
+    switchView('view-achievements');
+
+    const decodedName = learnerName ? decodeURIComponent(learnerName) : 'Verified Learner';
+    const decodedId = certId ? decodeURIComponent(certId) : 'PHANIX-VERIFIED';
+
+    if (elements.certLearnerName) {
+      elements.certLearnerName.value = decodedName;
+    }
+    if (elements.certSerialId) {
+      elements.certSerialId.textContent = decodedId;
+    }
+    if (elements.certRecognitionBadge) {
+      elements.certRecognitionBadge.textContent = 'OFFICIALLY VERIFIED RECORD';
+      elements.certRecognitionBadge.style.background = 'rgba(48, 209, 88, 0.22)';
+      elements.certRecognitionBadge.style.color = '#30d158';
+      elements.certRecognitionBadge.style.borderColor = 'rgba(48, 209, 88, 0.55)';
+    }
+    if (elements.certDownloadBtn) {
+      elements.certDownloadBtn.disabled = false;
+      elements.certDownloadBtn.textContent = '↓ Download verified certificate';
+    }
+    if (elements.certStatus) {
+      elements.certStatus.innerHTML = `✅ <strong>Officially Verified Credential</strong>: Validated record for <em>${escapeHTML(decodedName)}</em> (ID: <code>${escapeHTML(decodedId)}</code>).`;
+    }
+
+    // Display the prominent verification banner
+    const banner = document.getElementById('cert-verified-banner');
+    if (banner) {
+      banner.style.display = 'flex';
+      const idLabel = document.getElementById('cert-verified-id-label');
+      const nameLabel = document.getElementById('cert-verified-learner-label');
+      if (idLabel) idLabel.textContent = decodedId;
+      if (nameLabel) nameLabel.textContent = decodedName;
+    }
+
+    if (elements.certLinkedinAddBtn) {
+      elements.certLinkedinAddBtn.style.display = 'inline-flex';
+      elements.certLinkedinAddBtn.href = getLinkedInCertAddUrl(decodedId, decodedName);
+    }
+    if (elements.certShareBtn) {
+      elements.certShareBtn.style.display = 'inline-flex';
+    }
+
+    setTimeout(() => {
+      const box = document.getElementById('certificate-box');
+      if (box) {
+        box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 320);
+  }
+}
+
+window.triggerSpiderSenseEasterEgg = function(e) {
+  if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+  const seal = document.getElementById('cert-spider-seal');
+  const box = document.getElementById('certificate-box');
+
+  if (seal) {
+    seal.style.transform = 'scale(1.22) rotate(-6deg)';
+    setTimeout(() => {
+      seal.style.transform = '';
+    }, 380);
+  }
+
+  if (box) {
+    box.classList.remove('spider-sense-active');
+    void box.offsetWidth;
+    box.classList.add('spider-sense-active');
+  }
+
+  // Web Audio synth chime
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (AudioCtx) {
+      const actx = new AudioCtx();
+      const osc = actx.createOscillator();
+      const gain = actx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(880, actx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(220, actx.currentTime + 0.35);
+      gain.gain.setValueAtTime(0.2, actx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, actx.currentTime + 0.35);
+      osc.connect(gain);
+      gain.connect(actx.destination);
+      osc.start();
+      osc.stop(actx.currentTime + 0.36);
+    }
+  } catch (err) {
+    console.debug('Web Audio synth error:', err);
+  }
+
+  // Black suit theme audio playback (immediate & audible)
+  try {
+    if (!_spidermanAudio) {
+      _spidermanAudio = new Audio('img/spiderman_theme.mp3');
+    }
+    _spidermanAudio.volume = 1.0;
+    _spidermanAudio.currentTime = 0;
+    const playPromise = _spidermanAudio.play();
+    if (playPromise !== undefined) {
+      playPromise.catch(err => {
+        console.debug('Primary audio play blocked, retrying with fallback:', err);
+        const fbAudio = new Audio('img/Spider%20man%20black%20suit%20theme%20-%20gummy.mp3');
+        fbAudio.volume = 1.0;
+        fbAudio.play().catch(e => console.debug('Fallback audio prevented:', e));
+      });
+    }
+  } catch (err) {
+    console.debug('Spider-Sense audio error:', err);
+  }
+
+  if (navigator.vibrate) {
+    try {
+      navigator.vibrate([80, 40, 80, 40, 160]);
+    } catch (err) {}
+  }
+
+  if (typeof fireConfetti === 'function') {
+    try {
+      fireConfetti();
+    } catch (err) {
+      console.debug('Confetti error:', err);
+    }
+  }
+
+  if (typeof showToast === 'function') {
+    try {
+      showToast('🕷️ Spider-Sense Activated! Master of Python & Forensics. "With great power comes great responsibility."', 'success');
+    } catch (err) {
+      console.debug('Toast error:', err);
+    }
+  }
+};
+
+function initCertificateEasterEggs() {
+  const spiderSeal = document.getElementById('cert-spider-seal');
+  if (spiderSeal) {
+    spiderSeal.onclick = (e) => window.triggerSpiderSenseEasterEgg(e);
+    spiderSeal.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        window.triggerSpiderSenseEasterEgg(e);
+      }
+    });
+  }
+
+  window.addEventListener('hashchange', handleCertificateHashRoute);
+}
+
+// Kickoff application safely across any loading state
+function _startApp() {
   initApp();
   initProfileModal();
-});
+  initCertificateEasterEggs();
+  handleCertificateHashRoute();
+}
+
+if (document.readyState === 'loading') {
+  window.addEventListener('DOMContentLoaded', _startApp);
+} else {
+  _startApp();
+}
 
