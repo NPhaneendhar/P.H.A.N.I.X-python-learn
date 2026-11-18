@@ -5,7 +5,7 @@
 
 // URL-based Reset Check (e.g. visit /?reset=true to start fresh)
 if (new URLSearchParams(window.location.search).has('reset')) {
-  [
+  [ 
     'pylearn_xp',
     'pylearn_streak',
     'pylearn_last_streak_date',
@@ -336,6 +336,7 @@ const elements = {
   
   // Workspace / Editor
   challengeInstructionsText: document.getElementById('challenge-instructions-text'),
+  progressSaveNote: document.getElementById('progress-save-note'),
   hintBtn: document.getElementById('hint-btn'),
   hintBox: document.getElementById('hint-box'),
   hintText: document.getElementById('hint-text'),
@@ -479,6 +480,7 @@ const elements = {
   authNameInput: document.getElementById('auth-name-input'),
   authEmailInput: document.getElementById('auth-email-input'),
   authPasswordInput: document.getElementById('auth-password-input'),
+  authPasswordToggle: document.getElementById('auth-password-toggle'),
   authForgotLink: document.getElementById('auth-forgot-link'),
   authSubmitBtn: document.getElementById('auth-submit-btn'),
   authSubmitText: document.getElementById('auth-submit-text'),
@@ -501,6 +503,7 @@ const elements = {
 
 // Initialize Application
 async function initApp() {
+  updateProgressSaveNote();
   applyTheme(state.theme);
   updateDailyStreak();
   updateHeaderStats();
@@ -637,7 +640,8 @@ function setupEventListeners() {
   }
 
   // Learn View Editor Buttons
-  elements.runCodeBtn.addEventListener('click', handleRunCode);
+  // Do not pass the click event as stdin; handleRunCode's first argument is user input.
+  elements.runCodeBtn.addEventListener('click', () => handleRunCode());
   elements.testCodeBtn.addEventListener('click', handleTestCode);
   elements.resetCodeBtn.addEventListener('click', handleResetCode);
   
@@ -1042,6 +1046,74 @@ function applyLayoutMode(mode) {
   }
 }
 window.applyLayoutMode = applyLayoutMode;
+
+// Drag the divider between lesson material and code to set their widths.
+function initLessonCodeResizer() {
+  const view = elements.viewLearn;
+  const grip = view?.querySelector('.pane-resizer[data-resize="lesson"]');
+  const lesson = view?.querySelector('.lesson-content-area');
+  if (!view || !grip || !lesson) return;
+  const savedPercent = Number(localStorage.getItem('pylearn_lesson_width'));
+  if (savedPercent >= 28 && savedPercent <= 68) view.style.setProperty('--lesson-pane-width', `${savedPercent}%`);
+  grip.addEventListener('pointerdown', event => {
+    if (window.matchMedia('(max-width: 900px)').matches || state.layoutMode !== 'split') return;
+    event.preventDefault();
+    const startX = event.clientX;
+    const startWidth = lesson.getBoundingClientRect().width;
+    const totalWidth = view.getBoundingClientRect().width;
+    grip.classList.add('is-dragging');
+    grip.setPointerCapture(event.pointerId);
+    const move = e => {
+      const percent = Math.max(28, Math.min(68, ((startWidth + e.clientX - startX) / totalWidth) * 100));
+      view.style.setProperty('--lesson-pane-width', `${percent}%`);
+      localStorage.setItem('pylearn_lesson_width', String(Math.round(percent)));
+    };
+    const end = () => {
+      grip.classList.remove('is-dragging');
+      grip.removeEventListener('pointermove', move);
+      grip.removeEventListener('pointerup', end);
+      grip.removeEventListener('pointercancel', end);
+    };
+    grip.addEventListener('pointermove', move);
+    grip.addEventListener('pointerup', end);
+    grip.addEventListener('pointercancel', end);
+  });
+}
+initLessonCodeResizer();
+
+// Drag the divider between the code editor and console to set their heights.
+function initEditorConsoleResizer() {
+  const grip = document.getElementById('editor-terminal-resizer');
+  const workspace = grip?.closest('.workspace-area');
+  const editor = workspace?.querySelector('.editor-wrapper');
+  if (!grip || !workspace || !editor) return;
+  const savedHeight = Number(localStorage.getItem('pylearn_editor_height'));
+  if (savedHeight >= 160 && savedHeight <= 900) workspace.style.setProperty('--editor-pane-height', `${savedHeight}px`);
+  grip.addEventListener('pointerdown', event => {
+    if (window.matchMedia('(max-width: 760px)').matches) return;
+    event.preventDefault();
+    const startY = event.clientY;
+    const startHeight = editor.getBoundingClientRect().height;
+    const maxHeight = Math.max(240, workspace.clientHeight - 210);
+    grip.classList.add('is-dragging');
+    grip.setPointerCapture(event.pointerId);
+    const move = e => {
+      const height = Math.max(160, Math.min(maxHeight, startHeight + e.clientY - startY));
+      workspace.style.setProperty('--editor-pane-height', `${height}px`);
+      localStorage.setItem('pylearn_editor_height', String(Math.round(height)));
+    };
+    const end = () => {
+      grip.classList.remove('is-dragging');
+      grip.removeEventListener('pointermove', move);
+      grip.removeEventListener('pointerup', end);
+      grip.removeEventListener('pointercancel', end);
+    };
+    grip.addEventListener('pointermove', move);
+    grip.addEventListener('pointerup', end);
+    grip.addEventListener('pointercancel', end);
+  });
+}
+initEditorConsoleResizer();
 
 // Switch Active View Panel (Seamless switching across all tabs)
 function switchView(targetId) {
@@ -1475,8 +1547,8 @@ function selectLesson(lessonId) {
     elements.hintBox.classList.remove('show');
   }
 
-  // Populate Editor with saved user code or starter code
-  const codeToLoad = state.userCodes[lessonId] !== undefined ? state.userCodes[lessonId] : (targetLesson.starter_code || '');
+  // Start each new challenge with a blank editor unless the learner has a saved draft.
+  const codeToLoad = state.userCodes[lessonId] !== undefined ? state.userCodes[lessonId] : '';
   elements.codeEditor.value = codeToLoad;
   updateLineNumbers(elements.codeEditor, elements.editorLineNumbers);
   updateSyntaxLayer(elements.codeEditor, elements.editorSyntaxLayer);
@@ -1771,7 +1843,7 @@ async function handleRunCode(customInput = null) {
     } else {
       if (elements.inputNeededBanner) elements.inputNeededBanner.style.display = 'none';
       if (data.stderr) {
-        elements.stderrContent.textContent = data.stderr;
+        elements.stderrContent.textContent = explainExecutionError(data.stderr);
         elements.stderrContent.style.display = 'block';
       } else {
         elements.stderrContent.textContent = '';
@@ -1794,7 +1866,7 @@ async function handleRunCode(customInput = null) {
       recordCodeCompletion();
     }
   } catch (err) {
-    elements.stderrContent.textContent = `Server Connection Error: ${err.message}`;
+    elements.stderrContent.textContent = `Could not run your code because the Python runner could not be reached. Check that the learning app is online, then try again.\n\nDetails: ${err.message}`;
     elements.stderrContent.style.display = 'block';
     setTerminalStatus('error', 'Failed');
   } finally {
@@ -1803,7 +1875,20 @@ async function handleRunCode(customInput = null) {
   }
 }
 
-// Handle Challenge Solution Testing (Check Solution Button)
+function explainExecutionError(details) {
+  const text = String(details || '');
+  let explanation = 'Python stopped because it found a problem. Read the details below, fix the code, and run it again.';
+  if (/SyntaxError/.test(text)) explanation = 'Python could not understand part of the code. Check spelling, quotes, brackets, and colons.';
+  else if (/IndentationError|TabError/.test(text)) explanation = 'The spaces at the start of a line do not line up. Indent the steps inside the same block consistently.';
+  else if (/NameError/.test(text)) explanation = 'Python cannot find a name used in your code. Check its spelling and make sure you created it before using it.';
+  else if (/TypeError/.test(text)) explanation = 'These values cannot be used together in this way. Check that the values have the kind of data this operation needs.';
+  else if (/ValueError/.test(text)) explanation = 'The value has the wrong format for this operation. Check the value you are converting or passing in.';
+  else if (/ZeroDivisionError/.test(text)) explanation = 'A number was divided by zero. Check the number on the right side of `/`, `//`, or `%`.';
+  else if (/timed out/i.test(text)) explanation = 'Your code took too long to finish. Check that loops have a way to stop.';
+  return `${explanation}\n\nPython details:\n${text}`;
+}
+
+// Compare the learner's output with the challenge's expected output.
 async function handleTestCode() {
   if (isExecutingTest) return;
   isExecutingTest = true;
@@ -1843,11 +1928,11 @@ async function handleTestCode() {
       if (alreadyComplete) showToast(`✓ Your program runs successfully!`, 'success');
       setTerminalStatus('ready', 'All Tests Passed');
     } else {
-      showToast('Your code needs to run without errors. Check the message below and try again.', 'error');
+      showToast('Not quite yet. Compare your output with the expected result and try again.', 'error');
       setTerminalStatus('error', 'Test Failed');
     }
   } catch (err) {
-    elements.testResultsContainer.innerHTML = `<p style="color: var(--accent-red);">Testing Error: ${err.message}</p>`;
+    elements.testResultsContainer.textContent = `We could not check the challenge right now. Please try again. Details: ${err.message}`;
     setTerminalStatus('error', 'Test Error');
   } finally {
     isExecutingTest = false;
@@ -1863,26 +1948,34 @@ function renderTestResults(data) {
   const passedCount = results.filter(r => r.passed).length;
   elements.testSummaryPill.textContent = `${passedCount}/${results.length}`;
 
+  const summary = document.createElement('p');
+  summary.className = 'test-results-summary';
+  summary.textContent = data.all_passed
+    ? 'Your code matches the expected result. Nice work!'
+    : 'Your code does not match the expected result yet. Compare the expected result with your output, then try again.';
+  elements.testResultsContainer.appendChild(summary);
+
   results.forEach((r, idx) => {
     const card = document.createElement('div');
     card.className = `test-result-card ${r.passed ? 'passed' : 'failed'}`;
 
     card.innerHTML = `
       <div class="test-header ${r.passed ? 'passed' : 'failed'}">
-        <span>${r.passed ? '✓' : '✗'} Test Case ${idx + 1}: ${r.name}</span>
+        <span>${r.passed ? '✓' : '✗'} Check ${idx + 1}: ${escapeHTML(r.name || 'Challenge output')}</span>
         <span>${r.duration_ms || 0}ms</span>
       </div>
       ${!r.passed ? `
         <div class="test-diff">
           <div>
             <div style="color: var(--text-muted); font-size: 0.72rem; margin-bottom: 2px;">EXPECTED:</div>
-            <pre style="color: var(--accent-green); white-space: pre-wrap;">${r.expected || '[Empty]'}</pre>
+            <pre style="color: var(--accent-green); white-space: pre-wrap;">${escapeHTML(r.expected || '[No expected output]')}</pre>
           </div>
           <div>
             <div style="color: var(--text-muted); font-size: 0.72rem; margin-bottom: 2px;">YOUR OUTPUT:</div>
-            <pre style="color: var(--accent-red); white-space: pre-wrap;">${r.actual || r.error || '[No Output]'}</pre>
+            <pre style="color: var(--accent-red); white-space: pre-wrap;">${escapeHTML(r.actual || '[No output]')}</pre>
           </div>
         </div>
+        ${r.error ? `<p class="test-error-detail">${escapeHTML(explainExecutionError(r.error))}</p>` : ''}
       ` : ''}
     `;
 
@@ -1890,16 +1983,16 @@ function renderTestResults(data) {
   });
 }
 
-// Reset Editor to Starter Code
+// Clear the editor so the learner can write their own solution.
 function handleResetCode() {
   const lesson = getCurrentLesson();
-  if (lesson && confirm('Reset code to the original starter code? Any unsaved edits will be discarded.')) {
-    elements.codeEditor.value = lesson.starter_code || '';
+  if (lesson && confirm('Clear your code? Any unsaved edits will be removed.')) {
+    elements.codeEditor.value = '';
     updateLineNumbers(elements.codeEditor, elements.editorLineNumbers);
     updateSyntaxLayer(elements.codeEditor, elements.editorSyntaxLayer);
-    state.userCodes[state.currentLessonId] = lesson.starter_code || '';
+    state.userCodes[state.currentLessonId] = '';
     localStorage.setItem('pylearn_user_codes', JSON.stringify(state.userCodes));
-    showToast('Code reset to starter template.', 'success');
+    showToast('Editor cleared. Write your solution here.', 'success');
   }
 }
 
@@ -2601,6 +2694,19 @@ function showToast(message, type = 'success') {
   }, 3500);
 }
 
+function updateProgressSaveNote(message = '') {
+  if (!elements.progressSaveNote) return;
+  if (message) {
+    elements.progressSaveNote.textContent = message;
+  } else if (currentUser && db) {
+    elements.progressSaveNote.textContent = 'Signed in: learning progress syncs to your account. Code drafts stay in this browser.';
+  } else if (currentUser) {
+    elements.progressSaveNote.textContent = 'Your account is signed in, but syncing is unavailable. Progress and code are saved in this browser for now.';
+  } else {
+    elements.progressSaveNote.textContent = 'Not signed in: progress and code are saved only in this browser. Sign in to sync learning progress.';
+  }
+}
+
 // Particle Confetti Animation
 function fireConfetti() {
   const canvas = elements.confettiCanvas;
@@ -2799,6 +2905,7 @@ function setupAuthEventListeners() {
   if (elements.authGuestBtn) {
     elements.authGuestBtn.addEventListener('click', () => {
       guestModeDismissed = true;
+      updateProgressSaveNote();
       closeAuthModal();
       showToast('Continuing as guest. Sign in anytime to sync your progress!', 'info');
     });
@@ -2811,6 +2918,15 @@ function setupAuthEventListeners() {
   }
   if (elements.authForm) {
     elements.authForm.addEventListener('submit', handleAuthFormSubmit);
+  }
+  if (elements.authPasswordToggle && elements.authPasswordInput) {
+    elements.authPasswordToggle.addEventListener('click', () => {
+      const shouldShow = elements.authPasswordInput.type === 'password';
+      elements.authPasswordInput.type = shouldShow ? 'text' : 'password';
+      elements.authPasswordToggle.setAttribute('aria-label', shouldShow ? 'Hide password' : 'Show password');
+      elements.authPasswordToggle.setAttribute('aria-pressed', String(shouldShow));
+      elements.authPasswordToggle.classList.toggle('is-visible', shouldShow);
+    });
   }
   if (elements.googleAuthBtn) {
     elements.googleAuthBtn.addEventListener('click', handleGoogleSignIn);
@@ -2940,6 +3056,7 @@ function updateUserDropdownDetails() {
 
 async function handleAuthStateChanged(user) {
   currentUser = user;
+  updateProgressSaveNote();
   if (user) {
     // 1. User authenticated -> mark active session & close auth gate
     guestModeDismissed = false;
@@ -3129,10 +3246,13 @@ async function handleAuthStateChanged(user) {
           }
         }, err => {
           console.warn('Real-time sync listener notice:', err);
+          updateProgressSaveNote('Progress sync is having trouble. Your progress and code are still saved in this browser.');
         });
+        updateProgressSaveNote();
       }
     } catch (err) {
       console.warn('Could not sync user profile with Firestore:', err);
+      updateProgressSaveNote('Progress sync is unavailable right now. Your progress and code are saved in this browser.');
     }
 
     // 3. Check if current user is admin (/admins/{uid})
@@ -3157,6 +3277,7 @@ async function handleAuthStateChanged(user) {
   } else {
     // User is NOT logged in -> lock/prompt sign in right on open!
     currentUser = null;
+    updateProgressSaveNote();
     currentUserIsAdmin = false;
     if (activeUserUnsubscribe) {
       activeUserUnsubscribe();

@@ -196,24 +196,38 @@ class PyLearnRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.send_json_response(404, {"error": f"Lesson {lesson_id} not found"})
                 return
 
-            # Beginner-friendly completion: a non-empty program that runs without
-            # an error completes the lesson. Exact-output grading made a correct
-            # learning attempt look like a failure for many early lessons.
             res = self.execute_python_code(code, stdin_input=stdin_input)
             actual = res.get("stdout", "")
             stderr = res.get("stderr", "")
-            passed = bool(code.strip()) and res.get("exit_code") == 0
-            results = [{
-                "name": "Program runs successfully",
-                "passed": passed,
-                "expected": "Write and run any non-empty Python program without errors.",
-                "actual": actual,
-                "error": stderr if res.get("exit_code") != 0 else "",
-                "duration_ms": res.get("duration_ms", 0)
-            }]
+            test_cases = target_lesson.get("challenge", {}).get("test_cases", [])
+            if test_cases:
+                results = []
+                for case in test_cases:
+                    expected = str(case.get("expected_output", ""))
+                    passed = bool(code.strip()) and res.get("exit_code") == 0 and actual.strip() == expected.strip()
+                    results.append({
+                        "name": case.get("name", "Challenge output"),
+                        "passed": passed,
+                        "expected": expected,
+                        "actual": actual,
+                        "error": stderr if res.get("exit_code") != 0 else "",
+                        "duration_ms": res.get("duration_ms", 0)
+                    })
+            else:
+                passed = bool(code.strip()) and res.get("exit_code") == 0
+                results = [{
+                    "name": "Code runs without errors",
+                    "passed": passed,
+                    "expected": "Write a non-empty Python program that runs without errors.",
+                    "actual": actual,
+                    "error": stderr if res.get("exit_code") != 0 else "",
+                    "duration_ms": res.get("duration_ms", 0)
+                }]
+
+            all_passed = bool(results) and all(result["passed"] for result in results)
 
             self.send_json_response(200, {
-                "all_passed": passed,
+                "all_passed": all_passed,
                 "results": results
             })
         except Exception as e:
