@@ -23,10 +23,10 @@
   <link rel="shortcut icon" type="image/png" href="/img/phanix-favicon-192.png">
   <link rel="apple-touch-icon" sizes="192x192" href="/img/phanix-favicon-192.png">
   <link rel="manifest" href="site.webmanifest">
-  <link rel="stylesheet" href="css/style.css?v=7.6">
+  <link rel="stylesheet" href="css/style.css?v=7.8">
   <!-- Preload critical assets so browser fetches them immediately -->
   <link rel="preload" href="img/logo.webp" as="image" type="image/webp">
-  <link rel="preload" href="js/app.js?v=7.5" as="script">
+  <link rel="preload" href="js/app.js?v=7.8" as="script">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
@@ -34,10 +34,10 @@
     href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
     rel="stylesheet" media="print" onload="this.media='all'">
   <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"></noscript>
-  <!-- Immediate auth state pre-check: completely prevents login screen blinking/flashing on refresh -->
+  <!-- Immediate auth state pre-check: completely prevents login screen blinking/flashing on refresh or public cert view -->
   <script>
     try {
-      if (sessionStorage.getItem('pylearn_session_authenticated') === '1') {
+      if (sessionStorage.getItem('pylearn_session_authenticated') === '1' || (window.location.hash && window.location.hash.startsWith('#certificate'))) {
         document.documentElement.classList.add('pylearn-has-session');
       }
     } catch (e) { }
@@ -1303,7 +1303,7 @@
   </div>
 
   <!-- Full-Screen Starting Portal & Authentication Screen -->
-  <div class="auth-screen" id="auth-screen" role="dialog" aria-modal="true" aria-label="Welcome to Phanix Portal">
+  <div class="auth-screen auth-screen-hidden" id="auth-screen" role="dialog" aria-modal="true" aria-label="Welcome to Phanix Portal" style="display: none;">
     <!-- Ambient glowing backdrop lighting -->
     <div class="auth-ambient-glow auth-glow-1"></div>
     <div class="auth-ambient-glow auth-glow-2"></div>
@@ -1527,7 +1527,7 @@
   <script defer src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
   <!-- Application Logic -->
-  <script defer src="js/app.js?v=7.6"></script>
+  <script defer src="js/app.js?v=7.8"></script>
 </body>
 
 </html>

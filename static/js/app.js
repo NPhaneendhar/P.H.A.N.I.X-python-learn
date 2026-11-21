@@ -534,6 +534,7 @@ async function initApp() {
     renderCheatsheet();
     renderAchievements();
     checkAllProgress(); // restores badges for progress saved from an earlier visit
+    handleCertificateHashRoute();
 
     // Select initial lesson
     const savedLesson = localStorage.getItem('pylearn_current_lesson');
@@ -2536,6 +2537,11 @@ function getLinkedInCertAddUrl(certId, learnerName, completionDate) {
 function updateCertificateStatus(lessonTotal, challengeTotal) {
   if (!elements.certDate || !elements.certDownloadBtn || !elements.certStatus) return;
 
+  // When viewing a public/admin verified certificate link, preserve verified state
+  if (window.location.hash && window.location.hash.startsWith('#certificate')) {
+    return;
+  }
+
   const totals = state.modules.reduce((result, module) => {
     result.lessons += module.lessons.length;
     result.challenges += module.lessons.filter(lesson => lesson.challenge).length;
@@ -3691,9 +3697,14 @@ async function handleAuthStateChanged(user) {
       activeUserUnsubscribe();
       activeUserUnsubscribe = null;
     }
+    const isCertRoute = Boolean(window.location.hash && window.location.hash.startsWith('#certificate'));
     try {
       sessionStorage.removeItem('pylearn_session_authenticated');
-      document.documentElement.classList.remove('pylearn-has-session');
+      if (!isCertRoute) {
+        document.documentElement.classList.remove('pylearn-has-session');
+      } else {
+        document.documentElement.classList.add('pylearn-has-session');
+      }
       Object.keys(localStorage).forEach(k => {
         if (k.startsWith('pylearn_spiderman_audio_played')) {
           localStorage.removeItem(k);
@@ -3712,9 +3723,15 @@ async function handleAuthStateChanged(user) {
       switchView('view-learn');
     }
 
-    // Prompt sign in on opening the web
-    if (!guestModeDismissed) {
+    // Prompt sign in on opening the web (unless viewing a public certificate verification link)
+    if (!guestModeDismissed && !isCertRoute) {
       openAuthModal('login');
+    } else if (isCertRoute) {
+      const screen = elements.authScreen || document.getElementById('auth-screen');
+      if (screen) {
+        screen.style.display = 'none';
+        screen.classList.add('auth-screen-hidden');
+      }
     }
   }
 }
@@ -3996,8 +4013,22 @@ function renderAdminLearnersTable(learners) {
     const lessonsCount = typeof u.lessons === 'number' ? u.lessons : (Array.isArray(u.completedLessons) ? u.completedLessons.length : (Number(u.completedLessonsCount) || 0));
     const initial = (name[0] || 'U').toUpperCase();
     const isCert = Boolean(u.certificate === true || u.certificateUnlocked === true);
-    const certId = u.certificateId || (isCert ? 'PHANIX-VERIFIED' : '');
-    const certLink = u.certificateLink || (isCert && certId ? `${window.location.origin}${window.location.pathname}#certificate?id=${encodeURIComponent(certId)}&learner=${encodeURIComponent(name)}` : '');
+    let certId = u.certificateId || '';
+    if (!certId && u.certificateLink && u.certificateLink.includes('id=')) {
+      try {
+        const parsedQuery = u.certificateLink.includes('?') ? u.certificateLink.split('?')[1] : '';
+        const searchParams = new URLSearchParams(parsedQuery);
+        certId = searchParams.get('id') || '';
+      } catch (e) {}
+    }
+    if (!certId && isCert) {
+      certId = 'PHANIX-VERIFIED';
+    }
+
+    // Always build the certificate URL on the CURRENT origin so it never navigates to external/unauthenticated domains
+    const certLink = (isCert && certId)
+      ? `${window.location.origin}${window.location.pathname}#certificate?id=${encodeURIComponent(certId)}&learner=${encodeURIComponent(name)}&email=${encodeURIComponent(email)}`
+      : '';
 
     let certBadge = '<span class="admin-cert-pill locked">🔒 In Progress</span>';
     if (isCert) {
@@ -4053,10 +4084,21 @@ function handleCertificateHashRoute() {
   const hash = window.location.hash;
   if (!hash || !hash.startsWith('#certificate')) return;
 
+  // Public certificate route: bypass any forced login modal
+  guestModeDismissed = true;
+  document.documentElement.classList.add('pylearn-has-session');
+  const screen = elements.authScreen || document.getElementById('auth-screen');
+  if (screen) {
+    screen.style.display = 'none';
+    screen.classList.add('auth-screen-hidden');
+  }
+  closeAuthModal();
+
   const queryString = hash.includes('?') ? hash.split('?')[1] : '';
   const params = new URLSearchParams(queryString);
   const certId = params.get('id');
   const learnerName = params.get('learner');
+  const learnerEmail = params.get('email');
 
   if (certId || learnerName) {
     // Switch to Achievements view
@@ -4064,12 +4106,16 @@ function handleCertificateHashRoute() {
 
     const decodedName = learnerName ? decodeURIComponent(learnerName) : 'Verified Learner';
     const decodedId = certId ? decodeURIComponent(certId) : 'PHANIX-VERIFIED';
+    const decodedEmail = learnerEmail ? decodeURIComponent(learnerEmail) : '';
 
     if (elements.certLearnerName) {
       elements.certLearnerName.value = decodedName;
     }
     if (elements.certSerialId) {
       elements.certSerialId.textContent = decodedId;
+    }
+    if (elements.certAccountEmail && decodedEmail && decodedEmail !== 'No email') {
+      elements.certAccountEmail.textContent = decodedEmail;
     }
     if (elements.certRecognitionBadge) {
       elements.certRecognitionBadge.textContent = 'OFFICIALLY VERIFIED RECORD';
@@ -4210,10 +4256,11 @@ function initCertificateEasterEggs() {
 }
 
 // Kickoff application safely across any loading state
-function _startApp() {
-  initApp();
+async function _startApp() {
   initProfileModal();
   initCertificateEasterEggs();
+  handleCertificateHashRoute();
+  await initApp();
   handleCertificateHashRoute();
 }
 
